@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AppBar } from "@/components/AppBar";
 import { Input } from "@/components/ui/input";
 import { TicketCard } from "@/components/TicketCard";
+import { DeleteTicketDialog } from "@/components/DeleteTicketDialog";
 import type { Ticket, Repository } from "@/types";
 
 // Fonction de distance de Levenshtein
@@ -48,6 +49,9 @@ function TicketsList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchTickets = useCallback(async () => {
     if (!repositoryId) return;
@@ -136,13 +140,20 @@ function TicketsList() {
     navigate(`/ticket/${ticketId}/edit`);
   };
 
-  const handleDelete = async (ticketId: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce ticket ?")) {
-      return;
+  const handleDelete = (ticketId: string) => {
+    const ticket = tickets.find((t) => t.id === ticketId);
+    if (ticket) {
+      setTicketToDelete(ticket);
+      setDeleteDialogOpen(true);
     }
+  };
+
+  const confirmDelete = async () => {
+    if (!ticketToDelete) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/tickets/${ticketId}`, {
+      setDeleting(true);
+      const response = await fetch(`http://localhost:8000/api/tickets/${ticketToDelete.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -153,10 +164,14 @@ function TicketsList() {
         throw new Error("Erreur lors de la suppression du ticket");
       }
 
-      // Refresh tickets list
+      // Close dialog and refresh tickets list
+      setDeleteDialogOpen(false);
+      setTicketToDelete(null);
       fetchTickets();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de la suppression");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -262,6 +277,9 @@ function TicketsList() {
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteTicketDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} ticket={ticketToDelete} onConfirm={confirmDelete} loading={deleting} />
     </div>
   );
 }

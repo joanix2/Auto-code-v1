@@ -22,9 +22,9 @@ elle va beaucoup ressembler à la liste des repo, tu peut donc copier le code da
 
 ✅ page avec des tickets de création,
 
-page edition
+✅ page edition
 
-suppression de tickets (refaire la modale)
+✅ suppression de tickets (refaire la modale)
 
 drag and drop pour l'ordre des tickets
 
