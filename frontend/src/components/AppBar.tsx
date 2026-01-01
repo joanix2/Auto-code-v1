@@ -11,6 +11,11 @@ export function AppBar() {
   // Get profile picture URL
   const getProfilePictureUrl = () => {
     if (user?.profile_picture) {
+      // If it's already a full URL (from GitHub), use it directly
+      if (user.profile_picture.startsWith("http://") || user.profile_picture.startsWith("https://")) {
+        return user.profile_picture;
+      }
+      // Otherwise, it's a local asset
       const baseUrl = API_URL.replace(/\/api$/, "");
       return `${baseUrl}/assets/${user.profile_picture}?t=${Date.now()}`;
     }

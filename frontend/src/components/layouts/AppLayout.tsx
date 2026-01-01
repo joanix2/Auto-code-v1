@@ -223,6 +223,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Get profile picture URL
   const getProfilePictureUrl = () => {
     if (user?.profile_picture) {
+      // If it's already a full URL (from GitHub), use it directly
+      if (user.profile_picture.startsWith("http://") || user.profile_picture.startsWith("https://")) {
+        return user.profile_picture;
+      }
+      // Otherwise, it's a local asset
       // API_URL already contains /api, so we need to remove it and add /assets
       const baseUrl = API_URL.replace(/\/api$/, "");
       // Add timestamp to prevent browser caching

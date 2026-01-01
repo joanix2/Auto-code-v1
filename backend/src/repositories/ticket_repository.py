@@ -6,6 +6,18 @@ from datetime import datetime
 import uuid
 
 
+def neo4j_datetime_to_python(neo4j_dt) -> datetime:
+    """Convert Neo4j DateTime to Python datetime"""
+    if neo4j_dt is None:
+        return datetime.utcnow()
+    if isinstance(neo4j_dt, datetime):
+        return neo4j_dt
+    # Neo4j DateTime has to_native() method
+    if hasattr(neo4j_dt, 'to_native'):
+        return neo4j_dt.to_native()
+    return datetime.utcnow()
+
+
 class TicketRepository:
     """Repository for managing ticket data"""
     
@@ -17,47 +29,58 @@ class TicketRepository:
         ticket_id = str(uuid.uuid4())
         query = """
         MATCH (u:User {username: $created_by})
-        MATCH (r:Repository {full_name: $repository})
+        MATCH (r:Repository {id: $repository_id})
         CREATE (t:Ticket {
             id: $id,
             title: $title,
             description: $description,
-            repository: $repository,
+            repository_id: $repository_id,
             priority: $priority,
-            type: $type,
-            status: 'pending',
+            ticket_type: $ticket_type,
+            status: 'open',
             created_at: datetime()
         })
         CREATE (u)-[:CREATED]->(t)
         CREATE (t)-[:FOR_REPO]->(r)
-        RETURN t
+        RETURN t, r.name as repository_name
         """
         
         params = {
             "id": ticket_id,
             "created_by": created_by,
-            **ticket_data.model_dump()
+            "title": ticket_data.title,
+            "description": ticket_data.description or "",
+            "repository_id": ticket_data.repository_id,
+            "priority": ticket_data.priority.value,
+            "ticket_type": ticket_data.ticket_type.value
         }
         
         result = self.db.execute_query(query, params)
         if result:
+            record = result[0]
             return Ticket(
                 id=ticket_id,
+                title=ticket_data.title,
+                description=ticket_data.description,
+                repository_id=ticket_data.repository_id,
+                repository_name=record.get("repository_name"),
+                priority=ticket_data.priority,
+                ticket_type=ticket_data.ticket_type,
                 created_by=created_by,
-                status=TicketStatus.pending,
-                **ticket_data.model_dump()
+                status=TicketStatus.open
             )
         return None
     
-    async def get_tickets_by_repository(self, repository: str) -> List[Ticket]:
+    async def get_tickets_by_repository(self, repository_id: str) -> List[Ticket]:
         """Get all tickets for a repository"""
         query = """
-        MATCH (t:Ticket {repository: $repository})<-[:CREATED]-(u:User)
-        RETURN t, u.username as created_by
+        MATCH (t:Ticket {repository_id: $repository_id})<-[:CREATED]-(u:User)
+        MATCH (t)-[:FOR_REPO]->(r:Repository)
+        RETURN t, u.username as created_by, r.name as repository_name
         ORDER BY t.created_at DESC
         """
         
-        result = self.db.execute_query(query, {"repository": repository})
+        result = self.db.execute_query(query, {"repository_id": repository_id})
         tickets = []
         
         for record in result:
@@ -66,12 +89,13 @@ class TicketRepository:
                 id=ticket_node["id"],
                 title=ticket_node["title"],
                 description=ticket_node["description"],
-                repository=ticket_node["repository"],
+                repository_id=ticket_node["repository_id"],
+                repository_name=record.get("repository_name"),
                 priority=ticket_node["priority"],
-                type=ticket_node["type"],
+                ticket_type=ticket_node["ticket_type"],
                 status=TicketStatus(ticket_node["status"]),
                 created_by=record["created_by"],
-                created_at=ticket_node.get("created_at", datetime.utcnow())
+                created_at=neo4j_datetime_to_python(ticket_node.get("created_at"))
             ))
         
         return tickets

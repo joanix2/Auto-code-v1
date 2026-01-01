@@ -14,6 +14,7 @@ interface TicketFormData {
   title: string;
   description: string;
   priority: string;
+  type: string;
   repository: string;
 }
 
@@ -28,6 +29,7 @@ function CreateTicket() {
     title: "",
     description: "",
     priority: "medium",
+    type: "feature",
     repository: repositoryId || "",
   });
   const [loading, setLoading] = useState(false);
@@ -60,6 +62,11 @@ function CreateTicket() {
       return;
     }
 
+    if (!formData.repository) {
+      setError("Veuillez sélectionner un repository");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
@@ -74,16 +81,23 @@ function CreateTicket() {
           title: formData.title.trim(),
           description: formData.description.trim() || null,
           priority: formData.priority,
-          repository_id: formData.repository || null,
+          type: formData.type,
+          repository_id: formData.repository,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("Error creating ticket:", errorData);
         throw new Error(errorData.detail || "Erreur lors de la création du ticket");
       }
 
-      navigate("/projects");
+      // Redirect to the tickets list for the repository
+      if (formData.repository) {
+        navigate(`/repository/${formData.repository}/tickets`);
+      } else {
+        navigate("/projects");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de la création");
     } finally {
@@ -141,12 +155,13 @@ function CreateTicket() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="repository">Repository</Label>
+                  <Label htmlFor="repository">Repository *</Label>
                   <select
                     id="repository"
                     name="repository"
                     value={formData.repository}
                     onChange={handleChange}
+                    required
                     className="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Sélectionnez un repository</option>
@@ -157,6 +172,22 @@ function CreateTicket() {
                     ))}
                   </select>
                   <p className="text-xs text-slate-500">Associez ce ticket à un repository spécifique</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="type">Type</Label>
+                  <select
+                    id="type"
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="feature">Fonctionnalité</option>
+                    <option value="bugfix">Correction de bug</option>
+                    <option value="refactor">Refactorisation</option>
+                    <option value="documentation">Documentation</option>
+                  </select>
                 </div>
 
                 <div className="space-y-2">
@@ -171,7 +202,7 @@ function CreateTicket() {
                     <option value="low">Basse</option>
                     <option value="medium">Moyenne</option>
                     <option value="high">Haute</option>
-                    <option value="urgent">Urgente</option>
+                    <option value="critical">Critique</option>
                   </select>
                 </div>
                 <div className="flex gap-3 pt-4">

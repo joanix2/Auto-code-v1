@@ -1,5 +1,5 @@
 """Ticket model"""
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 from enum import Enum
@@ -7,10 +7,10 @@ from enum import Enum
 
 class TicketStatus(str, Enum):
     """Ticket status enum"""
-    pending = "pending"
+    open = "open"
     in_progress = "in_progress"
-    completed = "completed"
-    failed = "failed"
+    closed = "closed"
+    cancelled = "cancelled"
 
 
 class TicketPriority(str, Enum):
@@ -32,15 +32,20 @@ class TicketType(str, Enum):
 class TicketBase(BaseModel):
     """Base ticket model"""
     title: str = Field(..., min_length=1, max_length=200, description="Ticket title")
-    description: str = Field(..., min_length=1, description="Ticket description")
-    repository: str = Field(..., description="Repository full name")
+    description: Optional[str] = Field(None, description="Ticket description")
     priority: TicketPriority = Field(default=TicketPriority.medium, description="Ticket priority")
-    type: TicketType = Field(default=TicketType.feature, description="Ticket type")
+    ticket_type: TicketType = Field(default=TicketType.feature, description="Ticket type", alias="type")
 
 
-class TicketCreate(TicketBase):
+class TicketCreate(BaseModel):
     """Model for creating a ticket"""
-    pass
+    model_config = ConfigDict(populate_by_name=True)
+    
+    title: str = Field(..., min_length=1, max_length=200, description="Ticket title")
+    description: Optional[str] = Field(None, description="Ticket description")
+    repository_id: str = Field(..., description="Repository ID")
+    priority: TicketPriority = Field(default=TicketPriority.medium, description="Ticket priority")
+    ticket_type: TicketType = Field(default=TicketType.feature, description="Ticket type", alias="type")
 
 
 class TicketUpdate(BaseModel):
@@ -53,11 +58,12 @@ class TicketUpdate(BaseModel):
 
 class Ticket(TicketBase):
     """Complete ticket model"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    
     id: str = Field(..., description="Ticket ID")
-    status: TicketStatus = Field(default=TicketStatus.pending, description="Ticket status")
+    repository_id: str = Field(..., description="Repository ID")
+    repository_name: Optional[str] = Field(None, description="Repository name")
+    status: TicketStatus = Field(default=TicketStatus.open, description="Ticket status")
     created_by: str = Field(..., description="Username of creator")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
-    
-    class Config:
-        from_attributes = True
