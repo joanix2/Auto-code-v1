@@ -131,6 +131,66 @@ Check health status:
 curl http://localhost:8000/api/health
 ```
 
+## 🤖 Claude AI Integration
+
+### Headless Development
+
+Auto-Code includes a powerful headless development system using Claude AI that can:
+
+- Automatically develop tickets in queue
+- Generate production-ready code
+- Run on servers without human intervention
+- Integrate with CI/CD pipelines
+
+**Quick Start:**
+
+```bash
+# Setup API key
+export ANTHROPIC_API_KEY=sk-ant-your-key-here
+
+# Develop next ticket in queue
+curl -X POST http://localhost:8000/api/tickets/repository/REPO_ID/develop-next \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Or use the CLI
+cd backend
+python claude_cli.py develop-next REPO_ID
+```
+
+**Continuous Development Server:**
+
+```bash
+# Run continuous development
+export AUTOCODE_REPO_ID=your-repo-id
+export ANTHROPIC_API_KEY=sk-ant-your-key
+./scripts/headless_dev.sh
+```
+
+📖 **Full Documentation:**
+
+- [Claude Setup Guide](CLAUDE_SETUP.md) - Configuration and basic usage
+- [Headless Development](CLAUDE_HEADLESS.md) - Advanced automation and CI/CD
+
+### Features
+
+✨ **Smart Queue Management**
+
+- Tickets automatically ordered by priority
+- First "open" ticket is next in queue
+- Status tracking (open → in_progress → closed)
+
+🎯 **Structured Prompts**
+
+- Context-aware code generation
+- Repository-specific patterns
+- Best practices enforcement
+
+📊 **Usage Tracking**
+
+- Token consumption monitoring
+- Cost estimation
+- Performance metrics
+
 ## 🔧 Development
 
 ### Backend Development

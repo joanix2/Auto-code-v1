@@ -107,6 +107,7 @@ export interface TicketUpdate {
 export enum TicketStatus {
   OPEN = "open",
   IN_PROGRESS = "in_progress",
+  PENDING_VALIDATION = "pending_validation",
   CLOSED = "closed",
   CANCELLED = "cancelled",
 }

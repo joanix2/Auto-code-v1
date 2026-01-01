@@ -28,7 +28,16 @@ elle va beaucoup ressembler à la liste des repo, tu peut donc copier le code da
 
 ✅ drag and drop pour l'ordre des tickets
 
-bar pour filter l'état des tickets (si on veux que les TODO par exemple)
+✅ bar pour filter l'état des tickets (si on veux que les TODO par exemple)
+
+✅ système headless de développement automatique avec Claude AI
+
+- API backend pour développement automatique
+- Service Claude pour génération de code
+- CLI pour développement en ligne de commande
+- Script bash pour serveur headless
+- Configuration systemd pour production
+- Documentation complète (CLAUDE_SETUP.md, CLAUDE_HEADLESS.md, PRODUCTION_INSTALL.md)
 
 générer le code
 

@@ -11,7 +11,11 @@ import { AppBar } from "@/components/AppBar";
 import { Input } from "@/components/ui/input";
 import { SortableTicketCard } from "@/components/SortableTicketCard";
 import { DeleteTicketDialog } from "@/components/DeleteTicketDialog";
+import { ClaudeDevelopmentBanner } from "@/components/ClaudeDevelopmentBanner";
+import { TicketStatusFilter } from "@/components/TicketStatusFilter";
 import type { Ticket, Repository } from "@/types";
+import { TicketStatus } from "@/types";
+import { ClaudeService } from "@/services/claudeService";
 
 // Fonction de distance de Levenshtein
 function levenshteinDistance(str1: string, str2: string): number {
@@ -49,11 +53,14 @@ function TicketsList() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<TicketStatus | "all">("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [developing, setDeveloping] = useState(false);
+  const [claudeResponse, setClaudeResponse] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -113,37 +120,42 @@ function TicketsList() {
     }
   }, [repositoryId]);
 
-  // Filtrage avec distance de Levenshtein
+  // Filtrage avec distance de Levenshtein et statut
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredTickets(tickets);
-      return;
+    let filtered = tickets;
+
+    // Filtrer par statut
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((ticket) => ticket.status === statusFilter);
     }
 
-    const query = searchQuery.toLowerCase();
-    const threshold = 3;
+    // Filtrer par recherche
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const threshold = 3;
 
-    const filtered = tickets
-      .map((ticket) => {
-        const titleDistance = levenshteinDistance(ticket.title, query);
-        const descriptionDistance = ticket.description ? levenshteinDistance(ticket.description, query) : Infinity;
+      filtered = filtered
+        .map((ticket) => {
+          const titleDistance = levenshteinDistance(ticket.title, query);
+          const descriptionDistance = ticket.description ? levenshteinDistance(ticket.description, query) : Infinity;
 
-        const bestDistance = Math.min(titleDistance, descriptionDistance);
+          const bestDistance = Math.min(titleDistance, descriptionDistance);
 
-        const titleContains = ticket.title.toLowerCase().includes(query);
-        const descriptionContains = ticket.description?.toLowerCase().includes(query);
+          const titleContains = ticket.title.toLowerCase().includes(query);
+          const descriptionContains = ticket.description?.toLowerCase().includes(query);
 
-        return {
-          ticket,
-          score: titleContains || descriptionContains ? -1 : bestDistance,
-        };
-      })
-      .filter((item) => item.score === -1 || item.score <= threshold)
-      .sort((a, b) => a.score - b.score)
-      .map((item) => item.ticket);
+          return {
+            ticket,
+            score: titleContains || descriptionContains ? -1 : bestDistance,
+          };
+        })
+        .filter((item) => item.score === -1 || item.score <= threshold)
+        .sort((a, b) => a.score - b.score)
+        .map((item) => item.ticket);
+    }
 
     setFilteredTickets(filtered);
-  }, [searchQuery, tickets]);
+  }, [searchQuery, statusFilter, tickets]);
 
   useEffect(() => {
     fetchTickets();
@@ -185,6 +197,29 @@ function TicketsList() {
       setError(err instanceof Error ? err.message : "Erreur lors de la suppression");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleDevelopWithClaude = async (ticketId: string) => {
+    try {
+      setDeveloping(true);
+      setError("");
+      setClaudeResponse(null);
+
+      const result = await ClaudeService.developTicket(ticketId);
+
+      // Afficher la réponse
+      setClaudeResponse(ClaudeService.formatResponse(result));
+
+      // Rafraîchir la liste des tickets
+      fetchTickets();
+
+      // Notification de succès
+      alert(`✅ Développement lancé avec succès!\n\nModèle: ${result.model}\nTokens utilisés: ${result.usage?.input_tokens + result.usage?.output_tokens || "N/A"}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur lors du développement avec Claude");
+    } finally {
+      setDeveloping(false);
     }
   };
 
@@ -252,6 +287,9 @@ function TicketsList() {
             </div>
           </div>
 
+          {/* Claude Development Button - Au dessus de la barre de recherche */}
+          <ClaudeDevelopmentBanner tickets={tickets} developing={developing} onDevelopWithClaude={handleDevelopWithClaude} />
+
           {/* Search Bar with Add Button */}
           <div className="flex gap-3 items-center">
             <div className="relative flex-1">
@@ -281,6 +319,20 @@ function TicketsList() {
               </Button>
             </Link>
           </div>
+
+          {/* Status Filter Bar */}
+          <TicketStatusFilter
+            selectedStatus={statusFilter}
+            onStatusChange={setStatusFilter}
+            statusCounts={{
+              all: tickets.length,
+              [TicketStatus.OPEN]: tickets.filter((t) => t.status === TicketStatus.OPEN).length,
+              [TicketStatus.IN_PROGRESS]: tickets.filter((t) => t.status === TicketStatus.IN_PROGRESS).length,
+              [TicketStatus.PENDING_VALIDATION]: tickets.filter((t) => t.status === TicketStatus.PENDING_VALIDATION).length,
+              [TicketStatus.CLOSED]: tickets.filter((t) => t.status === TicketStatus.CLOSED).length,
+              [TicketStatus.CANCELLED]: tickets.filter((t) => t.status === TicketStatus.CANCELLED).length,
+            }}
+          />
         </div>
 
         {/* Error Alert */}
@@ -327,15 +379,30 @@ function TicketsList() {
             </CardContent>
           </Card>
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={filteredTickets.map((ticket) => ticket.id)} strategy={verticalListSortingStrategy}>
-              <div className="space-y-3">
-                {filteredTickets.map((ticket) => (
-                  <SortableTicketCard key={ticket.id} ticket={ticket} onEdit={handleEdit} onDelete={handleDelete} />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+          <>
+            {/* Développement en cours indicator */}
+            {developing && (
+              <Alert className="mb-6 bg-purple-50 border-purple-200 dark:bg-purple-950/20 dark:border-purple-800">
+                <AlertDescription className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span className="font-medium text-purple-900 dark:text-purple-100">Claude est en train de développer le ticket...</span>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={filteredTickets.map((ticket) => ticket.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-3">
+                  {filteredTickets.map((ticket) => (
+                    <SortableTicketCard key={ticket.id} ticket={ticket} onEdit={handleEdit} onDelete={handleDelete} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </>
         )}
       </main>
 

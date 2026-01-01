@@ -9,6 +9,7 @@ class TicketStatus(str, Enum):
     """Ticket status enum"""
     open = "open"
     in_progress = "in_progress"
+    pending_validation = "pending_validation"
     closed = "closed"
     cancelled = "cancelled"
 
