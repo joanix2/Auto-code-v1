@@ -8,10 +8,10 @@
 
 ✅ page profile
 ✅ configuration du token github
-configuration du auth2 github
+✅ configuration du auth2 github
+✅ tri par dernière date de modification
 
-tri par dernière date de modification
-recherche de repo par nom (distance de levenstein)
+recherche de repo par nom (distance de levenstein) avec une bar de recherche et le bouton plus à coté pour créer un nouveau repo
 
 style boutton nouveau repo
 

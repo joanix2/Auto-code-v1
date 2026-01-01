@@ -42,8 +42,11 @@ export interface Repository {
   url?: string;
   private: boolean;
   owner_username: string;
-  created_at: string;
-  updated_at?: string;
+  created_at: string; // Date de création dans notre base
+  updated_at?: string; // Date de modification dans notre base
+  github_created_at?: string; // Date de création du repo sur GitHub
+  github_updated_at?: string; // Date de dernière modification sur GitHub
+  github_pushed_at?: string; // Date du dernier push sur GitHub
   // Champs optionnels de GitHub
   language?: string;
   stargazers_count?: number;

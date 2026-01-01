@@ -12,6 +12,10 @@ class RepositoryBase(BaseModel):
     github_id: Optional[int] = Field(None, description="GitHub repository ID")
     url: Optional[str] = Field(None, description="Repository URL")
     private: bool = Field(default=False, description="Is private repository")
+    # Dates GitHub
+    github_created_at: Optional[datetime] = Field(None, description="Repository creation date on GitHub")
+    github_updated_at: Optional[datetime] = Field(None, description="Last update date on GitHub")
+    github_pushed_at: Optional[datetime] = Field(None, description="Last push date on GitHub")
 
 
 class RepositoryCreate(RepositoryBase):
@@ -29,13 +33,16 @@ class Repository(RepositoryBase):
     """Complete repository model"""
     id: str = Field(..., description="Internal repository ID")
     owner_username: str = Field(..., description="Owner username")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow, description="Created in our database")
+    updated_at: Optional[datetime] = Field(None, description="Last updated in our database")
     
     # Override to make these fields optional in responses
     full_name: Optional[str] = Field(None, description="Full repository name (owner/repo)")
     github_id: Optional[int] = Field(None, description="GitHub repository ID")
     url: Optional[str] = Field(None, description="Repository URL")
+    github_created_at: Optional[datetime] = Field(None, description="Repository creation date on GitHub")
+    github_updated_at: Optional[datetime] = Field(None, description="Last update date on GitHub")
+    github_pushed_at: Optional[datetime] = Field(None, description="Last push date on GitHub")
     
     class Config:
         from_attributes = True

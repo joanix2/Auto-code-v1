@@ -29,7 +29,11 @@ class RepositoryRepository:
             github_id: $github_id,
             url: $url,
             private: $private,
-            created_at: datetime()
+            github_created_at: $github_created_at,
+            github_updated_at: $github_updated_at,
+            github_pushed_at: $github_pushed_at,
+            created_at: datetime(),
+            updated_at: datetime()
         })
         CREATE (u)-[:OWNS]->(r)
         RETURN r
@@ -43,7 +47,10 @@ class RepositoryRepository:
             "description": repo_data.description,
             "github_id": repo_data.github_id,
             "url": repo_data.url,
-            "private": repo_data.private
+            "private": repo_data.private,
+            "github_created_at": repo_data.github_created_at,
+            "github_updated_at": repo_data.github_updated_at,
+            "github_pushed_at": repo_data.github_pushed_at
         }
         
         result = self.db.execute_query(query, params)
@@ -57,7 +64,11 @@ class RepositoryRepository:
                 github_id=repo_data.github_id,
                 url=repo_data.url,
                 private=repo_data.private,
-                created_at=datetime.utcnow()
+                github_created_at=repo_data.github_created_at,
+                github_updated_at=repo_data.github_updated_at,
+                github_pushed_at=repo_data.github_pushed_at,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
             )
         return None
     
@@ -86,6 +97,18 @@ class RepositoryRepository:
             if updated_at and isinstance(updated_at, Neo4jDateTime):
                 updated_at = updated_at.to_native()
             
+            github_created_at = repo_node.get("github_created_at")
+            if github_created_at and isinstance(github_created_at, Neo4jDateTime):
+                github_created_at = github_created_at.to_native()
+            
+            github_updated_at = repo_node.get("github_updated_at")
+            if github_updated_at and isinstance(github_updated_at, Neo4jDateTime):
+                github_updated_at = github_updated_at.to_native()
+            
+            github_pushed_at = repo_node.get("github_pushed_at")
+            if github_pushed_at and isinstance(github_pushed_at, Neo4jDateTime):
+                github_pushed_at = github_pushed_at.to_native()
+            
             repositories.append(Repository(
                 id=repo_node["id"],
                 name=repo_node["name"],
@@ -96,7 +119,10 @@ class RepositoryRepository:
                 private=repo_node.get("private", False),
                 owner_username=owner_username,
                 created_at=created_at,
-                updated_at=updated_at
+                updated_at=updated_at,
+                github_created_at=github_created_at,
+                github_updated_at=github_updated_at,
+                github_pushed_at=github_pushed_at
             ))
         
         return repositories
@@ -172,6 +198,18 @@ class RepositoryRepository:
             if updated_at and isinstance(updated_at, Neo4jDateTime):
                 updated_at = updated_at.to_native()
             
+            github_created_at = repo_node.get("github_created_at")
+            if github_created_at and isinstance(github_created_at, Neo4jDateTime):
+                github_created_at = github_created_at.to_native()
+            
+            github_updated_at = repo_node.get("github_updated_at")
+            if github_updated_at and isinstance(github_updated_at, Neo4jDateTime):
+                github_updated_at = github_updated_at.to_native()
+            
+            github_pushed_at = repo_node.get("github_pushed_at")
+            if github_pushed_at and isinstance(github_pushed_at, Neo4jDateTime):
+                github_pushed_at = github_pushed_at.to_native()
+            
             return Repository(
                 id=repo_node["id"],
                 name=repo_node["name"],
@@ -182,6 +220,9 @@ class RepositoryRepository:
                 private=repo_node.get("private", False),
                 owner_username=record["owner_username"],
                 created_at=created_at,
-                updated_at=updated_at
+                updated_at=updated_at,
+                github_created_at=github_created_at,
+                github_updated_at=github_updated_at,
+                github_pushed_at=github_pushed_at
             )
         return None

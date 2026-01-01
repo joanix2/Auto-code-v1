@@ -104,6 +104,30 @@ async def sync_github_repositories(
         
         synced_repos = []
         for gh_repo in github_repos:
+            # Parser les dates de GitHub
+            from dateutil import parser as date_parser
+            
+            github_created_at = None
+            if gh_repo.get("created_at"):
+                try:
+                    github_created_at = date_parser.parse(gh_repo["created_at"])
+                except:
+                    pass
+            
+            github_updated_at = None
+            if gh_repo.get("updated_at"):
+                try:
+                    github_updated_at = date_parser.parse(gh_repo["updated_at"])
+                except:
+                    pass
+            
+            github_pushed_at = None
+            if gh_repo.get("pushed_at"):
+                try:
+                    github_pushed_at = date_parser.parse(gh_repo["pushed_at"])
+                except:
+                    pass
+            
             # Créer ou mettre à jour le repository
             repo_data = RepositoryCreate(
                 name=gh_repo["name"],
@@ -111,7 +135,10 @@ async def sync_github_repositories(
                 description=gh_repo.get("description"),
                 github_id=gh_repo["id"],
                 url=gh_repo["html_url"],
-                private=gh_repo["private"]
+                private=gh_repo["private"],
+                github_created_at=github_created_at,
+                github_updated_at=github_updated_at,
+                github_pushed_at=github_pushed_at
             )
             
             # Vérifier si le repo existe déjà

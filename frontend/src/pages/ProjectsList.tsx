@@ -52,7 +52,15 @@ function ProjectsList() {
 
       // Récupérer les repositories depuis notre API backend
       const repos = await apiClient.getRepositories();
-      setProjects(repos);
+
+      // Trier par date du dernier push GitHub (plus récent en premier)
+      const sortedRepos = repos.sort((a, b) => {
+        const dateA = new Date(a.github_pushed_at || a.github_updated_at || a.github_created_at || a.created_at).getTime();
+        const dateB = new Date(b.github_pushed_at || b.github_updated_at || b.github_created_at || b.created_at).getTime();
+        return dateB - dateA; // Ordre décroissant (plus récent d'abord)
+      });
+
+      setProjects(sortedRepos);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de la récupération des projets");
     } finally {
