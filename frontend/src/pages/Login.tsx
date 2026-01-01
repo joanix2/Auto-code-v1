@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/ui/button";
@@ -9,21 +9,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Alert, AlertDescription } from "../components/ui/alert";
 
 export default function LoginPage() {
-  const [loginUsername, setLoginUsername] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
+  const [loginUsername, setLoginUsername] = useState<string>("");
+  const [loginPassword, setLoginPassword] = useState<string>("");
 
-  const [registerUsername, setRegisterUsername] = useState("");
-  const [registerEmail, setRegisterEmail] = useState("");
-  const [registerFullName, setRegisterFullName] = useState("");
-  const [registerPassword, setRegisterPassword] = useState("");
-  const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
+  const [registerUsername, setRegisterUsername] = useState<string>("");
+  const [registerEmail, setRegisterEmail] = useState<string>("");
+  const [registerFullName, setRegisterFullName] = useState<string>("");
+  const [registerPassword, setRegisterPassword] = useState<string>("");
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState<string>("");
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
@@ -39,7 +39,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setError("");
 
@@ -84,15 +84,7 @@ export default function LoginPage() {
               <form onSubmit={handleLogin} className="space-y-4 mt-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-username">Username</Label>
-                  <Input
-                    id="login-username"
-                    type="text"
-                    placeholder="Enter your username"
-                    value={loginUsername}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoginUsername(e.target.value)}
-                    required
-                    disabled={isSubmitting}
-                  />
+                  <Input id="login-username" type="text" placeholder="Enter your username" value={loginUsername} onChange={(e) => setLoginUsername(e.target.value)} required disabled={isSubmitting} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Password</Label>
@@ -101,7 +93,7 @@ export default function LoginPage() {
                     type="password"
                     placeholder="Enter your password"
                     value={loginPassword}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoginPassword(e.target.value)}
+                    onChange={(e) => setLoginPassword(e.target.value)}
                     required
                     disabled={isSubmitting}
                   />
@@ -126,7 +118,7 @@ export default function LoginPage() {
                     type="text"
                     placeholder="Choose a username"
                     value={registerUsername}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterUsername(e.target.value)}
+                    onChange={(e) => setRegisterUsername(e.target.value)}
                     required
                     disabled={isSubmitting}
                     minLength={3}
@@ -134,14 +126,11 @@ export default function LoginPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-email">Email</Label>
-                  <Input
-                    id="register-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={registerEmail}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterEmail(e.target.value)}
-                    disabled={isSubmitting}
-                  />
+                  <Input id="register-email" type="email" placeholder="your@email.com" value={registerEmail} onChange={(e) => setRegisterEmail(e.target.value)} disabled={isSubmitting} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-full-name">Full Name</Label>
+                  <Input id="register-full-name" type="text" placeholder="John Doe" value={registerFullName} onChange={(e) => setRegisterFullName(e.target.value)} disabled={isSubmitting} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-password">Password *</Label>
@@ -150,7 +139,7 @@ export default function LoginPage() {
                     type="password"
                     placeholder="At least 6 characters"
                     value={registerPassword}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterPassword(e.target.value)}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
                     required
                     disabled={isSubmitting}
                     minLength={6}
@@ -163,7 +152,7 @@ export default function LoginPage() {
                     type="password"
                     placeholder="Confirm your password"
                     value={registerConfirmPassword}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterConfirmPassword(e.target.value)}
+                    onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                     required
                     disabled={isSubmitting}
                   />

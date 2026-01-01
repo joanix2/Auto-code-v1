@@ -33,12 +33,15 @@ class UserRepository:
             user_id = f"user-{uuid.uuid4()}"
             created_at = datetime.now().isoformat()
             
+            # Utiliser 'name' comme alias pour 'full_name' si fourni
+            full_name = user_data.full_name or user_data.name if hasattr(user_data, 'name') else None
+            
             result = session.run(
                 query,
                 id=user_id,
                 username=user_data.username,
                 email=user_data.email,
-                full_name=user_data.full_name,
+                full_name=full_name,
                 password=get_password_hash(user_data.password),
                 is_active=True,
                 created_at=created_at

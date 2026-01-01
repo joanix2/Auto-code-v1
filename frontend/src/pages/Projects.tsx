@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { apiClient } from "../services";
 
-function Projects({ token, onLogout }) {
+function Projects() {
+  const { user, signOut } = useAuth();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [username, setUsername] = useState("");
 
   useEffect(() => {
     fetchProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchProjects = async () => {
@@ -17,40 +18,11 @@ function Projects({ token, onLogout }) {
       setLoading(true);
       setError("");
 
-      // Récupérer l'utilisateur connecté
-      const userResponse = await fetch("https://api.github.com/user", {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-      });
-
-      if (!userResponse.ok) {
-        throw new Error("Token invalide");
-      }
-
-      const userData = await userResponse.json();
-      setUsername(userData.login);
-
-      // Récupérer les repositories
-      const reposResponse = await fetch("https://api.github.com/user/repos?sort=updated&per_page=50", {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-      });
-
-      if (!reposResponse.ok) {
-        throw new Error("Erreur lors de la récupération des projets");
-      }
-
-      const reposData = await reposResponse.json();
-      setProjects(reposData);
+      // Récupérer les repositories depuis notre API backend
+      const repos = await apiClient.getRepositories();
+      setProjects(repos);
     } catch (err) {
-      setError(err.message);
-      if (err.message.includes("Token invalide")) {
-        setTimeout(() => onLogout(), 2000);
-      }
+      setError(err.message || "Erreur lors de la récupération des projets");
     } finally {
       setLoading(false);
     }
@@ -78,7 +50,7 @@ function Projects({ token, onLogout }) {
             <Link to="/create-ticket" className="nav-link">
               Nouveau ticket
             </Link>
-            <button onClick={onLogout} className="btn btn-danger" style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}>
+            <button onClick={signOut} className="btn btn-danger" style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}>
               Déconnexion
             </button>
           </div>
@@ -87,9 +59,9 @@ function Projects({ token, onLogout }) {
 
       {/* Content */}
       <div className="container" style={{ paddingTop: "2rem" }}>
-        {username && (
+        {user && (
           <div className="message message-info mb-4">
-            Connecté en tant que <strong>{username}</strong>
+            Connecté en tant que <strong>{user.username}</strong>
           </div>
         )}
 

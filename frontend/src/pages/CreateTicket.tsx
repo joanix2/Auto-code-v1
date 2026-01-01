@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useAuth } from "../contexts/AuthContext";
+import { apiClient } from "../services";
 
-function CreateTicket({ token, onLogout }) {
+function CreateTicket() {
+  const { signOut } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -22,27 +24,15 @@ function CreateTicket({ token, onLogout }) {
 
   useEffect(() => {
     fetchRepositories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchRepositories = async () => {
     try {
       setLoadingRepos(true);
-      const response = await fetch("https://api.github.com/user/repos?sort=updated&per_page=100", {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors du chargement des repositories");
-      }
-
-      const data = await response.json();
-      setRepos(data);
+      const repos = await apiClient.getRepositories();
+      setRepos(repos);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Erreur lors du chargement des repositories");
     } finally {
       setLoadingRepos(false);
     }
@@ -80,21 +70,18 @@ function CreateTicket({ token, onLogout }) {
     setLoading(true);
 
     try {
-      // Envoyer le ticket à l'API backend
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
       const ticketData = {
         title: formData.title,
         description: formData.description,
-        repository: formData.repository,
+        repository_id: formData.repository,
         priority: formData.priority,
-        type: formData.type,
-        github_token: token,
+        ticket_type: formData.type,
+        status: "open",
       };
 
-      const response = await axios.post(`${API_URL}/tickets`, ticketData);
+      const response = await apiClient.createTicket(ticketData);
 
-      if (response.status === 200 || response.status === 201) {
+      if (response) {
         setSuccess("✅ Ticket créé avec succès ! Il sera traité par l'agent AI.");
 
         // Réinitialiser le formulaire
@@ -132,7 +119,7 @@ function CreateTicket({ token, onLogout }) {
             <Link to="/create-ticket" className="nav-link active">
               Nouveau ticket
             </Link>
-            <button onClick={onLogout} className="btn btn-danger" style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}>
+            <button onClick={signOut} className="btn btn-danger" style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}>
               Déconnexion
             </button>
           </div>

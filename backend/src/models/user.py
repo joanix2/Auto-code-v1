@@ -9,13 +9,17 @@ from datetime import datetime
 class UserBase(BaseModel):
     """Schéma de base pour un User"""
     username: str = Field(..., min_length=3, max_length=50, description="Nom d'utilisateur")
-    email: EmailStr = Field(..., description="Adresse email")
+    email: Optional[EmailStr] = Field(None, description="Adresse email")
     full_name: Optional[str] = Field(None, max_length=100, description="Nom complet")
 
 
-class UserCreate(UserBase):
+class UserCreate(BaseModel):
     """Schéma pour la création d'un User"""
-    password: str = Field(..., min_length=8, description="Mot de passe")
+    username: str = Field(..., min_length=3, max_length=50, description="Nom d'utilisateur")
+    password: str = Field(..., min_length=6, description="Mot de passe")
+    email: Optional[EmailStr] = Field(None, description="Adresse email")
+    full_name: Optional[str] = Field(None, max_length=100, description="Nom complet")
+    name: Optional[str] = Field(None, max_length=100, description="Alias pour full_name")
 
 
 class UserUpdate(BaseModel):
@@ -29,6 +33,7 @@ class UserUpdate(BaseModel):
 class User(UserBase):
     """Schéma complet d'un User"""
     id: str = Field(..., description="ID unique de l'utilisateur")
+    password: str = Field(..., description="Mot de passe haché (ne pas exposer en production)")
     is_active: bool = Field(default=True, description="Utilisateur actif")
     created_at: datetime = Field(..., description="Date de création")
     updated_at: Optional[datetime] = Field(None, description="Date de dernière modification")
