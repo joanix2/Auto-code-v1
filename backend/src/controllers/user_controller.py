@@ -3,7 +3,7 @@ Contrôleur FastAPI pour les Users
 """
 from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import List
-from src.models.user import User, UserCreate, UserUpdate
+from src.models.user import User, UserCreate, UserUpdate, UserResponse
 from src.repositories.user_repository import UserRepository
 from src.utils.auth import verify_password, create_access_token, get_current_user
 from pydantic import BaseModel
@@ -21,7 +21,7 @@ class TokenResponse(BaseModel):
     """Modèle de réponse pour le token"""
     access_token: str
     token_type: str
-    user: User
+    user: UserResponse
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -43,7 +43,7 @@ async def login(credentials: UserLogin):
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
-            user=user
+            user=UserResponse.model_validate(user)
         )
     except HTTPException:
         raise
@@ -75,7 +75,7 @@ async def register(user: UserCreate):
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
-            user=new_user
+            user=UserResponse.model_validate(new_user)
         )
     except HTTPException:
         raise

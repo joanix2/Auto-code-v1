@@ -31,9 +31,20 @@ class UserUpdate(BaseModel):
 
 
 class User(UserBase):
-    """Schéma complet d'un User"""
+    """Schéma complet d'un User (usage interne)"""
     id: str = Field(..., description="ID unique de l'utilisateur")
-    password: str = Field(..., exclude=True, description="Mot de passe haché (ne pas exposer)")
+    password: str = Field(..., description="Mot de passe haché")
+    is_active: bool = Field(default=True, description="Utilisateur actif")
+    created_at: datetime = Field(..., description="Date de création")
+    updated_at: Optional[datetime] = Field(None, description="Date de dernière modification")
+    
+    class Config:
+        from_attributes = True
+
+
+class UserResponse(UserBase):
+    """Schéma de réponse pour un User (sans password)"""
+    id: str = Field(..., description="ID unique de l'utilisateur")
     is_active: bool = Field(default=True, description="Utilisateur actif")
     created_at: datetime = Field(..., description="Date de création")
     updated_at: Optional[datetime] = Field(None, description="Date de dernière modification")

@@ -73,16 +73,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
 
     try {
-      const formData = new URLSearchParams();
-      formData.append("username", username);
-      formData.append("password", password);
-
       const response = await fetch(`${API_URL}${API_ENDPOINTS.AUTH_LOGIN}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Type": "application/json",
         },
-        body: formData,
+        body: JSON.stringify({ username, password }),
       });
 
       if (!response.ok) {
