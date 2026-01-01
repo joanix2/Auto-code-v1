@@ -24,9 +24,9 @@ page avec des tickets de création,
 
 page edition
 
-suppression de tickets
+suppression de tickets (refaire la modale)
 
-ajouter à la queue rabit MQ
+drag and drop pour l'ordre des tickets
 
 générer le code
 

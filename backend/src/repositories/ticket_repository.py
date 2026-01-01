@@ -110,3 +110,101 @@ class TicketRepository:
         
         result = self.db.execute_query(query, {"ticket_id": ticket_id, "status": status})
         return bool(result)
+    
+    async def get_ticket_by_id(self, ticket_id: str) -> Optional[Ticket]:
+        """Get a ticket by ID"""
+        query = """
+        MATCH (t:Ticket {id: $ticket_id})<-[:CREATED]-(u:User)
+        MATCH (t)-[:FOR_REPO]->(r:Repository)
+        RETURN t, u.username as created_by, r.name as repository_name, r.id as repository_id
+        """
+        
+        result = self.db.execute_query(query, {"ticket_id": ticket_id})
+        if not result:
+            return None
+        
+        record = result[0]
+        ticket_node = record["t"]
+        
+        return Ticket(
+            id=ticket_node["id"],
+            title=ticket_node["title"],
+            description=ticket_node.get("description"),
+            repository_id=record["repository_id"],
+            repository_name=record.get("repository_name"),
+            priority=ticket_node["priority"],
+            ticket_type=ticket_node["ticket_type"],
+            status=TicketStatus(ticket_node["status"]),
+            created_by=record["created_by"],
+            created_at=neo4j_datetime_to_python(ticket_node.get("created_at")),
+            updated_at=neo4j_datetime_to_python(ticket_node.get("updated_at")) if ticket_node.get("updated_at") else None
+        )
+    
+    async def update_ticket(self, ticket_id: str, ticket_data: TicketUpdate) -> Optional[Ticket]:
+        """Update a ticket"""
+        # Build dynamic update query
+        updates = []
+        params = {"ticket_id": ticket_id}
+        
+        if ticket_data.title is not None:
+            updates.append("t.title = $title")
+            params["title"] = ticket_data.title
+        
+        if ticket_data.description is not None:
+            updates.append("t.description = $description")
+            params["description"] = ticket_data.description
+        
+        if ticket_data.status is not None:
+            updates.append("t.status = $status")
+            params["status"] = ticket_data.status.value
+        
+        if ticket_data.priority is not None:
+            updates.append("t.priority = $priority")
+            params["priority"] = ticket_data.priority.value
+        
+        if not updates:
+            # No updates, just return the existing ticket
+            return await self.get_ticket_by_id(ticket_id)
+        
+        updates.append("t.updated_at = datetime()")
+        update_clause = ", ".join(updates)
+        
+        query = f"""
+        MATCH (t:Ticket {{id: $ticket_id}})<-[:CREATED]-(u:User)
+        MATCH (t)-[:FOR_REPO]->(r:Repository)
+        SET {update_clause}
+        RETURN t, u.username as created_by, r.name as repository_name, r.id as repository_id
+        """
+        
+        result = self.db.execute_query(query, params)
+        if not result:
+            return None
+        
+        record = result[0]
+        ticket_node = record["t"]
+        
+        return Ticket(
+            id=ticket_node["id"],
+            title=ticket_node["title"],
+            description=ticket_node.get("description"),
+            repository_id=record["repository_id"],
+            repository_name=record.get("repository_name"),
+            priority=ticket_node["priority"],
+            ticket_type=ticket_node["ticket_type"],
+            status=TicketStatus(ticket_node["status"]),
+            created_by=record["created_by"],
+            created_at=neo4j_datetime_to_python(ticket_node.get("created_at")),
+            updated_at=neo4j_datetime_to_python(ticket_node.get("updated_at")) if ticket_node.get("updated_at") else None
+        )
+    
+    async def delete_ticket(self, ticket_id: str) -> bool:
+        """Delete a ticket"""
+        query = """
+        MATCH (t:Ticket {id: $ticket_id})
+        DETACH DELETE t
+        RETURN count(t) as deleted
+        """
+        
+        result = self.db.execute_query(query, {"ticket_id": ticket_id})
+        return bool(result and result[0]["deleted"] > 0)
+

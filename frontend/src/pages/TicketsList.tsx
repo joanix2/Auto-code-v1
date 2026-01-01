@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AppBar } from "@/components/AppBar";
 import { Input } from "@/components/ui/input";
+import { TicketCard } from "@/components/TicketCard";
 import type { Ticket, Repository } from "@/types";
 
 // Fonction de distance de Levenshtein
@@ -131,33 +132,31 @@ function TicketsList() {
     fetchTickets();
   }, [fetchTickets]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "open":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "in_progress":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "closed":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-      case "cancelled":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      default:
-        return "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200";
-    }
+  const handleEdit = (ticketId: string) => {
+    navigate(`/ticket/${ticketId}/edit`);
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "critical":
-        return "text-red-600 dark:text-red-400";
-      case "high":
-        return "text-orange-600 dark:text-orange-400";
-      case "medium":
-        return "text-yellow-600 dark:text-yellow-400";
-      case "low":
-        return "text-green-600 dark:text-green-400";
-      default:
-        return "text-slate-600 dark:text-slate-400";
+  const handleDelete = async (ticketId: string) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce ticket ?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/tickets/${ticketId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la suppression du ticket");
+      }
+
+      // Refresh tickets list
+      fetchTickets();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur lors de la suppression");
     }
   };
 
@@ -258,52 +257,7 @@ function TicketsList() {
         ) : (
           <div className="space-y-3">
             {filteredTickets.map((ticket) => (
-              <Card key={ticket.id} className="hover:shadow-lg transition-shadow duration-200 border-slate-200 dark:border-slate-800">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white truncate">{ticket.title}</h3>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}>{ticket.status.replace("_", " ")}</span>
-                      </div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-3">{ticket.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-slate-500">
-                        <div className="flex items-center gap-1">
-                          <svg className={`h-4 w-4 ${getPriorityColor(ticket.priority)}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                          <span className={getPriorityColor(ticket.priority)}>{ticket.priority}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                            />
-                          </svg>
-                          <span>{ticket.ticket_type}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <span>{new Date(ticket.created_at).toLocaleDateString("fr-FR")}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                        Éditer
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <TicketCard key={ticket.id} ticket={ticket} onEdit={handleEdit} onDelete={handleDelete} />
             ))}
           </div>
         )}

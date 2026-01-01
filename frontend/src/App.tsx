@@ -91,6 +91,15 @@ function App() {
           />
 
           <Route
+            path="/ticket/:ticketId/edit"
+            element={
+              <ProtectedRoute>
+                <CreateTicket />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/profile"
             element={
               <ProtectedRoute>

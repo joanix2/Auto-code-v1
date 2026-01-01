@@ -1,7 +1,7 @@
 """Ticket controller - API endpoints for tickets"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
-from src.models.ticket import Ticket, TicketCreate
+from src.models.ticket import Ticket, TicketCreate, TicketUpdate
 from src.models.user import User
 from src.repositories.ticket_repository import TicketRepository
 from src.database import Neo4jConnection
@@ -57,3 +57,52 @@ async def get_tickets_by_repository(
 ):
     """Get all tickets for a specific repository by ID"""
     return await ticket_repo.get_tickets_by_repository(repository_id)
+
+
+@router.get("/tickets/{ticket_id}", response_model=Ticket)
+async def get_ticket(
+    ticket_id: str,
+    current_user: User = Depends(get_current_user),
+    ticket_repo: TicketRepository = Depends(get_ticket_repo)
+):
+    """Get a specific ticket by ID"""
+    ticket = await ticket_repo.get_ticket_by_id(ticket_id)
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket not found"
+        )
+    return ticket
+
+
+@router.put("/tickets/{ticket_id}", response_model=Ticket)
+async def update_ticket(
+    ticket_id: str,
+    ticket_data: TicketUpdate,
+    current_user: User = Depends(get_current_user),
+    ticket_repo: TicketRepository = Depends(get_ticket_repo)
+):
+    """Update a ticket"""
+    ticket = await ticket_repo.update_ticket(ticket_id, ticket_data)
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket not found"
+        )
+    return ticket
+
+
+@router.delete("/tickets/{ticket_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_ticket(
+    ticket_id: str,
+    current_user: User = Depends(get_current_user),
+    ticket_repo: TicketRepository = Depends(get_ticket_repo)
+):
+    """Delete a ticket"""
+    success = await ticket_repo.delete_ticket(ticket_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket not found"
+        )
+    return None
