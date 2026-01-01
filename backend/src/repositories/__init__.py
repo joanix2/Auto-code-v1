@@ -1,15 +1,10 @@
 """Package des repositories"""
 from .user_repository import UserRepository
-from .project_repository import ProjectRepository
-from .classe_repository import ClasseRepository
-from .individu_repository import IndividuRepository
-from .relation_repository import RelationRepository, RelationTypeRepository
+from .repository_repository import RepositoryRepository
+from .ticket_repository import TicketRepository
 
 __all__ = [
     "UserRepository",
-    "ProjectRepository",
-    "ClasseRepository",
-    "IndividuRepository",
-    "RelationRepository",
-    "RelationTypeRepository"
+    "RepositoryRepository",
+    "TicketRepository"
 ]
