@@ -226,3 +226,14 @@ class RepositoryRepository:
                 github_pushed_at=github_pushed_at
             )
         return None
+
+    async def delete_repository(self, repo_id: str) -> bool:
+        """Delete a repository by ID"""
+        query = """
+        MATCH (r:Repository {id: $repo_id})
+        DETACH DELETE r
+        RETURN count(r) as deleted
+        """
+        
+        result = self.db.execute_query(query, {"repo_id": repo_id})
+        return result is not None and len(result) > 0 and result[0]["deleted"] > 0

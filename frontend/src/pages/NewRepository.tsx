@@ -151,7 +151,10 @@ function NewRepository() {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4">
-                  <Button type="submit" disabled={loading} className="flex-1 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700">
+                  <Button type="button" variant="outline" onClick={() => navigate("/projects")} disabled={loading} className="w-1/2">
+                    Annuler
+                  </Button>
+                  <Button type="submit" disabled={loading} className="w-1/2 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700">
                     {loading ? (
                       <>
                         <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
@@ -161,16 +164,8 @@ function NewRepository() {
                         Création...
                       </>
                     ) : (
-                      <>
-                        <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Créer le repository
-                      </>
+                      <>Créer le repository</>
                     )}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => navigate("/projects")} disabled={loading}>
-                    Annuler
                   </Button>
                 </div>
               </form>

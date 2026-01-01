@@ -102,6 +102,19 @@ async def sync_github_repositories(
         github_service = GitHubService(github_token)
         github_repos = await github_service.get_user_repositories()
         
+        # Récupérer tous les repos locaux de l'utilisateur
+        local_repos = await repo_repo.get_repositories_by_owner(current_user.username)
+        
+        # Créer un set des github_ids existants sur GitHub
+        github_ids = {gh_repo["id"] for gh_repo in github_repos}
+        
+        # Supprimer les repos qui n'existent plus sur GitHub
+        deleted_count = 0
+        for local_repo in local_repos:
+            if local_repo.github_id and local_repo.github_id not in github_ids:
+                await repo_repo.delete_repository(local_repo.id)
+                deleted_count += 1
+        
         synced_repos = []
         for gh_repo in github_repos:
             # Parser les dates de GitHub
@@ -155,6 +168,7 @@ async def sync_github_repositories(
         
         return {
             "synced": len(synced_repos),
+            "deleted": deleted_count,
             "repositories": synced_repos
         }
     except Exception as e:
