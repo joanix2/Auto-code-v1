@@ -207,23 +207,6 @@ function CreateTicket() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Titre *</Label>
-                  <Input id="title" name="title" value={formData.title} onChange={handleChange} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows={6}
-                    className="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Décrivez le ticket en détail..."
-                  />
-                </div>
-
                 {!isEditMode && (
                   <div className="space-y-2">
                     <Label htmlFor="repository">Repository *</Label>
@@ -245,6 +228,23 @@ function CreateTicket() {
                     <p className="text-xs text-slate-500">Associez ce ticket à un repository spécifique</p>
                   </div>
                 )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="title">Titre *</Label>
+                  <Input id="title" name="title" value={formData.title} onChange={handleChange} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows={6}
+                    className="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Décrivez le ticket en détail..."
+                  />
+                </div>
 
                 {!isEditMode && (
                   <div className="space-y-2">
@@ -298,9 +298,6 @@ function CreateTicket() {
                   </select>
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <Button type="submit" disabled={loading} className="flex-1">
-                    {loading ? (isEditMode ? "Modification..." : "Création...") : isEditMode ? "Modifier le ticket" : "Créer le ticket"}
-                  </Button>
                   <Button
                     type="button"
                     variant="outline"
@@ -312,8 +309,12 @@ function CreateTicket() {
                       }
                     }}
                     disabled={loading}
+                    className="flex-1"
                   >
                     Annuler
+                  </Button>
+                  <Button type="submit" disabled={loading} className="flex-1">
+                    {loading ? (isEditMode ? "Modification..." : "Création...") : isEditMode ? "Modifier le ticket" : "Créer le ticket"}
                   </Button>
                 </div>
               </form>

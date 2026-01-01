@@ -121,14 +121,6 @@ export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
 
         {/* Footer avec boutons */}
         <div className="border-t border-slate-100 dark:border-slate-800 px-6 py-3 bg-slate-50/50 dark:bg-slate-800/50 flex items-center gap-2">
-          {onEdit && (
-            <Button variant="ghost" size="sm" onClick={() => onEdit(ticket.id)} className="flex-1 hover:bg-slate-100 dark:hover:bg-slate-800">
-              <svg className="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-              Éditer
-            </Button>
-          )}
           {onDelete && (
             <Button variant="ghost" size="sm" onClick={() => onDelete(ticket.id)} className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50">
               <svg className="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,6 +132,14 @@ export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
                 />
               </svg>
               Supprimer
+            </Button>
+          )}
+          {onEdit && (
+            <Button variant="ghost" size="sm" onClick={() => onEdit(ticket.id)} className="flex-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <svg className="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              Éditer
             </Button>
           )}
         </div>

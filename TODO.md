@@ -17,10 +17,10 @@
 
 ✅ création d'un nouveau repo
 
-créer une nouvelle page qui affiche la liste des tikets lié à un repo liste des tickets par projet,
+✅ créer une nouvelle page qui affiche la liste des tikets lié à un repo liste des tickets par projet,
 elle va beaucoup ressembler à la liste des repo, tu peut donc copier le code dans un premier temps puis créer une classe abstraite
 
-page avec des tickets de création,
+✅ page avec des tickets de création,
 
 page edition
 
