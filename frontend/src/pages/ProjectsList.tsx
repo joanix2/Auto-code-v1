@@ -67,41 +67,51 @@ function ProjectsList() {
     return response.json();
   }, [user?.github_token]);
 
+  const sortRepositories = (repos: Repository[]) => {
+    // Trier par date du dernier push GitHub (plus récent en premier)
+    return repos.sort((a, b) => {
+      const dateA = new Date(a.github_pushed_at || a.github_updated_at || a.github_created_at || a.created_at).getTime();
+      const dateB = new Date(b.github_pushed_at || b.github_updated_at || b.github_created_at || b.created_at).getTime();
+      return dateB - dateA; // Ordre décroissant (plus récent d'abord)
+    });
+  };
+
   const fetchAndSyncProjects = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
 
-      // Si l'utilisateur a un token GitHub, synchroniser automatiquement
+      // ÉTAPE 1 : Chargement rapide depuis la base de données
+      const localRepos = await apiClient.getRepositories();
+      const sortedLocalRepos = sortRepositories([...localRepos]);
+
+      // Afficher immédiatement les repos de la base
+      setProjects(sortedLocalRepos);
+      setFilteredProjects(sortedLocalRepos);
+      setLoading(false); // Arrêter le loader initial
+
+      // ÉTAPE 2 : Refresh depuis GitHub en arrière-plan (si token disponible)
       if (user?.github_token) {
         try {
           const syncResult = await syncGitHubRepos();
-          if (syncResult?.deleted > 0) {
-            console.log(`✅ ${syncResult.deleted} repository(ies) supprimé(s) de la base de données`);
-          }
-          if (syncResult?.synced > 0) {
-            console.log(`✅ ${syncResult.synced} repository(ies) synchronisé(s)`);
+
+          // Si des modifications ont été apportées, recharger depuis la base
+          if (syncResult?.deleted > 0 || syncResult?.synced > 0) {
+            console.log(`🔄 Synchronisation : ${syncResult.synced} repo(s) synchronisé(s), ${syncResult.deleted} supprimé(s)`);
+
+            const refreshedRepos = await apiClient.getRepositories();
+            const sortedRefreshedRepos = sortRepositories([...refreshedRepos]);
+
+            setProjects(sortedRefreshedRepos);
+            setFilteredProjects(sortedRefreshedRepos);
           }
         } catch (syncError) {
-          console.warn("Sync failed, continuing with local repos:", syncError);
+          console.warn("⚠️ Sync GitHub échoué, affichage des repos locaux:", syncError);
+          // Ne pas afficher d'erreur à l'utilisateur car on a déjà les repos locaux
         }
       }
-
-      // Récupérer les repositories depuis notre API backend
-      const repos = await apiClient.getRepositories();
-
-      // Trier par date du dernier push GitHub (plus récent en premier)
-      const sortedRepos = repos.sort((a, b) => {
-        const dateA = new Date(a.github_pushed_at || a.github_updated_at || a.github_created_at || a.created_at).getTime();
-        const dateB = new Date(b.github_pushed_at || b.github_updated_at || b.github_created_at || b.created_at).getTime();
-        return dateB - dateA; // Ordre décroissant (plus récent d'abord)
-      });
-
-      setProjects(sortedRepos);
-      setFilteredProjects(sortedRepos);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de la récupération des projets");
-    } finally {
       setLoading(false);
     }
   }, [user?.github_token, syncGitHubRepos]);
