@@ -5,5 +5,9 @@ pydantic==2.5.3
 pydantic-settings==2.1.0
 python-dotenv==1.0.0
 python-multipart==0.0.6
-passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+passlib==1.7.4
 python-jose[cryptography]==3.3.0
+httpx==0.26.0
+PyGithub==2.1.1
+email-validator==2.1.0

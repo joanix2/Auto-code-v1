@@ -1,11 +1,25 @@
-refaire le backend propre avec des seulement objet, user, repo et tickets et des services, supprime le reste
+✅ refaire le backend propre avec des seulement objet, user, repo et tickets et des services, supprime le reste
 
-connexion
+✅ connexion
 
 liste des repo
 création d'un nouveau repo
 
-page avec des tickets de création, edition et suppression de tickets a ajouter à la queue
+tri par dernière date
+recherche de repo par nom
+style boutton nouveau repo
+
+app bar commune
+
+page profile
+
+liste des tickets par projet
+
+page avec des tickets de création, edition et suppression de tickets
+
+ajouter à la queue rabit MQ
+
+générer le code
 
 ajout des KG
 

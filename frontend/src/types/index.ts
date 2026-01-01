@@ -34,18 +34,28 @@ export interface TokenResponse {
 export interface Repository {
   id: string;
   name: string;
+  full_name?: string;
   description?: string;
+  github_id?: number;
   url?: string;
-  owner_id: string;
-  is_active: boolean;
+  private: boolean;
+  owner_username: string;
   created_at: string;
   updated_at?: string;
+  // Champs optionnels de GitHub
+  language?: string;
+  stargazers_count?: number;
+  forks_count?: number;
+  html_url?: string;
 }
 
 export interface RepositoryCreate {
   name: string;
+  full_name: string;
   description?: string;
-  url?: string;
+  github_id: number;
+  url: string;
+  private?: boolean;
 }
 
 export interface RepositoryUpdate {

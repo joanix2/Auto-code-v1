@@ -7,10 +7,10 @@ from datetime import datetime
 class RepositoryBase(BaseModel):
     """Base repository model"""
     name: str = Field(..., description="Repository name")
-    full_name: str = Field(..., description="Full repository name (owner/repo)")
+    full_name: Optional[str] = Field(None, description="Full repository name (owner/repo)")
     description: Optional[str] = Field(None, description="Repository description")
-    github_id: int = Field(..., description="GitHub repository ID")
-    url: str = Field(..., description="Repository URL")
+    github_id: Optional[int] = Field(None, description="GitHub repository ID")
+    url: Optional[str] = Field(None, description="Repository URL")
     private: bool = Field(default=False, description="Is private repository")
 
 
@@ -30,6 +30,12 @@ class Repository(RepositoryBase):
     id: str = Field(..., description="Internal repository ID")
     owner_username: str = Field(..., description="Owner username")
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+    
+    # Override to make these fields optional in responses
+    full_name: Optional[str] = Field(None, description="Full repository name (owner/repo)")
+    github_id: Optional[int] = Field(None, description="GitHub repository ID")
+    url: Optional[str] = Field(None, description="Repository URL")
     
     class Config:
         from_attributes = True

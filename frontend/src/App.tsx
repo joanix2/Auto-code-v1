@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./pages/Login";
-import Projects from "./pages/Projects";
+import ProjectsList from "./pages/ProjectsList";
+import NewRepository from "./pages/NewRepository";
 import CreateTicket from "./pages/CreateTicket";
 
 // Protected Route Component
@@ -54,7 +55,16 @@ function App() {
             path="/projects"
             element={
               <ProtectedRoute>
-                <Projects />
+                <ProjectsList />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/new-repository"
+            element={
+              <ProtectedRoute>
+                <NewRepository />
               </ProtectedRoute>
             }
           />

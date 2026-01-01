@@ -68,7 +68,7 @@ shell-rabbitmq:
 
 dev-backend:
 	@echo "Starting backend in development mode..."
-	cd backend && python main.py
+	cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 dev-worker:
 	@echo "Starting worker in development mode..."
