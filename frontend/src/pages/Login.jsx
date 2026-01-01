@@ -1,85 +1,186 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Alert, AlertDescription } from "../components/ui/alert";
 
-function Login({ onLogin }) {
-  const [token, setToken] = useState("");
+export default function LoginPage() {
+  const [loginUsername, setLoginUsername] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  const [registerUsername, setRegisterUsername] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerFullName, setRegisterFullName] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { signIn, signUp } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      await signIn(loginUsername, loginPassword);
+      navigate("/projects", { replace: true });
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(error instanceof Error ? error.message : "Login failed");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!token.trim()) {
-      setError("Veuillez entrer un token GitHub");
+    if (registerPassword !== registerConfirmPassword) {
+      setError("Passwords do not match");
       return;
     }
 
-    if (!token.startsWith("ghp_") && !token.startsWith("github_pat_")) {
-      setError('Le token doit commencer par "ghp_" ou "github_pat_"');
+    if (registerPassword.length < 6) {
+      setError("Password must be at least 6 characters");
       return;
     }
 
-    setLoading(true);
+    setIsSubmitting(true);
 
     try {
-      // Vérifier si le token est valide en faisant une requête à l'API GitHub
-      const response = await fetch("https://api.github.com/user", {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Token invalide ou expiré");
-      }
-
-      const userData = await response.json();
-      console.log("Connecté en tant que:", userData.login);
-
-      onLogin(token);
-    } catch (err) {
-      setError(err.message || "Erreur de connexion. Vérifiez votre token.");
+      await signUp(registerUsername, registerPassword, registerEmail || undefined, registerFullName || undefined);
+      navigate("/projects", { replace: true });
+    } catch (error) {
+      console.error("Register error:", error);
+      setError(error instanceof Error ? error.message : "Registration failed");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="container" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div className="card" style={{ maxWidth: "500px", width: "100%" }}>
-        <div className="text-center mb-4">
-          <h1 style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🚀 Auto-Code</h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>Plateforme de gestion de développement automatisé</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">KGManager</CardTitle>
+          <CardDescription>Gérez vos graphes de connaissances</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="register">Register</TabsTrigger>
+            </TabsList>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="label" htmlFor="token">
-              Token GitHub Personnel
-            </label>
-            <input id="token" type="password" className="input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" value={token} onChange={(e) => setToken(e.target.value)} disabled={loading} />
-            <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.5rem" }}>
-              Créez un token sur{" "}
-              <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" style={{ color: "var(--primary-color)" }}>
-                GitHub Settings → Developer settings → Personal access tokens
-              </a>
-            </p>
-          </div>
+            <TabsContent value="login">
+              <form onSubmit={handleLogin} className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-username">Username</Label>
+                  <Input
+                    id="login-username"
+                    type="text"
+                    placeholder="Enter your username"
+                    value={loginUsername}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoginUsername(e.target.value)}
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="login-password">Password</Label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={loginPassword}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoginPassword(e.target.value)}
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? "Logging in..." : "Login"}
+                </Button>
+              </form>
+            </TabsContent>
 
-          {error && <div className="message message-error">{error}</div>}
-
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? "Connexion en cours..." : "Se connecter"}
-          </button>
-        </form>
-
-        <div className="mt-4 text-center">
-          <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>Votre token est stocké localement dans votre navigateur</p>
-        </div>
-      </div>
+            <TabsContent value="register">
+              <form onSubmit={handleRegister} className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="register-username">Username *</Label>
+                  <Input
+                    id="register-username"
+                    type="text"
+                    placeholder="Choose a username"
+                    value={registerUsername}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterUsername(e.target.value)}
+                    required
+                    disabled={isSubmitting}
+                    minLength={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-email">Email</Label>
+                  <Input
+                    id="register-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={registerEmail}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterEmail(e.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-password">Password *</Label>
+                  <Input
+                    id="register-password"
+                    type="password"
+                    placeholder="At least 6 characters"
+                    value={registerPassword}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterPassword(e.target.value)}
+                    required
+                    disabled={isSubmitting}
+                    minLength={6}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-confirm-password">Confirm Password *</Label>
+                  <Input
+                    id="register-confirm-password"
+                    type="password"
+                    placeholder="Confirm your password"
+                    value={registerConfirmPassword}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterConfirmPassword(e.target.value)}
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating account..." : "Register"}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }
-
-export default Login;

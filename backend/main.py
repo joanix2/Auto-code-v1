@@ -1,99 +1,100 @@
 """
-Point d'entrée de l'application FastAPI
+Main FastAPI application
 """
 import uvicorn
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-import os
-from dotenv import load_dotenv
 
 from src.database import db
+from src.utils.config import config
 from src.controllers import (
-    auth_controller,
-    user_controller, 
-    project_controller, 
-    classe_controller, 
-    individu_controller, 
-    relation_controller
+    user_controller,
+    repository_controller,
+    ticket_controller
 )
 
-load_dotenv()
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Gestion du cycle de vie de l'application"""
+    """Application lifecycle management"""
     # Startup
-    print("🚀 Démarrage de l'application...")
+    logger.info("🚀 Starting Auto-Code Platform API...")
     db.connect()
     
     if not db.verify_connectivity():
-        print("⚠️  Impossible de se connecter à Neo4j. Vérifiez votre configuration.")
+        logger.warning("⚠️  Unable to connect to Neo4j")
+    else:
+        logger.info("✓ Neo4j connected")
+        db.init_constraints()
+        logger.info("✓ Database constraints initialized")
     
     yield
     
     # Shutdown
-    print("🛑 Arrêt de l'application...")
+    logger.info("🛑 Shutting down...")
     db.close()
+    logger.info("✓ Closed")
 
 
 app = FastAPI(
-    title="KGManager API",
-    description="API de gestion d'un graphe de connaissances avec Neo4j",
-    version="1.0.0",
+    title="Auto-Code Platform API",
+    description="API for automated development with AI agents",
+    version="2.0.0",
     lifespan=lifespan
 )
 
-# Configuration CORS
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # À configurer selon vos besoins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Enregistrement des routes
-app.include_router(auth_controller.router)
-app.include_router(user_controller.router)
-app.include_router(project_controller.router)
-app.include_router(classe_controller.router)
-app.include_router(individu_controller.router)
-app.include_router(relation_controller.router)
+# Include routers
+app.include_router(user_controller.router, prefix="/api", tags=["users"])
+app.include_router(repository_controller.router, prefix="/api", tags=["repositories"])
+app.include_router(ticket_controller.router, prefix="/api", tags=["tickets"])
 
 
-@app.get("/", tags=["root"])
+@app.get("/")
 async def root():
-    """Endpoint racine"""
+    """Root endpoint"""
     return {
-        "message": "Bienvenue sur l'API KGManager",
-        "version": "1.0.0",
-        "documentation": "/docs"
+        "message": "Auto-Code Platform API",
+        "version": "2.0.0",
+        "docs": "/docs"
     }
 
 
-@app.get("/health", tags=["health"])
+@app.get("/health")
 async def health_check():
-    """Vérification de l'état de l'application"""
-    neo4j_status = db.verify_connectivity()
+    """Health check endpoint"""
+    neo4j_status = "healthy" if db.verify_connectivity() else "unhealthy"
     
     return {
-        "status": "healthy" if neo4j_status else "unhealthy",
-        "database": {
-            "neo4j": "connected" if neo4j_status else "disconnected"
+        "status": "healthy" if neo4j_status == "healthy" else "degraded",
+        "services": {
+            "api": "healthy",
+            "neo4j": neo4j_status
         }
     }
 
 
 if __name__ == "__main__":
-    host = os.getenv("API_HOST", "0.0.0.0")
-    port = int(os.getenv("API_PORT", 8000))
-    
     uvicorn.run(
         "main:app",
-        host=host,
-        port=port,
+        host=config.API_HOST,
+        port=config.API_PORT,
         reload=True,
         log_level="info"
     )
