@@ -113,3 +113,38 @@ class GitHubService:
         except Exception as e:
             logger.error(f"Failed to update issue: {e}")
             return False
+    
+    def create_repository(self, name: str, description: str = None, private: bool = False) -> Optional[Dict]:
+        """Create a new repository on GitHub"""
+        try:
+            if not self.client:
+                logger.error("GitHub client not initialized")
+                return None
+            
+            user = self.client.get_user()
+            repo = user.create_repo(
+                name=name,
+                description=description or "",
+                private=private,
+                auto_init=True  # Initialize with README
+            )
+            
+            result = {
+                "id": repo.id,
+                "name": repo.name,
+                "full_name": repo.full_name,
+                "description": repo.description,
+                "html_url": repo.html_url,
+                "private": repo.private,
+                "created_at": repo.created_at.isoformat() if repo.created_at else None
+            }
+            
+            logger.info(f"Created GitHub repository: {repo.full_name}")
+            return result
+            
+        except GithubException as e:
+            logger.error(f"GitHub API error creating repository: {e}")
+            raise Exception(f"Failed to create GitHub repository: {str(e)}")
+        except Exception as e:
+            logger.error(f"Failed to create repository: {e}")
+            raise Exception(f"Failed to create GitHub repository: {str(e)}")

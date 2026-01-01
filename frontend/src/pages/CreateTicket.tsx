@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AppBar } from "@/components/AppBar";
 import type { Repository } from "@/types";
 
 interface TicketFormData {
@@ -100,29 +101,7 @@ function CreateTicket() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8 max-w-7xl">
-          <Link to="/projects" className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 shadow-md">
-              <span className="text-xl">📦</span>
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">Auto-Code Platform</h1>
-              <span className="text-xs text-slate-500">Gestion de projets</span>
-            </div>
-          </Link>
-          <div className="flex items-center gap-3">
-            {user && (
-              <div className="text-sm text-slate-600 hidden sm:block">
-                <span className="font-medium">{user.username}</span>
-              </div>
-            )}
-            <Button onClick={signOut} variant="ghost" size="sm" className="text-slate-600">
-              Déconnexion
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppBar />
 
       <main className="container px-4 py-8 md:px-8 max-w-7xl mx-auto">
         <div className="mb-8">

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AppBar } from "@/components/AppBar";
 
 function NewRepository() {
   const { user, signOut } = useAuth();
@@ -14,6 +15,7 @@ function NewRepository() {
     name: "",
     description: "",
     private: false,
+    githubToken: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -26,6 +28,11 @@ function NewRepository() {
       return;
     }
 
+    if (!formData.githubToken.trim()) {
+      setError("Le token GitHub est requis pour créer le repository");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
@@ -35,6 +42,7 @@ function NewRepository() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "X-GitHub-Token": formData.githubToken,
         },
         body: JSON.stringify({
           name: formData.name.trim(),
@@ -67,32 +75,7 @@ function NewRepository() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-slate-800 dark:bg-slate-950/95">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8 max-w-7xl">
-          <Link to="/projects" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 shadow-md">
-              <span className="text-xl">📦</span>
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent leading-tight">Auto-Code Platform</h1>
-              <span className="text-xs text-slate-500 dark:text-slate-400">Gestion de projets</span>
-            </div>
-          </Link>
-          <div className="flex items-center gap-3">
-            {user && (
-              <div className="text-sm text-slate-600 dark:text-slate-400 hidden sm:block">
-                <span className="font-medium">{user.username}</span>
-              </div>
-            )}
-            <Button onClick={signOut} variant="ghost" size="sm" className="text-slate-600 hover:text-red-600">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppBar />
 
       {/* Content */}
       <main className="container px-4 py-8 md:px-8 max-w-7xl mx-auto">
@@ -142,6 +125,29 @@ function NewRepository() {
                     className="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <p className="text-xs text-slate-500">Décrivez brièvement votre projet (optionnel)</p>
+                </div>
+
+                {/* GitHub Token */}
+                <div className="space-y-2">
+                  <Label htmlFor="githubToken" className="text-sm font-medium">
+                    Token GitHub *
+                  </Label>
+                  <Input
+                    id="githubToken"
+                    name="githubToken"
+                    type="password"
+                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                    value={formData.githubToken}
+                    onChange={handleChange}
+                    required
+                    className="w-full font-mono text-sm"
+                  />
+                  <p className="text-xs text-slate-500">
+                    Votre token GitHub personnel (nécessaire pour créer le repository sur GitHub).{" "}
+                    <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      Créer un token
+                    </a>
+                  </p>
                 </div>
 
                 {/* Private Checkbox */}
@@ -198,9 +204,10 @@ function NewRepository() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">Besoin d'aide ?</h3>
+                  <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">À propos de la création</h3>
                   <p className="text-xs text-blue-800 dark:text-blue-300">
-                    Vous pouvez également synchroniser vos repositories existants depuis GitHub en utilisant le bouton "Sync GitHub" dans la liste des projets.
+                    Ce formulaire créera automatiquement le repository sur GitHub avant de l'enregistrer dans la base de données. Vous pouvez également synchroniser vos repositories existants depuis
+                    GitHub en utilisant le bouton "Sync GitHub" dans la liste des projets.
                   </p>
                 </div>
               </div>

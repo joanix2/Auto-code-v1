@@ -20,17 +20,57 @@ def get_repository_repo():
 @router.post("/repositories", response_model=Repository, status_code=status.HTTP_201_CREATED)
 async def create_repository(
     repo_data: RepositoryCreate,
+    github_token: Optional[str] = Header(None, alias="X-GitHub-Token"),
     current_user: User = Depends(get_current_user),
     repo_repo: RepositoryRepository = Depends(get_repository_repo)
 ):
-    """Create a new repository"""
-    repository = await repo_repo.create_repository(repo_data, current_user.username)
-    if not repository:
+    """
+    Create a new repository on GitHub and save it to the database.
+    Requires X-GitHub-Token header with personal access token.
+    """
+    if not github_token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to create repository"
+            detail="GitHub token required in X-GitHub-Token header to create repository"
         )
-    return repository
+    
+    try:
+        # Create repository on GitHub first
+        github_service = GitHubService(github_token)
+        gh_repo = github_service.create_repository(
+            name=repo_data.name,
+            description=repo_data.description,
+            private=repo_data.private
+        )
+        
+        if not gh_repo:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create repository on GitHub"
+            )
+        
+        # Update repo_data with GitHub information
+        repo_data.github_id = gh_repo["id"]
+        repo_data.url = gh_repo["html_url"]
+        repo_data.full_name = gh_repo["full_name"]
+        
+        # Save to database
+        repository = await repo_repo.create_repository(repo_data, current_user.username)
+        if not repository:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to save repository to database"
+            )
+        
+        return repository
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create repository: {str(e)}"
+        )
 
 
 @router.get("/repositories", response_model=List[Repository])

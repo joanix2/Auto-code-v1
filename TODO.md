@@ -2,16 +2,19 @@
 
 ✅ connexion
 
-liste des repo
-création d'un nouveau repo
+✅ liste des repo
 
-tri par dernière date
-recherche de repo par nom
-style boutton nouveau repo
-
-app bar commune
+✅ app bar commune
 
 page profile
+configuration du token github
+
+création d'un nouveau repo
+
+tri par dernière date de modification
+recherche de repo par nom (distance de levenstein)
+
+style boutton nouveau repo
 
 liste des tickets par projet
 
@@ -21,10 +24,16 @@ ajouter à la queue rabit MQ
 
 générer le code
 
+modifier le logo et index.html
+
+avoir des templates de projets avec un formulaire
+
+IaC et CI/CD pour depoiment automatique
+
+DAG de ticker
+
 ajout des KG
 
 ajout des ontologies
-
-DAG de ticker
 
 règles sur le graphe
