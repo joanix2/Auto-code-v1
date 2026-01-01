@@ -1,6 +1,7 @@
 """Ticket controller - API endpoints for tickets"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
+from pydantic import BaseModel
 from src.models.ticket import Ticket, TicketCreate, TicketUpdate
 from src.models.user import User
 from src.repositories.ticket_repository import TicketRepository
@@ -8,6 +9,17 @@ from src.database import Neo4jConnection
 from src.utils.auth import get_current_user
 
 router = APIRouter()
+
+
+class TicketOrderUpdate(BaseModel):
+    """Model for updating ticket order"""
+    ticket_id: str
+    order: int
+
+
+class BulkOrderUpdate(BaseModel):
+    """Model for bulk order updates"""
+    updates: List[TicketOrderUpdate]
 
 
 def get_ticket_repo():
@@ -59,6 +71,25 @@ async def get_tickets_by_repository(
     return await ticket_repo.get_tickets_by_repository(repository_id)
 
 
+@router.put("/tickets/reorder", status_code=status.HTTP_200_OK)
+async def reorder_tickets(
+    bulk_update: BulkOrderUpdate,
+    current_user: User = Depends(get_current_user),
+    ticket_repo: TicketRepository = Depends(get_ticket_repo)
+):
+    """Reorder multiple tickets at once"""
+    try:
+        for update in bulk_update.updates:
+            ticket_data = TicketUpdate(order=update.order)
+            await ticket_repo.update_ticket(update.ticket_id, ticket_data)
+        return {"message": "Tickets reordered successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error reordering tickets: {str(e)}"
+        )
+
+
 @router.get("/tickets/{ticket_id}", response_model=Ticket)
 async def get_ticket(
     ticket_id: str,
@@ -106,3 +137,4 @@ async def delete_ticket(
             detail="Ticket not found"
         )
     return None
+

@@ -78,6 +78,7 @@ export interface Ticket {
   status: TicketStatus;
   priority: TicketPriority;
   ticket_type: TicketType;
+  order: number;
   assignee_id?: string;
   created_by_id: string;
   created_at: string;
@@ -99,6 +100,7 @@ export interface TicketUpdate {
   status?: TicketStatus;
   priority?: TicketPriority;
   ticket_type?: TicketType;
+  order?: number;
   assignee_id?: string;
 }
 

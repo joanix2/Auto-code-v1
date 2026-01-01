@@ -26,7 +26,9 @@ elle va beaucoup ressembler à la liste des repo, tu peut donc copier le code da
 
 ✅ suppression de tickets (refaire la modale)
 
-drag and drop pour l'ordre des tickets
+✅ drag and drop pour l'ordre des tickets
+
+bar pour filter l'état des tickets (si on veux que les TODO par exemple)
 
 générer le code
 

@@ -54,6 +54,7 @@ class TicketUpdate(BaseModel):
     description: Optional[str] = None
     status: Optional[TicketStatus] = None
     priority: Optional[TicketPriority] = None
+    order: Optional[int] = None
 
 
 class Ticket(TicketBase):
@@ -64,6 +65,7 @@ class Ticket(TicketBase):
     repository_id: str = Field(..., description="Repository ID")
     repository_name: Optional[str] = Field(None, description="Repository name")
     status: TicketStatus = Field(default=TicketStatus.open, description="Ticket status")
+    order: int = Field(default=0, description="Display order")
     created_by: str = Field(..., description="Username of creator")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None

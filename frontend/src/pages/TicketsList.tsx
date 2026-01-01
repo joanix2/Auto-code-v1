@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useAuth } from "../contexts/AuthContext";
 import { apiClient } from "../services";
 import { Button } from "@/components/ui/button";
@@ -7,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AppBar } from "@/components/AppBar";
 import { Input } from "@/components/ui/input";
-import { TicketCard } from "@/components/TicketCard";
+import { SortableTicketCard } from "@/components/SortableTicketCard";
 import { DeleteTicketDialog } from "@/components/DeleteTicketDialog";
 import type { Ticket, Repository } from "@/types";
 
@@ -53,6 +55,23 @@ function TicketsList() {
   const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   const fetchTickets = useCallback(async () => {
     if (!repositoryId) return;
 
@@ -84,15 +103,9 @@ function TicketsList() {
 
       const ticketsData = await response.json();
 
-      // Trier par date de création (plus récent en premier)
-      const sortedTickets = ticketsData.sort((a: Ticket, b: Ticket) => {
-        const dateA = new Date(a.created_at).getTime();
-        const dateB = new Date(b.created_at).getTime();
-        return dateB - dateA;
-      });
-
-      setTickets(sortedTickets);
-      setFilteredTickets(sortedTickets);
+      // Les tickets sont déjà triés par ordre dans le backend
+      setTickets(ticketsData);
+      setFilteredTickets(ticketsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de la récupération des tickets");
     } finally {
@@ -172,6 +185,50 @@ function TicketsList() {
       setError(err instanceof Error ? err.message : "Erreur lors de la suppression");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = filteredTickets.findIndex((ticket) => ticket.id === active.id);
+    const newIndex = filteredTickets.findIndex((ticket) => ticket.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const newTickets = arrayMove(filteredTickets, oldIndex, newIndex);
+      setFilteredTickets(newTickets);
+
+      // Update the order on the backend
+      try {
+        const updates = newTickets.map((ticket, index) => ({
+          ticket_id: ticket.id,
+          order: index,
+        }));
+
+        const response = await fetch("http://localhost:8000/api/tickets/reorder", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ updates }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Erreur lors de la mise à jour de l'ordre");
+        }
+
+        // Refresh to get updated data
+        fetchTickets();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erreur lors de la réorganisation");
+        // Revert on error
+        setFilteredTickets(filteredTickets);
+      }
     }
   };
 
@@ -270,11 +327,15 @@ function TicketsList() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
-            {filteredTickets.map((ticket) => (
-              <TicketCard key={ticket.id} ticket={ticket} onEdit={handleEdit} onDelete={handleDelete} />
-            ))}
-          </div>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={filteredTickets.map((ticket) => ticket.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-3">
+                {filteredTickets.map((ticket) => (
+                  <SortableTicketCard key={ticket.id} ticket={ticket} onEdit={handleEdit} onDelete={handleDelete} />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </main>
 

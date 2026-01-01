@@ -27,6 +27,15 @@ class TicketRepository:
     async def create_ticket(self, ticket_data: TicketCreate, created_by: str) -> Optional[Ticket]:
         """Create a new ticket"""
         ticket_id = str(uuid.uuid4())
+        
+        # Get the max order for this repository
+        max_order_query = """
+        MATCH (t:Ticket {repository_id: $repository_id})
+        RETURN COALESCE(MAX(t.order), -1) as max_order
+        """
+        max_order_result = self.db.execute_query(max_order_query, {"repository_id": ticket_data.repository_id})
+        next_order = (max_order_result[0]["max_order"] + 1) if max_order_result else 0
+        
         query = """
         MATCH (u:User {username: $created_by})
         MATCH (r:Repository {id: $repository_id})
@@ -38,6 +47,7 @@ class TicketRepository:
             priority: $priority,
             ticket_type: $ticket_type,
             status: 'open',
+            order: $order,
             created_at: datetime()
         })
         CREATE (u)-[:CREATED]->(t)
@@ -52,7 +62,8 @@ class TicketRepository:
             "description": ticket_data.description or "",
             "repository_id": ticket_data.repository_id,
             "priority": ticket_data.priority.value,
-            "ticket_type": ticket_data.ticket_type.value
+            "ticket_type": ticket_data.ticket_type.value,
+            "order": next_order
         }
         
         result = self.db.execute_query(query, params)
@@ -67,7 +78,8 @@ class TicketRepository:
                 priority=ticket_data.priority,
                 ticket_type=ticket_data.ticket_type,
                 created_by=created_by,
-                status=TicketStatus.open
+                status=TicketStatus.open,
+                order=next_order
             )
         return None
     
@@ -77,7 +89,7 @@ class TicketRepository:
         MATCH (t:Ticket {repository_id: $repository_id})<-[:CREATED]-(u:User)
         MATCH (t)-[:FOR_REPO]->(r:Repository)
         RETURN t, u.username as created_by, r.name as repository_name
-        ORDER BY t.created_at DESC
+        ORDER BY COALESCE(t.order, 999999), t.created_at DESC
         """
         
         result = self.db.execute_query(query, {"repository_id": repository_id})
@@ -94,6 +106,7 @@ class TicketRepository:
                 priority=ticket_node["priority"],
                 ticket_type=ticket_node["ticket_type"],
                 status=TicketStatus(ticket_node["status"]),
+                order=ticket_node.get("order", 0),
                 created_by=record["created_by"],
                 created_at=neo4j_datetime_to_python(ticket_node.get("created_at"))
             ))
@@ -135,6 +148,7 @@ class TicketRepository:
             priority=ticket_node["priority"],
             ticket_type=ticket_node["ticket_type"],
             status=TicketStatus(ticket_node["status"]),
+            order=ticket_node.get("order", 0),
             created_by=record["created_by"],
             created_at=neo4j_datetime_to_python(ticket_node.get("created_at")),
             updated_at=neo4j_datetime_to_python(ticket_node.get("updated_at")) if ticket_node.get("updated_at") else None
@@ -161,6 +175,10 @@ class TicketRepository:
         if ticket_data.priority is not None:
             updates.append("t.priority = $priority")
             params["priority"] = ticket_data.priority.value
+        
+        if ticket_data.order is not None:
+            updates.append("t.order = $order")
+            params["order"] = ticket_data.order
         
         if not updates:
             # No updates, just return the existing ticket
@@ -192,6 +210,7 @@ class TicketRepository:
             priority=ticket_node["priority"],
             ticket_type=ticket_node["ticket_type"],
             status=TicketStatus(ticket_node["status"]),
+            order=ticket_node.get("order", 0),
             created_by=record["created_by"],
             created_at=neo4j_datetime_to_python(ticket_node.get("created_at")),
             updated_at=neo4j_datetime_to_python(ticket_node.get("updated_at")) if ticket_node.get("updated_at") else None
