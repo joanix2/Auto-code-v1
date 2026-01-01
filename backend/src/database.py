@@ -63,6 +63,38 @@ class Neo4jConnection:
         except Exception as e:
             print(f"✗ Erreur de connexion à Neo4j : {e}")
             return False
+    
+    def init_constraints(self):
+        """Initialise les contraintes Neo4j pour assurer l'unicité"""
+        try:
+            with self.get_session() as session:
+                # Contrainte d'unicité sur User.username
+                session.run(
+                    "CREATE CONSTRAINT user_username_unique IF NOT EXISTS "
+                    "FOR (u:User) REQUIRE u.username IS UNIQUE"
+                )
+                
+                # Contrainte d'unicité sur User.id
+                session.run(
+                    "CREATE CONSTRAINT user_id_unique IF NOT EXISTS "
+                    "FOR (u:User) REQUIRE u.id IS UNIQUE"
+                )
+                
+                # Contrainte d'unicité sur Repository.id
+                session.run(
+                    "CREATE CONSTRAINT repository_id_unique IF NOT EXISTS "
+                    "FOR (r:Repository) REQUIRE r.id IS UNIQUE"
+                )
+                
+                # Contrainte d'unicité sur Ticket.id
+                session.run(
+                    "CREATE CONSTRAINT ticket_id_unique IF NOT EXISTS "
+                    "FOR (t:Ticket) REQUIRE t.id IS UNIQUE"
+                )
+                
+                print("✓ Contraintes Neo4j initialisées")
+        except Exception as e:
+            print(f"⚠️  Erreur lors de l'initialisation des contraintes : {e}")
 
 
 # Instance globale

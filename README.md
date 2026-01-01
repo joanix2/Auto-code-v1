@@ -61,17 +61,20 @@ A headless server platform that orchestrates AI development agents to automate c
 ### Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/joanix2/Auto-code-v1.git
    cd Auto-code-v1
    ```
 
 2. **Configure environment**
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Edit `.env` and add your credentials:
+
    ```env
    GITHUB_TOKEN=your_github_token
    GITHUB_OWNER=your_username
@@ -80,14 +83,15 @@ A headless server platform that orchestrates AI development agents to automate c
    ```
 
 3. **Start the platform**
+
    ```bash
    docker-compose up --build
    ```
 
 4. **Access the application**
    - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Docs: http://localhost:8000/docs
+   - Backend API: http://localhost:8000/api
+   - API Docs: http://localhost:8000/api/docs
    - RabbitMQ Management: http://localhost:15672 (guest/guest)
 
 ## 📱 Usage
@@ -111,7 +115,7 @@ A headless server platform that orchestrates AI development agents to automate c
 Create a ticket programmatically:
 
 ```bash
-curl -X POST http://localhost:8000/tickets \
+curl -X POST http://localhost:8000/api/tickets \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Add user authentication",
@@ -124,7 +128,7 @@ curl -X POST http://localhost:8000/tickets \
 Check health status:
 
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:8000/api/health
 ```
 
 ## 🔧 Development
@@ -202,6 +206,7 @@ Auto-code-v1/
 ## 🐛 Troubleshooting
 
 ### RabbitMQ Connection Issues
+
 ```bash
 # Check RabbitMQ is running
 docker-compose ps
@@ -211,11 +216,13 @@ docker-compose logs rabbitmq
 ```
 
 ### GitHub API Errors
+
 - Verify your GitHub token has `repo` scope
 - Check rate limits: https://api.github.com/rate_limit
 - Ensure repository name is correct in `.env`
 
 ### Worker Not Processing Tasks
+
 ```bash
 # Check worker logs
 docker-compose logs worker

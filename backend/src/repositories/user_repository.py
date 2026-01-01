@@ -165,12 +165,24 @@ class UserRepository:
     @staticmethod
     def _node_to_user(node) -> User:
         """Convertit un nœud Neo4j en objet User"""
+        from neo4j.time import DateTime as Neo4jDateTime
+        
+        # Convertir les dates Neo4j en datetime Python
+        created_at = node["created_at"]
+        if isinstance(created_at, Neo4jDateTime):
+            created_at = created_at.to_native()
+        
+        updated_at = node.get("updated_at")
+        if updated_at and isinstance(updated_at, Neo4jDateTime):
+            updated_at = updated_at.to_native()
+        
         return User(
             id=node["id"],
             username=node["username"],
-            email=node["email"],
+            email=node.get("email"),
             full_name=node.get("full_name"),
+            password=node["password"],
             is_active=node.get("is_active", True),
-            created_at=node["created_at"],
-            updated_at=node.get("updated_at")
+            created_at=created_at,
+            updated_at=updated_at
         )

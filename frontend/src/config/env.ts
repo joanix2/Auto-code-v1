@@ -1,0 +1,41 @@
+/**
+ * Application configuration
+ * Centralized environment variables and constants
+ */
+
+// API Base URL - defaults to localhost if not set
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+
+// Other configuration
+export const APP_NAME = "Tag Link";
+export const APP_VERSION = "1.0.0";
+
+// API endpoints
+export const API_ENDPOINTS = {
+  // Auth
+  AUTH_REGISTER: "/users/register",
+  AUTH_LOGIN: "/users/login",
+  AUTH_ME: "/users/me",
+
+  // Users
+  USERS: "/users",
+
+  // Repositories
+  REPOSITORIES: "/repositories",
+
+  // Tickets
+  TICKETS: "/tickets",
+} as const;
+
+// Build full API URL
+export const buildApiUrl = (endpoint: string): string => {
+  return `${API_URL}${endpoint}`;
+};
+
+export default {
+  API_URL,
+  APP_NAME,
+  APP_VERSION,
+  API_ENDPOINTS,
+  buildApiUrl,
+};

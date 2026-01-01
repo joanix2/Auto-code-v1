@@ -1,136 +1,83 @@
-/**
- * Authentication Service
- * Handles user authentication and token management
- */
+import { apiClient } from "./api.service";
+import type { UserLogin, UserCreate, TokenResponse, User } from "../types";
 
-import apiClient from "./api.service";
-import type { User, UserCreate, TokenResponse } from "../types";
+const TOKEN_KEY = "token";
+const USER_KEY = "user";
 
 class AuthService {
-  private readonly TOKEN_KEY = "token";
-  private readonly USER_KEY = "user";
+  getToken(): string | null {
+    return localStorage.getItem(TOKEN_KEY);
+  }
 
-  /**
-   * Login user with credentials
-   */
+  setToken(token: string): void {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+
+  removeToken(): void {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+
+  getUser(): User | null {
+    const userStr = localStorage.getItem(USER_KEY);
+    return userStr ? JSON.parse(userStr) : null;
+  }
+
+  setUser(user: User): void {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  }
+
+  removeUser(): void {
+    localStorage.removeItem(USER_KEY);
+  }
+
   async login(username: string, password: string): Promise<TokenResponse> {
-    const response = await apiClient.login(username, password);
+    const data: UserLogin = { username, password };
+    const response = await apiClient.login(data);
 
-    if (response.access_token) {
-      this.setToken(response.access_token);
-    }
+    this.setToken(response.access_token);
 
-    if (response.user) {
-      this.setUser(response.user);
-    }
+    // Fetch and store user data
+    const user = await apiClient.getCurrentUser();
+    this.setUser(user);
 
     return response;
   }
 
-  /**
-   * Register a new user
-   */
-  async register(userData: UserCreate): Promise<User> {
-    const user = await apiClient.register(userData);
+  async register(username: string, password: string, email?: string, full_name?: string): Promise<TokenResponse> {
+    const data: UserCreate = { username, password, email, full_name };
+    const response = await apiClient.register(data);
 
-    // After registration, try to log in automatically
-    if (user) {
-      try {
-        await this.login(userData.username, userData.password);
-      } catch (error) {
-        console.error("Auto-login after registration failed:", error);
-      }
-    }
+    this.setToken(response.access_token);
 
-    return user;
+    // Fetch and store user data
+    const user = await apiClient.getCurrentUser();
+    this.setUser(user);
+
+    return response;
   }
 
-  /**
-   * Logout current user
-   */
   logout(): void {
     this.removeToken();
     this.removeUser();
   }
 
-  /**
-   * Get current authenticated user
-   */
   async getCurrentUser(): Promise<User | null> {
     const token = this.getToken();
-    if (!token) {
-      return null;
-    }
+    if (!token) return null;
 
     try {
       const user = await apiClient.getCurrentUser();
       this.setUser(user);
       return user;
     } catch (error) {
-      console.error("Failed to get current user:", error);
       this.logout();
       return null;
     }
   }
 
-  /**
-   * Check if user is authenticated
-   */
   isAuthenticated(): boolean {
-    return this.getToken() !== null;
-  }
-
-  /**
-   * Get stored token
-   */
-  getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
-  }
-
-  /**
-   * Set token in storage
-   */
-  private setToken(token: string): void {
-    localStorage.setItem(this.TOKEN_KEY, token);
-  }
-
-  /**
-   * Remove token from storage
-   */
-  private removeToken(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-  }
-
-  /**
-   * Get stored user
-   */
-  getUser(): User | null {
-    const userStr = localStorage.getItem(this.USER_KEY);
-    if (!userStr) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(userStr);
-    } catch {
-      return null;
-    }
-  }
-
-  /**
-   * Set user in storage
-   */
-  private setUser(user: User): void {
-    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-  }
-
-  /**
-   * Remove user from storage
-   */
-  private removeUser(): void {
-    localStorage.removeItem(this.USER_KEY);
+    return !!this.getToken();
   }
 }
 
 export const authService = new AuthService();
-export default authService;

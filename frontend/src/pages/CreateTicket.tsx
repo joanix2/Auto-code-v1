@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { apiClient } from "../services";
+import type { Repository } from "../types";
 
 function CreateTicket() {
   const { signOut } = useAuth();
@@ -16,7 +17,7 @@ function CreateTicket() {
     type: "feature",
   });
 
-  const [repos, setRepos] = useState([]);
+  const [repos, setRepos] = useState<Repository[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingRepos, setLoadingRepos] = useState(true);
   const [error, setError] = useState("");
@@ -32,13 +33,14 @@ function CreateTicket() {
       const repos = await apiClient.getRepositories();
       setRepos(repos);
     } catch (err) {
-      setError(err.message || "Erreur lors du chargement des repositories");
+      const errorMessage = err instanceof Error ? err.message : "Erreur lors du chargement des repositories";
+      setError(errorMessage);
     } finally {
       setLoadingRepos(false);
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -46,7 +48,7 @@ function CreateTicket() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -100,7 +102,8 @@ function CreateTicket() {
       }
     } catch (err) {
       console.error("Erreur:", err);
-      setError(err.response?.data?.detail || err.message || "Erreur lors de la création du ticket. Vérifiez que le backend est démarré.");
+      const errorMessage = err instanceof Error ? err.message : "Erreur lors de la création du ticket. Vérifiez que le backend est démarré.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -145,8 +148,8 @@ function CreateTicket() {
                 <select id="repository" name="repository" className="input" value={formData.repository} onChange={handleChange} disabled={loading || loadingRepos} required>
                   <option value="">Sélectionner un repository</option>
                   {repos.map((repo) => (
-                    <option key={repo.id} value={repo.full_name}>
-                      {repo.full_name} {repo.private ? "🔒" : "🌐"}
+                    <option key={repo.id} value={repo.name}>
+                      {repo.name} {repo.description || ""}
                     </option>
                   ))}
                 </select>
@@ -212,7 +215,7 @@ function CreateTicket() {
                   onChange={handleChange}
                   disabled={loading}
                   required
-                  rows="6"
+                  rows={6}
                 />
                 <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.5rem" }}>💡 Plus votre description est détaillée, meilleur sera le résultat de l'agent AI</p>
               </div>

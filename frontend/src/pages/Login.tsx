@@ -14,7 +14,6 @@ export default function LoginPage() {
 
   const [registerUsername, setRegisterUsername] = useState<string>("");
   const [registerEmail, setRegisterEmail] = useState<string>("");
-  const [registerFullName, setRegisterFullName] = useState<string>("");
   const [registerPassword, setRegisterPassword] = useState<string>("");
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState<string>("");
 
@@ -56,7 +55,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await signUp(registerUsername, registerPassword, registerEmail || undefined, registerFullName || undefined);
+      await signUp(registerUsername, registerPassword, registerEmail || undefined);
       navigate("/projects", { replace: true });
     } catch (error) {
       console.error("Register error:", error);
@@ -127,10 +126,6 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <Label htmlFor="register-email">Email</Label>
                   <Input id="register-email" type="email" placeholder="your@email.com" value={registerEmail} onChange={(e) => setRegisterEmail(e.target.value)} disabled={isSubmitting} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-full-name">Full Name</Label>
-                  <Input id="register-full-name" type="text" placeholder="John Doe" value={registerFullName} onChange={(e) => setRegisterFullName(e.target.value)} disabled={isSubmitting} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-password">Password *</Label>

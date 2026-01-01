@@ -19,7 +19,7 @@ start:
 	docker-compose up -d
 	@echo "Services started! Access at:"
 	@echo "  Frontend: http://localhost:3000"
-	@echo "  Backend:  http://localhost:8000"
+	@echo "  Backend:  http://localhost:8000/api"
 	@echo "  RabbitMQ: http://localhost:15672"
 
 stop:

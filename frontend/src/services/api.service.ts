@@ -1,67 +1,43 @@
-/**
- * API Client Service
- * Centralized HTTP client for backend communication
- */
+import type { User, Repository, Ticket, UserLogin, UserCreate, TokenResponse, TicketCreate } from "../types";
 
-import type { User, UserCreate, TokenResponse, Repository, RepositoryCreate, RepositoryUpdate, Ticket, TicketCreate, TicketUpdate, HealthCheck, ApiError } from "../types";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = "http://localhost:8000/api";
 
 class ApiClient {
-  private baseURL: string;
-
-  constructor() {
-    this.baseURL = API_BASE_URL;
-  }
-
-  private getAuthHeader(): Record<string, string> {
+  private getAuthHeader(): HeadersInit {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...this.getAuthHeader(),
-        ...options.headers,
-      },
+    const url = `${API_BASE_URL}${endpoint}`;
+    const headers = {
+      "Content-Type": "application/json",
+      ...this.getAuthHeader(),
+      ...options.headers,
     };
 
-    try {
-      const response = await fetch(url, config);
+    const response = await fetch(url, { ...options, headers });
 
-      if (!response.ok) {
-        const error: ApiError = await response.json().catch(() => ({ detail: "Request failed" }));
-        throw new Error(error.detail || `HTTP error! status: ${response.status}`);
-      }
-
-      // Handle 204 No Content
-      if (response.status === 204) {
-        return null as T;
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error("API request failed:", error);
-      throw error;
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(error.detail || `HTTP error! status: ${response.status}`);
     }
+
+    return response.json();
   }
 
   // Auth endpoints
-  async login(username: string, password: string): Promise<TokenResponse> {
+  async login(data: UserLogin): Promise<TokenResponse> {
     return this.request<TokenResponse>("/users/login", {
       method: "POST",
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify(data),
     });
   }
 
-  async register(userData: UserCreate): Promise<User> {
-    return this.request<User>("/users/", {
+  async register(data: UserCreate): Promise<TokenResponse> {
+    return this.request<TokenResponse>("/users/register", {
       method: "POST",
-      body: JSON.stringify(userData),
+      body: JSON.stringify(data),
     });
   }
 
@@ -69,91 +45,63 @@ class ApiClient {
     return this.request<User>("/users/me");
   }
 
-  // Users endpoints
-  async getUsers(skip = 0, limit = 100): Promise<User[]> {
-    return this.request<User[]>(`/users/?skip=${skip}&limit=${limit}`);
+  // Repository endpoints
+  async getRepositories(): Promise<Repository[]> {
+    return this.request<Repository[]>("/repositories");
   }
 
-  async getUser(userId: string): Promise<User> {
-    return this.request<User>(`/users/${userId}`);
+  async getRepository(id: string): Promise<Repository> {
+    return this.request<Repository>(`/repositories/${id}`);
   }
 
-  async updateUser(userId: string, userData: Partial<User>): Promise<User> {
-    return this.request<User>(`/users/${userId}`, {
-      method: "PUT",
-      body: JSON.stringify(userData),
-    });
-  }
-
-  async deleteUser(userId: string): Promise<void> {
-    return this.request<void>(`/users/${userId}`, {
-      method: "DELETE",
-    });
-  }
-
-  // Repositories endpoints
-  async getRepositories(skip = 0, limit = 100): Promise<Repository[]> {
-    return this.request<Repository[]>(`/repositories/?skip=${skip}&limit=${limit}`);
-  }
-
-  async getRepository(repoId: string): Promise<Repository> {
-    return this.request<Repository>(`/repositories/${repoId}`);
-  }
-
-  async createRepository(repoData: RepositoryCreate): Promise<Repository> {
-    return this.request<Repository>("/repositories/", {
+  async createRepository(data: Partial<Repository>): Promise<Repository> {
+    return this.request<Repository>("/repositories", {
       method: "POST",
-      body: JSON.stringify(repoData),
+      body: JSON.stringify(data),
     });
   }
 
-  async updateRepository(repoId: string, repoData: RepositoryUpdate): Promise<Repository> {
-    return this.request<Repository>(`/repositories/${repoId}`, {
+  async updateRepository(id: string, data: Partial<Repository>): Promise<Repository> {
+    return this.request<Repository>(`/repositories/${id}`, {
       method: "PUT",
-      body: JSON.stringify(repoData),
+      body: JSON.stringify(data),
     });
   }
 
-  async deleteRepository(repoId: string): Promise<void> {
-    return this.request<void>(`/repositories/${repoId}`, {
+  async deleteRepository(id: string): Promise<void> {
+    return this.request<void>(`/repositories/${id}`, {
       method: "DELETE",
     });
   }
 
-  // Tickets endpoints
-  async getTickets(skip = 0, limit = 100): Promise<Ticket[]> {
-    return this.request<Ticket[]>(`/tickets/?skip=${skip}&limit=${limit}`);
+  // Ticket endpoints
+  async getTickets(): Promise<Ticket[]> {
+    return this.request<Ticket[]>("/tickets");
   }
 
-  async getTicket(ticketId: string): Promise<Ticket> {
-    return this.request<Ticket>(`/tickets/${ticketId}`);
+  async getTicket(id: string): Promise<Ticket> {
+    return this.request<Ticket>(`/tickets/${id}`);
   }
 
-  async createTicket(ticketData: TicketCreate): Promise<Ticket> {
-    return this.request<Ticket>("/tickets/", {
+  async createTicket(data: TicketCreate): Promise<Ticket> {
+    return this.request<Ticket>("/tickets", {
       method: "POST",
-      body: JSON.stringify(ticketData),
+      body: JSON.stringify(data),
     });
   }
 
-  async updateTicket(ticketId: string, ticketData: TicketUpdate): Promise<Ticket> {
-    return this.request<Ticket>(`/tickets/${ticketId}`, {
+  async updateTicket(id: string, data: Partial<Ticket>): Promise<Ticket> {
+    return this.request<Ticket>(`/tickets/${id}`, {
       method: "PUT",
-      body: JSON.stringify(ticketData),
+      body: JSON.stringify(data),
     });
   }
 
-  async deleteTicket(ticketId: string): Promise<void> {
-    return this.request<void>(`/tickets/${ticketId}`, {
+  async deleteTicket(id: string): Promise<void> {
+    return this.request<void>(`/tickets/${id}`, {
       method: "DELETE",
     });
-  }
-
-  // Health check
-  async healthCheck(): Promise<HealthCheck> {
-    return this.request<HealthCheck>("/health");
   }
 }
 
 export const apiClient = new ApiClient();
-export default apiClient;

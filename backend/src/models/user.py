@@ -33,7 +33,7 @@ class UserUpdate(BaseModel):
 class User(UserBase):
     """Schéma complet d'un User"""
     id: str = Field(..., description="ID unique de l'utilisateur")
-    password: str = Field(..., description="Mot de passe haché (ne pas exposer en production)")
+    password: str = Field(..., exclude=True, description="Mot de passe haché (ne pas exposer)")
     is_active: bool = Field(default=True, description="Utilisateur actif")
     created_at: datetime = Field(..., description="Date de création")
     updated_at: Optional[datetime] = Field(None, description="Date de dernière modification")

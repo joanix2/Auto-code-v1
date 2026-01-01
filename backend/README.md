@@ -41,9 +41,9 @@ pip install -r requirements.txt
 python main.py
 ```
 
-L'API sera accessible sur http://localhost:8000
+L'API sera accessible sur http://localhost:8000/api
 
-Documentation interactive : http://localhost:8000/docs
+Documentation interactive : http://localhost:8000/api/docs
 
 ## Endpoints
 
