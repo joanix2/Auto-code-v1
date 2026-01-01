@@ -10,6 +10,7 @@ export type User = {
   tag_match_mode?: "OR" | "AND";
   profile_picture?: string;
   theme?: string;
+  github_token?: string;
 };
 
 type AuthContextType = {

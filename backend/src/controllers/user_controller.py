@@ -81,3 +81,36 @@ async def register(user: UserCreate):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur lors de l'enregistrement: {str(e)}")
+
+
+class GitHubTokenUpdate(BaseModel):
+    """Modèle pour la mise à jour du token GitHub"""
+    github_token: str
+
+
+@router.put("/me/github-token", response_model=UserResponse)
+async def update_github_token(token_data: GitHubTokenUpdate, current_user: User = Depends(get_current_user)):
+    """Met à jour le token GitHub de l'utilisateur"""
+    try:
+        updated_user = UserRepository.update_github_token(current_user.username, token_data.github_token)
+        if not updated_user:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+        return UserResponse.model_validate(updated_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour du token: {str(e)}")
+
+
+@router.delete("/me/github-token", response_model=UserResponse)
+async def delete_github_token(current_user: User = Depends(get_current_user)):
+    """Supprime le token GitHub de l'utilisateur"""
+    try:
+        updated_user = UserRepository.update_github_token(current_user.username, None)
+        if not updated_user:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+        return UserResponse.model_validate(updated_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression du token: {str(e)}")

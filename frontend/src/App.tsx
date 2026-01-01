@@ -4,6 +4,8 @@ import Login from "./pages/Login";
 import ProjectsList from "./pages/ProjectsList";
 import NewRepository from "./pages/NewRepository";
 import CreateTicket from "./pages/CreateTicket";
+import Profile from "./pages/Profile";
+import AuthCallback from "./pages/AuthCallback";
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -77,6 +79,18 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* OAuth Callback Route */}
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* Default route */}
           <Route path="/" element={<Navigate to="/projects" replace />} />

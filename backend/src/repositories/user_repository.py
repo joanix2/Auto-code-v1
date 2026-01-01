@@ -75,6 +75,20 @@ class UserRepository:
             return None
     
     @staticmethod
+    def get_by_email(email: str) -> Optional[User]:
+        """Récupère un utilisateur par son email"""
+        if not email:
+            return None
+        with db.get_session() as session:
+            query = "MATCH (u:User {email: $email}) RETURN u"
+            result = session.run(query, email=email)
+            record = result.single()
+            
+            if record:
+                return UserRepository._node_to_user(record["u"])
+            return None
+    
+    @staticmethod
     def get_all(skip: int = 0, limit: int = 100) -> List[User]:
         """Récupère tous les utilisateurs avec pagination"""
         with db.get_session() as session:
@@ -163,6 +177,50 @@ class UserRepository:
             return UserRepository._node_to_user(user_node)
     
     @staticmethod
+    def update_github_token(username: str, github_token: Optional[str]) -> Optional[User]:
+        """Met à jour le token GitHub de l'utilisateur"""
+        with db.get_session() as session:
+            query = """
+            MATCH (u:User {username: $username})
+            SET u.github_token = $github_token,
+                u.updated_at = datetime($updated_at)
+            RETURN u
+            """
+            result = session.run(
+                query,
+                username=username,
+                github_token=github_token,
+                updated_at=datetime.now().isoformat()
+            )
+            record = result.single()
+            
+            if record:
+                return UserRepository._node_to_user(record["u"])
+            return None
+    
+    @staticmethod
+    def update_profile_picture(username: str, profile_picture: Optional[str]) -> Optional[User]:
+        """Met à jour la photo de profil de l'utilisateur"""
+        with db.get_session() as session:
+            query = """
+            MATCH (u:User {username: $username})
+            SET u.profile_picture = $profile_picture,
+                u.updated_at = datetime($updated_at)
+            RETURN u
+            """
+            result = session.run(
+                query,
+                username=username,
+                profile_picture=profile_picture,
+                updated_at=datetime.now().isoformat()
+            )
+            record = result.single()
+            
+            if record:
+                return UserRepository._node_to_user(record["u"])
+            return None
+    
+    @staticmethod
     def _node_to_user(node) -> User:
         """Convertit un nœud Neo4j en objet User"""
         from neo4j.time import DateTime as Neo4jDateTime
@@ -184,5 +242,7 @@ class UserRepository:
             password=node["password"],
             is_active=node.get("is_active", True),
             created_at=created_at,
-            updated_at=updated_at
+            updated_at=updated_at,
+            github_token=node.get("github_token"),
+            profile_picture=node.get("profile_picture")
         )

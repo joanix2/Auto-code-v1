@@ -9,13 +9,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AppBar } from "@/components/AppBar";
 
 function NewRepository() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     private: false,
-    githubToken: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,8 +27,8 @@ function NewRepository() {
       return;
     }
 
-    if (!formData.githubToken.trim()) {
-      setError("Le token GitHub est requis pour créer le repository");
+    if (!user?.github_token) {
+      setError("Veuillez configurer votre token GitHub dans les paramètres de votre profil");
       return;
     }
 
@@ -42,7 +41,7 @@ function NewRepository() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "X-GitHub-Token": formData.githubToken,
+          "X-GitHub-Token": user.github_token,
         },
         body: JSON.stringify({
           name: formData.name.trim(),
@@ -97,7 +96,12 @@ function NewRepository() {
           <Card className="border-slate-200 dark:border-slate-800">
             <CardHeader>
               <CardTitle>Informations du repository</CardTitle>
-              <CardDescription>Les champs marqués d'un astérisque (*) sont obligatoires</CardDescription>
+              <CardDescription>
+                Assurez-vous d'avoir configuré votre token GitHub dans votre{" "}
+                <Link to="/profile" className="text-blue-600 hover:underline">
+                  profil
+                </Link>
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -125,29 +129,6 @@ function NewRepository() {
                     className="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <p className="text-xs text-slate-500">Décrivez brièvement votre projet (optionnel)</p>
-                </div>
-
-                {/* GitHub Token */}
-                <div className="space-y-2">
-                  <Label htmlFor="githubToken" className="text-sm font-medium">
-                    Token GitHub *
-                  </Label>
-                  <Input
-                    id="githubToken"
-                    name="githubToken"
-                    type="password"
-                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                    value={formData.githubToken}
-                    onChange={handleChange}
-                    required
-                    className="w-full font-mono text-sm"
-                  />
-                  <p className="text-xs text-slate-500">
-                    Votre token GitHub personnel (nécessaire pour créer le repository sur GitHub).{" "}
-                    <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                      Créer un token
-                    </a>
-                  </p>
                 </div>
 
                 {/* Private Checkbox */}

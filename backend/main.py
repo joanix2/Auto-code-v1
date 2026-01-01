@@ -12,7 +12,8 @@ from src.utils.config import config
 from src.controllers import (
     user_controller,
     repository_controller,
-    ticket_controller
+    ticket_controller,
+    github_oauth_controller
 )
 
 logging.basicConfig(
@@ -64,6 +65,7 @@ app.add_middleware(
 app.include_router(user_controller.router, prefix="/api", tags=["users"])
 app.include_router(repository_controller.router, prefix="/api", tags=["repositories"])
 app.include_router(ticket_controller.router, prefix="/api", tags=["tickets"])
+app.include_router(github_oauth_controller.router)  # OAuth routes have their own prefix
 
 
 @app.get("/")

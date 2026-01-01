@@ -10,6 +10,8 @@ export interface User {
   is_active: boolean;
   created_at: string;
   updated_at?: string;
+  github_token?: string;
+  profile_picture?: string;
 }
 
 export interface UserCreate {

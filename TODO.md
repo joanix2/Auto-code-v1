@@ -6,15 +6,16 @@
 
 ✅ app bar commune
 
-page profile
-configuration du token github
-
-création d'un nouveau repo
+✅ page profile
+✅ configuration du token github
+configuration du auth2 github
 
 tri par dernière date de modification
 recherche de repo par nom (distance de levenstein)
 
 style boutton nouveau repo
+
+création d'un nouveau repo
 
 liste des tickets par projet
 
@@ -25,6 +26,8 @@ ajouter à la queue rabit MQ
 générer le code
 
 modifier le logo et index.html
+
+chatbot pour créer des tickets
 
 avoir des templates de projets avec un formulaire
 

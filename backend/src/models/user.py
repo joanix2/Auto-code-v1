@@ -11,6 +11,8 @@ class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="Nom d'utilisateur")
     email: Optional[EmailStr] = Field(None, description="Adresse email")
     full_name: Optional[str] = Field(None, max_length=100, description="Nom complet")
+    github_token: Optional[str] = Field(None, description="Token GitHub personnel")
+    profile_picture: Optional[str] = Field(None, description="Chemin de la photo de profil")
 
 
 class UserCreate(BaseModel):
