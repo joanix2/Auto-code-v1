@@ -3,7 +3,7 @@ Ticket Processing Controller
 API endpoints for triggering and managing ticket processing workflow
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import logging
@@ -11,6 +11,8 @@ import logging
 from ..services.ticket_processing_service import TicketProcessingService
 from ..utils.auth import get_current_user
 from ..models.user import User
+from ..repositories.ticket_repository import TicketRepository
+from ..websocket.connection_manager import manager
 
 logger = logging.getLogger(__name__)
 
@@ -32,48 +34,126 @@ class ValidationResultRequest(BaseModel):
 @router.post("/start")
 async def start_ticket_processing(
     request: ProcessTicketRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
-    Start automated processing for a ticket
+    Start automated processing for a ticket (ASYNCHRONOUS)
     
-    This triggers the complete workflow:
-    1. Prepare repository (clone/pull, branch management)
-    2. LLM reasoning and code generation
-    3. CI/CD execution
-    4. Validation workflow
+    This endpoint:
+    1. Immediately sets ticket status to PENDING
+    2. Returns success response to client
+    3. Launches background task for the complete workflow
+    4. Sends real-time updates via WebSocket
+    
+    The client should connect to WebSocket endpoint:
+    ws://localhost:8000/ws/tickets/{ticket_id}
     
     Args:
         request: Processing request with ticket ID
+        background_tasks: FastAPI background tasks
         current_user: Authenticated user
         
     Returns:
-        Processing result
+        Immediate response with ticket status PENDING
     """
     logger.info(f"User {current_user.username} starting processing for ticket {request.ticket_id}")
     
     try:
+        # Verify ticket exists
+        ticket_repo = TicketRepository()
+        ticket = ticket_repo.get_by_id(request.ticket_id)
+        
+        if not ticket:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Ticket {request.ticket_id} not found"
+            )
+        
+        # Set ticket status to PENDING immediately
+        ticket.status = "PENDING"
+        ticket_repo.update(ticket)
+        
+        # Send WebSocket update
+        await manager.send_status_update(
+            request.ticket_id,
+            "PENDING",
+            "Traitement automatique en cours de démarrage...",
+            progress=0
+        )
+        
         # Get GitHub token from user (if available)
         github_token = getattr(current_user, 'github_token', None)
+        
+        # Launch background task
+        background_tasks.add_task(
+            _process_ticket_background,
+            request.ticket_id,
+            github_token
+        )
+        
+        return {
+            "success": True,
+            "ticket_id": request.ticket_id,
+            "status": "PENDING",
+            "message": "Traitement automatique lancé en arrière-plan. Connectez-vous au WebSocket pour les mises à jour en temps réel.",
+            "websocket_url": f"/ws/tickets/{request.ticket_id}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error starting ticket processing: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to start processing: {str(e)}"
+        )
+
+
+async def _process_ticket_background(ticket_id: str, github_token: Optional[str] = None):
+    """
+    Background task for processing a ticket
+    
+    Args:
+        ticket_id: Ticket ID to process
+        github_token: Optional GitHub token
+    """
+    try:
+        logger.info(f"Background processing started for ticket {ticket_id}")
         
         # Initialize processing service
         service = TicketProcessingService(github_token=github_token)
         
-        # Start processing
-        result = await service.process_ticket(request.ticket_id)
+        # Process ticket (this will send WebSocket updates)
+        result = await service.process_ticket(ticket_id)
         
-        return result
+        # Send final update
+        if result.get("success"):
+            await manager.send_status_update(
+                ticket_id,
+                "COMPLETED",
+                "Traitement automatique terminé avec succès",
+                progress=100,
+                data=result
+            )
+        else:
+            await manager.send_status_update(
+                ticket_id,
+                "FAILED",
+                "Traitement automatique échoué",
+                error=result.get("error", "Unknown error"),
+                data=result
+            )
         
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
+        logger.info(f"Background processing completed for ticket {ticket_id}")
+        
     except Exception as e:
-        logger.error(f"Error processing ticket: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Processing failed: {str(e)}"
+        logger.error(f"Background processing failed for ticket {ticket_id}: {e}", exc_info=True)
+        await manager.send_status_update(
+            ticket_id,
+            "FAILED",
+            "Erreur lors du traitement automatique",
+            error=str(e)
         )
 
 

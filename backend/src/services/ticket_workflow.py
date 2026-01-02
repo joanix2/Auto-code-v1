@@ -17,6 +17,7 @@ from ..repositories.repository_repository import RepositoryRepository
 from ..services.git_service import GitService
 from ..services.ci_service import CIService, CIResult
 from ..agent.claude_agent import ClaudeAgent
+from ..websocket.connection_manager import manager
 
 logger = logging.getLogger(__name__)
 
@@ -167,12 +168,28 @@ class TicketProcessingWorkflow:
         """Check if MAX_ITERATIONS exceeded"""
         logger.info(f"Checking iterations for ticket {state.ticket_id}")
         
+        # Send WebSocket update
+        import asyncio
+        asyncio.create_task(manager.send_status_update(
+            state.ticket_id,
+            "IN_PROGRESS",
+            "Vérification du nombre d'itérations...",
+            step="check_iterations",
+            progress=5
+        ))
+        
         # Load ticket if not already loaded
         if not state.ticket:
             ticket = self.ticket_repo.get_by_id(state.ticket_id)
             if not ticket:
                 state.errors.append("Ticket not found")
                 state.status = "failed"
+                asyncio.create_task(manager.send_status_update(
+                    state.ticket_id,
+                    "FAILED",
+                    "Ticket introuvable",
+                    error="Ticket not found"
+                ))
                 return state
             
             state.ticket = {
@@ -191,14 +208,36 @@ class TicketProcessingWorkflow:
             logger.warning(f"Ticket {state.ticket_id} exceeded MAX_ITERATIONS ({MAX_ITERATIONS})")
             state.status = "cancelled"
             state.errors.append(f"Exceeded MAX_ITERATIONS ({MAX_ITERATIONS})")
+            asyncio.create_task(manager.send_status_update(
+                state.ticket_id,
+                "CANCELLED",
+                f"Limite d'itérations atteinte ({MAX_ITERATIONS})",
+                error=f"MAX_ITERATIONS ({MAX_ITERATIONS}) exceeded"
+            ))
             return state
         
         state.status = "preparing"
+        asyncio.create_task(manager.send_status_update(
+            state.ticket_id,
+            "IN_PROGRESS",
+            f"Itération {state.iteration_count + 1}/{MAX_ITERATIONS}",
+            step="check_iterations",
+            progress=10
+        ))
         return state
     
     def _prepare_repository(self, state: TicketProcessingState) -> TicketProcessingState:
         """Prepare repository: clone/pull and setup branch"""
         logger.info(f"Preparing repository for ticket {state.ticket_id}")
+        
+        import asyncio
+        asyncio.create_task(manager.send_status_update(
+            state.ticket_id,
+            "IN_PROGRESS",
+            "Préparation du repository...",
+            step="prepare_repository",
+            progress=20
+        ))
         
         try:
             # Load repository info
@@ -215,9 +254,19 @@ class TicketProcessingWorkflow:
             # Clone or pull
             if not self.git_service.is_cloned(repository.url):
                 logger.info(f"Cloning repository {repository.url}")
+                asyncio.create_task(manager.send_log(
+                    state.ticket_id,
+                    "INFO",
+                    f"Clonage du repository {repository.name}..."
+                ))
                 repo_path = self.git_service.clone(repository.url)
             else:
                 logger.info(f"Repository already cloned, pulling latest")
+                asyncio.create_task(manager.send_log(
+                    state.ticket_id,
+                    "INFO",
+                    f"Repository déjà cloné, pull des dernières modifications..."
+                ))
                 repo_path = self.git_service.get_repo_path(repository.url)
                 self.git_service.pull(repository.url)
             
@@ -229,24 +278,58 @@ class TicketProcessingWorkflow:
             
             if not self.git_service.branch_exists(repository.url, branch_name):
                 logger.info(f"Creating branch {branch_name}")
+                asyncio.create_task(manager.send_log(
+                    state.ticket_id,
+                    "INFO",
+                    f"Création de la branche {branch_name}..."
+                ))
                 self.git_service.create_branch(repository.url, branch_name)
             else:
                 logger.info(f"Checking out existing branch {branch_name}")
+                asyncio.create_task(manager.send_log(
+                    state.ticket_id,
+                    "INFO",
+                    f"Checkout de la branche existante {branch_name}..."
+                ))
                 self.git_service.checkout_branch(repository.url, branch_name)
             
             # Rebase on main
             try:
+                asyncio.create_task(manager.send_log(
+                    state.ticket_id,
+                    "INFO",
+                    "Rebase sur la branche main..."
+                ))
                 self.git_service.rebase_branch(repository.url, branch_name, "main")
             except RuntimeError as e:
                 logger.warning(f"Rebase failed: {e}, continuing anyway")
+                asyncio.create_task(manager.send_log(
+                    state.ticket_id,
+                    "WARNING",
+                    f"Rebase échoué: {e}, continuation quand même"
+                ))
             
             state.status = "prepared"
             logger.info(f"Repository prepared at {state.repo_path}")
+            asyncio.create_task(manager.send_status_update(
+                state.ticket_id,
+                "IN_PROGRESS",
+                f"Repository préparé: {branch_name}",
+                step="prepare_repository",
+                progress=30
+            ))
             
         except Exception as e:
             logger.error(f"Failed to prepare repository: {e}")
             state.status = "failed"
             state.errors.append(f"Repository preparation failed: {str(e)}")
+            import asyncio
+            asyncio.create_task(manager.send_status_update(
+                state.ticket_id,
+                "FAILED",
+                "Échec de la préparation du repository",
+                error=str(e)
+            ))
         
         return state
     

@@ -70,11 +70,21 @@ elle va beaucoup ressembler à la liste des repo, tu peut donc copier le code da
 
 ✅ créer un digramme de flux (flow.mmd + diagramme dans WORKFLOW.md)
 
-mettre le ticket en pending
+✅ système WebSocket pour traitement asynchrone temps réel
 
-clone / pull les repo dans un workspace
+- ConnectionManager pour gérer les connexions WebSocket
+- Endpoints WebSocket : /ws/tickets/{ticket_id} et /ws/tickets
+- Background tasks pour traitement asynchrone
+- Status updates en temps réel (progress 0-100%, step, logs)
+- Hook React useTicketProcessing
+- Composant TicketProcessingStatus avec barre de progression
+- Documentation complète (WEBSOCKET_SYSTEM.md)
 
-gestion des branches (créer la branche / aller sur la branche)
+✅ mettre le ticket en pending (immédiatement au clic, workflow en arrière-plan)
+
+✅ clone / pull les repo dans un workspace (structure owner/repo)
+
+✅ gestion des branches (créer la branche / aller sur la branche)
 
 ✅ créer un agent avec langgraph (agent Claude Opus 4 créé avec 3 workflows)
 
@@ -95,6 +105,8 @@ merge de la branche
 modifier le logo et index.html
 
 relier les tickets à un projet github
+
+ajout d'un queue rabbit mq pour multi utilisateur
 
 # Options
 
