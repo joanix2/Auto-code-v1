@@ -40,15 +40,33 @@ elle va beaucoup ressembler à la liste des repo, tu peut donc copier le code da
 
 ✅ garder un seul bouton "developer" mappé avec OpenCode (simplifié : un seul bouton vert "Développer automatiquement")
 
-job avec etape pending
+créer un digramme de flux
 
-générer le code
+mettre le ticket en pending
 
-commit à chaque modification
+clone / pull les repo dans un wokspace
 
-associer un ticket à une branche
+gestion des braches (créer la branche / all sur la branche)
+
+créer un agent avec langchain
+
+créer un message à partir du ticket / récupéer le dernier message
+
+resoning, création d'un plan
+
+modification des fichers
+
+commit
+
+récupérer la sortie de la CI -> nouveau message
+
+créer un nouveau ticket de bug si limite atteinte
+
+merge de la branche
 
 modifier le logo et index.html
+
+relier les tickets à un projet github
 
 # Options
 
