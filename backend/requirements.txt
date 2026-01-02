@@ -11,3 +11,9 @@ python-jose[cryptography]==3.3.0
 httpx==0.26.0
 PyGithub==2.1.1
 email-validator==2.1.0
+
+# LangGraph and Claude Opus 4 dependencies
+anthropic==0.40.0
+langgraph==0.2.54
+langchain-core==0.3.26
+langchain-anthropic==0.3.5
