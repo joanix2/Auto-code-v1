@@ -16,6 +16,7 @@ from ..repositories.message_repository import MessageRepository
 from ..repositories.repository_repository import RepositoryRepository
 from ..services.git_service import GitService
 from ..services.ci_service import CIService, CIResult
+from ..services.file_modification_service import FileModificationService
 from ..agent.claude_agent import ClaudeAgent
 from ..websocket.connection_manager import manager
 
@@ -382,13 +383,22 @@ Please analyze this ticket and implement the required changes. Follow best pract
         return state
     
     def _call_llm(self, state: TicketProcessingState) -> TicketProcessingState:
-        """Call LLM for reasoning and code generation"""
+        """Call LLM for reasoning and code generation, then apply modifications"""
         logger.info(f"Calling LLM for ticket {state.ticket_id}")
+        
+        import asyncio
+        asyncio.create_task(manager.send_status_update(
+            state.ticket_id,
+            "IN_PROGRESS",
+            "Appel à Claude pour génération de code...",
+            step="call_llm",
+            progress=50
+        ))
         
         try:
             agent = ClaudeAgent()
             
-            # Run agent
+            # Run agent (analyze → generate → review)
             result = agent.run(
                 ticket_id=state.ticket_id,
                 ticket_title=state.ticket["title"],
@@ -400,17 +410,70 @@ Please analyze this ticket and implement the required changes. Follow best pract
                 max_iterations=3
             )
             
-            # Note: agent.run is synchronous, not async in current implementation
-            # If it needs to be async, we'd need to use asyncio.create_task or similar
-            
             state.llm_response = result
-            state.status = "code_generated"
-            logger.info("LLM code generation completed")
+            
+            # ✅ APPLY FILE MODIFICATIONS using LangChain tools
+            if result and result.get("final_output"):
+                logger.info("Applying file modifications...")
+                asyncio.create_task(manager.send_log(
+                    state.ticket_id,
+                    "INFO",
+                    "Application des modifications de fichiers..."
+                ))
+                
+                file_service = FileModificationService(state.repo_path)
+                mod_results = file_service.apply_modifications(result["final_output"])
+                
+                if mod_results["success"]:
+                    logger.info(f"Successfully modified {mod_results['succeeded']} file(s)")
+                    asyncio.create_task(manager.send_log(
+                        state.ticket_id,
+                        "INFO",
+                        f"✅ {mod_results['succeeded']} fichier(s) modifié(s)"
+                    ))
+                    
+                    # Get summary
+                    summary = file_service.get_modified_files_summary(mod_results)
+                    for line in summary.split("\n"):
+                        if line.strip():
+                            asyncio.create_task(manager.send_log(
+                                state.ticket_id,
+                                "INFO",
+                                line
+                            ))
+                    
+                    state.status = "code_applied"
+                else:
+                    logger.warning(f"File modifications partially failed: {mod_results.get('error')}")
+                    asyncio.create_task(manager.send_log(
+                        state.ticket_id,
+                        "WARNING",
+                        f"Modifications partiellement échouées: {mod_results.get('error')}"
+                    ))
+                    state.status = "code_generated"
+            else:
+                logger.warning("No file modifications found in LLM response")
+                state.status = "code_generated"
+            
+            asyncio.create_task(manager.send_status_update(
+                state.ticket_id,
+                "IN_PROGRESS",
+                "Code généré et appliqué",
+                step="call_llm",
+                progress=60
+            ))
             
         except Exception as e:
-            logger.error(f"LLM call failed: {e}")
+            logger.error(f"LLM call or file modification failed: {e}", exc_info=True)
             state.status = "failed"
-            state.errors.append(f"LLM failed: {str(e)}")
+            state.errors.append(f"LLM/File modification failed: {str(e)}")
+            import asyncio
+            asyncio.create_task(manager.send_status_update(
+                state.ticket_id,
+                "FAILED",
+                "Échec de la génération ou application du code",
+                error=str(e)
+            ))
         
         return state
     

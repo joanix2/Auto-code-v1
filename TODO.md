@@ -88,13 +88,41 @@ elle va beaucoup ressembler à la liste des repo, tu peut donc copier le code da
 
 ✅ créer un agent avec langgraph (agent Claude Opus 4 créé avec 3 workflows)
 
-créer un message à partir du ticket / récupérer le dernier message
+✅ créer un message à partir du ticket / récupérer le dernier message
 
-resoning, création d'un plan
+- Implémenté dans ticket_workflow.py → \_load_conversation()
+- Création auto du message initial si aucun message existant
+- Récupération du dernier message : state.last_message = messages[-1]
+- Persistance dans Neo4j via MessageRepository
 
-modification des fichers
+✅ reasoning, création d'un plan
 
-commit
+- Implémenté dans ClaudeAgent → analyze_ticket()
+- Analyse approfondie du ticket
+- Décomposition en étapes concrètes
+- Identification des fichiers à modifier
+- Plan d'implémentation détaillé
+- Génération de code via generate_code()
+- Review via review_code()
+
+✅ modification des fichiers
+
+- ClaudeAgent génère le code (JSON avec path, action, content)
+- FileModificationService créé avec LangChain tools
+- Utilise WriteFileTool, ReadFileTool, CopyFileTool de langchain-community
+- Parse JSON du LLM et applique les modifications
+- Crée backups automatiques des fichiers modifiés
+- Sécurité: sanitize des paths (pas de directory traversal)
+- Intégré dans ticket_workflow.py → \_call_llm()
+- WebSocket logs pour chaque fichier modifié
+
+✅ commit
+
+- Implémenté dans ticket_workflow.py → \_commit_changes()
+- Vérifie si changements non commités
+- Commit avec message formaté : "feat(ticket-XXX): Title"
+- Inclut numéro d'itération
+- Retourne commit_hash
 
 récupérer la sortie de la CI -> nouveau message
 
