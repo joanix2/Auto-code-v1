@@ -7,6 +7,7 @@ from src.models.user import User
 from src.repositories.ticket_repository import TicketRepository
 from src.repositories.repository_repository import RepositoryRepository
 from src.services.claude_service import ClaudeService
+from src.services.opencode_service import OpenCodeService
 from src.database import Neo4jConnection
 from src.utils.auth import get_current_user
 import os
@@ -27,7 +28,7 @@ class BulkOrderUpdate(BaseModel):
 
 class ClaudeDevelopRequest(BaseModel):
     """Model for Claude development request"""
-    ticket_id: str
+    ticket_id: Optional[str] = None
     additional_context: Optional[str] = None
     auto_update_status: bool = True
 
@@ -263,6 +264,94 @@ async def develop_ticket_with_claude(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error calling Claude API: {str(e)}"
+        )
+
+
+@router.post("/tickets/{ticket_id}/develop-with-opencode")
+async def develop_ticket_with_opencode(
+    ticket_id: str,
+    request: ClaudeDevelopRequest,
+    current_user: User = Depends(get_current_user),
+    ticket_repo: TicketRepository = Depends(get_ticket_repo),
+    repo_repo: RepositoryRepository = Depends(get_repository_repo)
+):
+    """
+    Use OpenCode AI in Docker container to develop a ticket
+    
+    This endpoint:
+    1. Starts the OpenCode container if needed
+    2. Clones/updates the repository
+    3. Runs OpenCode to implement the ticket
+    4. Returns the results
+    5. Optionally updates ticket status to pending_validation
+    """
+    # Get ticket
+    ticket = await ticket_repo.get_ticket_by_id(ticket_id)
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket not found"
+        )
+    
+    # Get repository
+    repository = await repo_repo.get_repository_by_id(ticket.repository_id)
+    if not repository:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Repository not found"
+        )
+    
+    # Get user for GitHub token
+    from src.repositories.user_repository import UserRepository
+    user = UserRepository.get_by_username(current_user.username)
+    
+    if not user or not user.github_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="GitHub token not configured. Please configure it in your profile."
+        )
+    
+    try:
+        # Initialize OpenCode service
+        opencode_service = OpenCodeService()
+        
+        # Develop ticket with OpenCode
+        result = await opencode_service.develop_ticket(
+            ticket_title=ticket.title,
+            ticket_description=ticket.description,
+            ticket_type=ticket.ticket_type,
+            priority=ticket.priority,
+            repository_url=repository.url,
+            github_token=user.github_token,
+            additional_context=request.additional_context
+        )
+        
+        # Update ticket status if successful and requested
+        if result["success"] and request.auto_update_status:
+            await ticket_repo.update_ticket_status(
+                ticket_id,
+                TicketStatus.pending_validation
+            )
+        
+        return {
+            "success": result["success"],
+            "ticket_id": ticket_id,
+            "repository": repository.name,
+            "output": result["output"],
+            "errors": result["errors"],
+            "repository_path": result["repository_path"],
+            "status_updated": result["success"] and request.auto_update_status
+        }
+        
+    except FileNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"OpenCode service not properly configured: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error calling OpenCode: {str(e)}"
         )
 
 

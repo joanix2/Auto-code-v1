@@ -276,6 +276,7 @@ function CreateTicket() {
                     >
                       <option value="open">Ouvert</option>
                       <option value="in_progress">En cours</option>
+                      <option value="pending_validation">En attente de validation</option>
                       <option value="closed">Fermé</option>
                       <option value="cancelled">Annulé</option>
                     </select>

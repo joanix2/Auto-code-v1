@@ -127,6 +127,58 @@ class RepositoryRepository:
         
         return repositories
     
+    async def get_repository_by_id(self, repo_id: str) -> Optional[Repository]:
+        """Get a repository by its ID"""
+        query = """
+        MATCH (u:User)-[:OWNS]->(r:Repository {id: $repo_id})
+        RETURN r, u.username as owner_username
+        """
+        
+        result = self.db.execute_query(query, {"repo_id": repo_id})
+        if result and len(result) > 0:
+            from neo4j.time import DateTime as Neo4jDateTime
+            
+            record = result[0]
+            repo_node = record["r"]
+            
+            # Convertir les dates Neo4j en datetime Python
+            created_at = repo_node.get("created_at", datetime.utcnow())
+            if isinstance(created_at, Neo4jDateTime):
+                created_at = created_at.to_native()
+            
+            updated_at = repo_node.get("updated_at")
+            if updated_at and isinstance(updated_at, Neo4jDateTime):
+                updated_at = updated_at.to_native()
+            
+            github_created_at = repo_node.get("github_created_at")
+            if github_created_at and isinstance(github_created_at, Neo4jDateTime):
+                github_created_at = github_created_at.to_native()
+            
+            github_updated_at = repo_node.get("github_updated_at")
+            if github_updated_at and isinstance(github_updated_at, Neo4jDateTime):
+                github_updated_at = github_updated_at.to_native()
+            
+            github_pushed_at = repo_node.get("github_pushed_at")
+            if github_pushed_at and isinstance(github_pushed_at, Neo4jDateTime):
+                github_pushed_at = github_pushed_at.to_native()
+            
+            return Repository(
+                id=repo_node["id"],
+                name=repo_node["name"],
+                full_name=repo_node["full_name"],
+                description=repo_node.get("description"),
+                github_id=repo_node["github_id"],
+                url=repo_node["url"],
+                private=repo_node.get("private", False),
+                owner_username=record["owner_username"],
+                created_at=created_at,
+                updated_at=updated_at,
+                github_created_at=github_created_at,
+                github_updated_at=github_updated_at,
+                github_pushed_at=github_pushed_at
+            )
+        return None
+
     async def get_by_github_id(self, github_id: int) -> Optional[Repository]:
         """Get a repository by its GitHub ID"""
         query = """

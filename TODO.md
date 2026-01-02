@@ -32,18 +32,33 @@ elle va beaucoup ressembler à la liste des repo, tu peut donc copier le code da
 
 ✅ système headless de développement automatique avec Claude AI
 
-- API backend pour développement automatique
-- Service Claude pour génération de code
-- CLI pour développement en ligne de commande
-- Script bash pour serveur headless
-- Configuration systemd pour production
-- Documentation complète (CLAUDE_SETUP.md, CLAUDE_HEADLESS.md, PRODUCTION_INSTALL.md)
+✅ connexion à copilote git hub (évalué : Copilot Extensions nécessite interaction IDE, incompatible avec headless automation. Claude API gardé comme solution optimale.)
+
+✅ ajout des tickets dans un projet github
+
+✅ bug avec l'edition des status (option pending_validation manquante dans le select d'édition)
+
+✅ garder un seul bouton "developer" mappé avec OpenCode (simplifié : un seul bouton vert "Développer automatiquement")
+
+job avec etape pending
 
 générer le code
 
+commit à chaque modification
+
+associer un ticket à une branche
+
 modifier le logo et index.html
 
+# Options
+
+utilisation de spec kit
+
+review des tickets par LLMs
+
 chatbot pour créer des tickets
+
+# Future
 
 avoir des templates de projets avec un formulaire
 

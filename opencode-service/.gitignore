@@ -1,0 +1,14 @@
+# OpenCode Service - Gitignore
+
+# Environment variables
+.env
+
+# Docker volumes
+workspace/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+.DS_Store

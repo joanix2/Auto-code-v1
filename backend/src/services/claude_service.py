@@ -20,8 +20,10 @@ class ClaudeService:
             raise ValueError("ANTHROPIC_API_KEY not provided and not found in environment")
         
         self.base_url = "https://api.anthropic.com/v1"
-        self.model = "claude-3-5-sonnet-20241022"  # Latest Claude model
-        self.max_tokens = 8000
+        # Using Haiku as it's available with current API key
+        # TODO: Upgrade to claude-3-5-sonnet-20241022 when API key has access
+        self.model = "claude-3-haiku-20240307"
+        self.max_tokens = 4096  # Haiku max limit (Sonnet supports 8192)
     
     def generate_ticket_prompt(
         self,
@@ -68,6 +70,7 @@ class ClaudeService:
 **Type:** {type_labels.get(ticket_type, ticket_type)}
 **Priorité:** {priority_labels.get(priority, priority)}
 **Repository:** {repository_name}
+{"**Chemin Local:** " + repository_path if repository_path else ""}
 **Date:** {datetime.now().strftime("%Y-%m-%d %H:%M")}
 
 ## 📝 Description Détaillée

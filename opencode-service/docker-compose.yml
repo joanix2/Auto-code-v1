@@ -1,0 +1,50 @@
+# Docker Compose pour OpenCode Service
+# Alternative au script bash pour gérer le service OpenCode
+
+version: "3.8"
+
+services:
+  opencode:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: autocode-opencode
+    hostname: autocode-opencode
+
+    # Keep container running
+    tty: true
+    stdin_open: true
+
+    # Environment variables
+    environment:
+      - GH_TOKEN=${GH_TOKEN}
+
+    # Working directory
+    working_dir: /home/ubuntu/workspace
+
+    # Volume mounts
+    volumes:
+      # SSH key for Git operations
+      - ${HOME}/.ssh/id_ed25519:/home/ubuntu/.ssh/id_ed25519:ro
+
+      # OpenCode configuration (agents, plugins, etc.)
+      - ${HOME}/.config/opencode:/home/ubuntu/.config/opencode
+
+      # OpenCode auth file
+      - ${HOME}/.local/share/opencode/auth.json:/home/ubuntu/.local/share/opencode/auth.json
+
+      # Optional: mount local workspace for persistence
+      # - ./workspace:/home/ubuntu/workspace
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Resource limits (optional)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2'
+    #       memory: 4G
+    #     reservations:
+    #       cpus: '1'
+    #       memory: 2G

@@ -11,11 +11,10 @@ import { AppBar } from "@/components/AppBar";
 import { Input } from "@/components/ui/input";
 import { SortableTicketCard } from "@/components/SortableTicketCard";
 import { DeleteTicketDialog } from "@/components/DeleteTicketDialog";
-import { ClaudeDevelopmentBanner } from "@/components/ClaudeDevelopmentBanner";
+import { DevelopmentBanner } from "@/components/DevelopmentBanner";
 import { TicketStatusFilter } from "@/components/TicketStatusFilter";
 import type { Ticket, Repository } from "@/types";
 import { TicketStatus } from "@/types";
-import { ClaudeService } from "@/services/claudeService";
 
 // Fonction de distance de Levenshtein
 function levenshteinDistance(str1: string, str2: string): number {
@@ -200,24 +199,38 @@ function TicketsList() {
     }
   };
 
-  const handleDevelopWithClaude = async (ticketId: string) => {
+  const handleDevelop = async (ticketId: string) => {
     try {
       setDeveloping(true);
       setError("");
       setClaudeResponse(null);
 
-      const result = await ClaudeService.developTicket(ticketId);
+      const response = await fetch(`http://localhost:8000/api/tickets/${ticketId}/develop-with-opencode`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          additional_context: "",
+          auto_update_status: true,
+        }),
+      });
 
-      // Afficher la réponse
-      setClaudeResponse(ClaudeService.formatResponse(result));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Erreur lors du développement automatique");
+      }
+
+      const result = await response.json();
 
       // Rafraîchir la liste des tickets
       fetchTickets();
 
       // Notification de succès
-      alert(`✅ Développement lancé avec succès!\n\nModèle: ${result.model}\nTokens utilisés: ${result.usage?.input_tokens + result.usage?.output_tokens || "N/A"}`);
+      alert(`✅ Développement terminé avec succès!\n\nRepository: ${result.repository}\nChemin: ${result.repository_path}\n\nStatut mis à jour: ${result.status_updated ? "Oui" : "Non"}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors du développement avec Claude");
+      setError(err instanceof Error ? err.message : "Erreur lors du développement automatique");
     } finally {
       setDeveloping(false);
     }
@@ -287,8 +300,8 @@ function TicketsList() {
             </div>
           </div>
 
-          {/* Claude Development Button - Au dessus de la barre de recherche */}
-          <ClaudeDevelopmentBanner tickets={tickets} developing={developing} onDevelopWithClaude={handleDevelopWithClaude} />
+          {/* Development Banner - Au dessus de la barre de recherche */}
+          <DevelopmentBanner tickets={tickets} developing={developing} onDevelop={handleDevelop} />
 
           {/* Search Bar with Add Button */}
           <div className="flex gap-3 items-center">
