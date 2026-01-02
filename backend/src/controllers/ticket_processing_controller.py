@@ -12,6 +12,7 @@ from ..services.ticket_processing_service import TicketProcessingService
 from ..utils.auth import get_current_user
 from ..models.user import User
 from ..repositories.ticket_repository import TicketRepository
+from ..database import Neo4jConnection
 from ..websocket.connection_manager import manager
 
 logger = logging.getLogger(__name__)
@@ -31,11 +32,18 @@ class ValidationResultRequest(BaseModel):
     feedback: Optional[str] = None
 
 
+def get_ticket_repo():
+    """Dependency to get ticket repository"""
+    db = Neo4jConnection()
+    return TicketRepository(db)
+
+
 @router.post("/start")
 async def start_ticket_processing(
     request: ProcessTicketRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    ticket_repo: TicketRepository = Depends(get_ticket_repo)
 ) -> Dict[str, Any]:
     """
     Start automated processing for a ticket (ASYNCHRONOUS)
@@ -61,8 +69,7 @@ async def start_ticket_processing(
     
     try:
         # Verify ticket exists
-        ticket_repo = TicketRepository()
-        ticket = ticket_repo.get_by_id(request.ticket_id)
+        ticket = await ticket_repo.get_ticket_by_id(request.ticket_id)
         
         if not ticket:
             raise HTTPException(
@@ -70,14 +77,15 @@ async def start_ticket_processing(
                 detail=f"Ticket {request.ticket_id} not found"
             )
         
-        # Set ticket status to PENDING immediately
-        ticket.status = "PENDING"
-        ticket_repo.update(ticket)
+        # Set ticket status to IN_PROGRESS immediately
+        from ..models.ticket import TicketUpdate, TicketStatus
+        update_data = TicketUpdate(status=TicketStatus.in_progress)
+        await ticket_repo.update_ticket(request.ticket_id, update_data)
         
         # Send WebSocket update
         await manager.send_status_update(
             request.ticket_id,
-            "PENDING",
+            "IN_PROGRESS",
             "Traitement automatique en cours de démarrage...",
             progress=0
         )
@@ -95,7 +103,7 @@ async def start_ticket_processing(
         return {
             "success": True,
             "ticket_id": request.ticket_id,
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "message": "Traitement automatique lancé en arrière-plan. Connectez-vous au WebSocket pour les mises à jour en temps réel.",
             "websocket_url": f"/ws/tickets/{request.ticket_id}"
         }
@@ -209,7 +217,8 @@ async def submit_validation_result(
 @router.get("/status/{ticket_id}")
 async def get_processing_status(
     ticket_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    ticket_repo: TicketRepository = Depends(get_ticket_repo)
 ) -> Dict[str, Any]:
     """
     Get current processing status for a ticket
@@ -221,14 +230,13 @@ async def get_processing_status(
     Returns:
         Current processing status
     """
-    from ..repositories.ticket_repository import TicketRepository
     from ..repositories.message_repository import MessageRepository
     
-    ticket_repo = TicketRepository()
-    message_repo = MessageRepository()
+    db = Neo4jConnection()
+    message_repo = MessageRepository(db)
     
     # Get ticket
-    ticket = ticket_repo.get_by_id(ticket_id)
+    ticket = await ticket_repo.get_ticket_by_id(ticket_id)
     if not ticket:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -236,7 +244,7 @@ async def get_processing_status(
         )
     
     # Get conversation summary
-    conversation_summary = message_repo.get_conversation_summary(ticket_id)
+    conversation_summary = await message_repo.get_conversation_summary(ticket_id)
     
     return {
         "ticket_id": ticket_id,

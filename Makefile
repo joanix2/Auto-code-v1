@@ -68,11 +68,21 @@ shell-rabbitmq:
 
 dev-backend:
 	@echo "Starting backend in development mode..."
-	cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000
+	@if [ -d "backend/venv" ]; then \
+		echo "Using virtual environment..."; \
+		cd backend && ./venv/bin/uvicorn main:app --reload --host 0.0.0.0 --port 8000; \
+	else \
+		echo "Virtual environment not found. Run 'make install-backend' first."; \
+		cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000; \
+	fi
 
 dev-worker:
 	@echo "Starting worker in development mode..."
-	cd backend && python worker.py
+	@if [ -d "backend/venv" ]; then \
+		cd backend && ./venv/bin/python worker.py; \
+	else \
+		cd backend && python worker.py; \
+	fi
 
 dev-frontend:
 	@echo "Starting frontend in development mode..."
@@ -80,7 +90,13 @@ dev-frontend:
 
 install-backend:
 	@echo "Installing backend dependencies..."
-	cd backend && pip install -r requirements.txt
+	@if [ ! -d "backend/venv" ]; then \
+		echo "Creating virtual environment..."; \
+		cd backend && python3 -m venv venv; \
+	fi
+	@echo "Installing dependencies in virtual environment..."
+	cd backend && ./venv/bin/pip install --upgrade pip && ./venv/bin/pip install -r requirements.txt
+	@echo "Backend dependencies installed in venv!"
 
 install-frontend:
 	@echo "Installing frontend dependencies..."

@@ -81,7 +81,7 @@ export class TicketProcessingService {
 
     // D'abord récupérer le prochain ticket
     const nextTicketResponse = await this.getNextTicket(repositoryId);
-
+    
     if (!nextTicketResponse.ticket) {
       throw new Error("Aucun ticket en attente dans la queue");
     }
@@ -93,7 +93,11 @@ export class TicketProcessingService {
   /**
    * Soumet le résultat de validation humaine
    */
-  static async submitValidation(ticketId: string, approved: boolean, feedback?: string): Promise<{ success: boolean; message: string }> {
+  static async submitValidation(
+    ticketId: string, 
+    approved: boolean, 
+    feedback?: string
+  ): Promise<{ success: boolean; message: string }> {
     const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("Non authentifié");

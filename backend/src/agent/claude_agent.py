@@ -10,7 +10,6 @@ import logging
 
 from anthropic import Anthropic
 from langgraph.graph import StateGraph, END
-from langgraph.prebuilt import ToolExecutor
 from pydantic import BaseModel, Field
 
 from ..models.message import Message

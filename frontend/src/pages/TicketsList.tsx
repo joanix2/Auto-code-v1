@@ -205,15 +205,14 @@ function TicketsList() {
       setError("");
       setClaudeResponse(null);
 
-      const response = await fetch(`http://localhost:8000/api/tickets/${ticketId}/develop-with-opencode`, {
+      const response = await fetch(`http://localhost:8000/api/tickets/processing/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          additional_context: "",
-          auto_update_status: true,
+          ticket_id: ticketId,
         }),
       });
 
@@ -227,8 +226,18 @@ function TicketsList() {
       // Rafraîchir la liste des tickets
       fetchTickets();
 
-      // Notification de succès
-      alert(`✅ Développement terminé avec succès!\n\nRepository: ${result.repository}\nChemin: ${result.repository_path}\n\nStatut mis à jour: ${result.status_updated ? "Oui" : "Non"}`);
+      // Notification de succès améliorée
+      alert(
+        `🚀 Développement automatique lancé avec succès!\n\n` +
+          `📊 Statut: ${result.status}\n\n` +
+          `Le workflow LangGraph est en cours d'exécution en arrière-plan :\n` +
+          `  • Analyse du ticket avec Claude Opus 4\n` +
+          `  • Génération et application des modifications\n` +
+          `  • Commit automatique sur une nouvelle branche\n` +
+          `  • Exécution des tests CI/CD\n\n` +
+          `💡 Le statut du ticket sera mis à jour automatiquement.\n` +
+          `Connectez-vous au WebSocket pour suivre la progression en temps réel.`
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors du développement automatique");
     } finally {
