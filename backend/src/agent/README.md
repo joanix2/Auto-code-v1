@@ -24,7 +24,9 @@ backend/src/agent/
 ### Components
 
 #### 1. **ClaudeAgent** (`claude_agent.py`)
+
 Main agent class with:
+
 - `analyze_ticket()`: Analyzes requirements and creates development plan
 - `generate_code()`: Generates implementation code
 - `review_and_test()`: Reviews code and suggests tests
@@ -32,7 +34,9 @@ Main agent class with:
 - `run()`: Main entry point that executes complete workflow
 
 #### 2. **AgentState** (`claude_agent.py`)
+
 Pydantic model tracking agent state:
+
 - Ticket information (id, title, description, type, priority)
 - Repository details (path, URL)
 - Workflow state (messages, iterations, errors, status)
@@ -41,11 +45,13 @@ Pydantic model tracking agent state:
 #### 3. **Workflow Types** (`workflow.py`)
 
 **Standard Workflow** (`DevelopmentWorkflow`):
+
 ```
 analyze_ticket → generate_code → review_and_test → END
 ```
 
 **Iterative Workflow** (`IterativeWorkflow`):
+
 ```
 analyze_ticket → generate_code → review_and_test
                         ↑              ↓
@@ -53,6 +59,7 @@ analyze_ticket → generate_code → review_and_test
 ```
 
 **Test-Driven Development** (`TestDrivenWorkflow`):
+
 ```
 analyze_ticket → generate_tests → generate_code → review_and_test → END
 ```
@@ -67,6 +74,7 @@ pip install -r requirements.txt
 ```
 
 Required packages:
+
 - `anthropic>=0.40.0` - Anthropic API client
 - `langgraph>=0.2.54` - LangGraph framework
 - `langchain-core>=0.3.26` - LangChain core utilities
@@ -106,11 +114,13 @@ curl -X POST "http://localhost:8000/api/agent/develop-ticket" \
 ```
 
 **Request Parameters:**
+
 - `ticket_id` (required): UUID of the ticket to develop
 - `workflow_type` (optional): `"standard"`, `"iterative"`, or `"tdd"` (default: `"standard"`)
 - `max_iterations` (optional): Maximum workflow iterations (default: `20`)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -158,16 +168,19 @@ else:
 ### Choosing Workflow Type
 
 **Use Standard** when:
+
 - Single-pass development is sufficient
 - Ticket requirements are clear and simple
 - Quick iteration needed
 
 **Use Iterative** when:
+
 - Complex requirements need refinement
 - Code quality is critical
 - Multiple revision cycles expected
 
 **Use TDD** when:
+
 - Test coverage is paramount
 - API contracts need definition first
 - Following strict TDD methodology
@@ -175,6 +188,7 @@ else:
 ## Workflow Details
 
 ### 1. Analysis Phase
+
 - Parses ticket description and requirements
 - Breaks down task into concrete steps
 - Identifies files to create/modify
@@ -184,6 +198,7 @@ else:
 **Output**: Detailed development plan with file-level granularity
 
 ### 2. Code Generation Phase
+
 - Generates complete, production-ready code
 - Follows best practices and patterns
 - Includes error handling
@@ -193,6 +208,7 @@ else:
 **Output**: JSON with file paths, content, and explanations
 
 ### 3. Review Phase
+
 - Reviews generated code for quality
 - Identifies potential bugs
 - Checks security implications
@@ -232,11 +248,11 @@ class AgentState(BaseModel):
     ticket_id: str
     ticket_title: str
     ticket_description: str
-    
+
     # Repository
     repository_path: str
     repository_url: str
-    
+
     # Workflow State
     messages: List[Dict]      # Conversation history
     iterations: int           # Current iteration
@@ -278,18 +294,18 @@ The agent integrates with the existing development button:
 ```typescript
 // In TicketsList.tsx or similar
 const handleDevelop = async (tickets: Ticket[]) => {
-  const response = await fetch('/api/agent/develop-ticket', {
-    method: 'POST',
+  const response = await fetch("/api/agent/develop-ticket", {
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       ticket_id: tickets[0].id,
-      workflow_type: 'standard'
-    })
+      workflow_type: "standard",
+    }),
   });
-  
+
   const result = await response.json();
   if (result.success) {
     // Update UI, show success
@@ -320,20 +336,24 @@ Future enhancements:
 ## Troubleshooting
 
 ### "Import could not be resolved" errors
+
 - Run `pip install -r requirements.txt` in backend directory
 - Ensure virtual environment is activated
 
 ### "ANTHROPIC_API_KEY not found"
+
 - Add `ANTHROPIC_API_KEY=sk-ant-...` to `backend/.env`
 - Restart backend server
 
 ### Agent returns failed status
+
 - Check logs for specific error
 - Verify ticket has valid repository
 - Ensure repository path exists
 - Check API key is valid and has credits
 
 ### Workflow takes too long
+
 - Reduce `max_iterations` in request
 - Use "standard" instead of "iterative" workflow
 - Consider using Claude Haiku for faster (but lower quality) results

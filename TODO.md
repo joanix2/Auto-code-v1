@@ -41,12 +41,13 @@ elle va beaucoup ressembler à la liste des repo, tu peut donc copier le code da
 ✅ garder un seul bouton "developer" mappé avec OpenCode (simplifié : un seul bouton vert "Développer automatiquement")
 
 ✅ créer un agent Claude Opus 4 avec LangGraph dans backend/src/agent/
-  - Structure complète du module agent
-  - ClaudeAgent avec workflow (analyze → generate → review)
-  - 3 types de workflows : standard, iterative, TDD
-  - API endpoint /api/agent/develop-ticket
-  - Documentation complète (README + QUICKSTART)
-  - Dépendances ajoutées : anthropic, langgraph, langchain
+
+- Structure complète du module agent
+- ClaudeAgent avec workflow (analyze → generate → review)
+- 3 types de workflows : standard, iterative, TDD
+- API endpoint /api/agent/develop-ticket
+- Documentation complète (README + QUICKSTART)
+- Dépendances ajoutées : anthropic, langgraph, langchain
 
 créer un digramme de flux
 

@@ -15,7 +15,8 @@ from src.controllers import (
     ticket_controller,
     github_oauth_controller,
     agent_controller,
-    message_controller
+    message_controller,
+    ticket_processing_controller
 )
 
 logging.basicConfig(
@@ -69,6 +70,7 @@ app.include_router(repository_controller.router, prefix="/api", tags=["repositor
 app.include_router(ticket_controller.router, prefix="/api", tags=["tickets"])
 app.include_router(message_controller.router, prefix="/api", tags=["messages"])
 app.include_router(agent_controller.router, prefix="/api", tags=["agent"])
+app.include_router(ticket_processing_controller.router, prefix="/api", tags=["ticket-processing"])
 app.include_router(github_oauth_controller.router)  # OAuth routes have their own prefix
 
 

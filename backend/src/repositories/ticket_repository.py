@@ -48,6 +48,7 @@ class TicketRepository:
             ticket_type: $ticket_type,
             status: 'open',
             order: $order,
+            iteration_count: 0,
             created_at: datetime()
         })
         CREATE (u)-[:CREATED]->(t)

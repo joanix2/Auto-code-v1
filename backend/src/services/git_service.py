@@ -1,0 +1,391 @@
+"""
+Git Service
+Manages Git operations for repositories
+"""
+
+import os
+import subprocess
+import logging
+from typing import Optional, List
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+
+class GitService:
+    """Service for Git operations on repositories"""
+    
+    def __init__(self, workspace_root: str = "/tmp/autocode-workspace"):
+        """
+        Initialize Git service
+        
+        Args:
+            workspace_root: Root directory for cloned repositories
+        """
+        self.workspace_root = Path(workspace_root)
+        self.workspace_root.mkdir(parents=True, exist_ok=True)
+    
+    def get_repo_path(self, repo_url: str) -> Path:
+        """
+        Get local path for a repository
+        
+        Args:
+            repo_url: Repository URL (e.g., https://github.com/user/repo)
+            
+        Returns:
+            Path to local repository
+        """
+        # Extract repo name from URL
+        repo_name = repo_url.rstrip('/').split('/')[-1].replace('.git', '')
+        return self.workspace_root / repo_name
+    
+    def is_cloned(self, repo_url: str) -> bool:
+        """
+        Check if repository is already cloned
+        
+        Args:
+            repo_url: Repository URL
+            
+        Returns:
+            True if cloned, False otherwise
+        """
+        repo_path = self.get_repo_path(repo_url)
+        return repo_path.exists() and (repo_path / '.git').exists()
+    
+    def clone(self, repo_url: str, token: Optional[str] = None) -> Path:
+        """
+        Clone a repository
+        
+        Args:
+            repo_url: Repository URL
+            token: Optional GitHub token for private repos
+            
+        Returns:
+            Path to cloned repository
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        if self.is_cloned(repo_url):
+            logger.info(f"Repository already cloned at {repo_path}")
+            return repo_path
+        
+        # Build clone URL with token if provided
+        if token and 'github.com' in repo_url:
+            clone_url = repo_url.replace('https://', f'https://{token}@')
+        else:
+            clone_url = repo_url
+        
+        logger.info(f"Cloning {repo_url} to {repo_path}")
+        
+        try:
+            subprocess.run(
+                ['git', 'clone', clone_url, str(repo_path)],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            logger.info(f"Successfully cloned to {repo_path}")
+            return repo_path
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to clone repository: {e.stderr}")
+            raise RuntimeError(f"Git clone failed: {e.stderr}")
+    
+    def pull(self, repo_url: str) -> None:
+        """
+        Pull latest changes from remote
+        
+        Args:
+            repo_url: Repository URL
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        if not self.is_cloned(repo_url):
+            raise ValueError(f"Repository not cloned: {repo_url}")
+        
+        logger.info(f"Pulling latest changes for {repo_url}")
+        
+        try:
+            subprocess.run(
+                ['git', 'pull'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            logger.info("Successfully pulled latest changes")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to pull: {e.stderr}")
+            raise RuntimeError(f"Git pull failed: {e.stderr}")
+    
+    def branch_exists(self, repo_url: str, branch_name: str) -> bool:
+        """
+        Check if a branch exists
+        
+        Args:
+            repo_url: Repository URL
+            branch_name: Branch name to check
+            
+        Returns:
+            True if branch exists, False otherwise
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        try:
+            result = subprocess.run(
+                ['git', 'branch', '--list', branch_name],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return bool(result.stdout.strip())
+        except subprocess.CalledProcessError:
+            return False
+    
+    def create_branch(self, repo_url: str, branch_name: str, from_branch: str = "main") -> None:
+        """
+        Create a new branch
+        
+        Args:
+            repo_url: Repository URL
+            branch_name: Name of the new branch
+            from_branch: Branch to create from (default: main)
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        logger.info(f"Creating branch {branch_name} from {from_branch}")
+        
+        try:
+            # Checkout base branch first
+            subprocess.run(
+                ['git', 'checkout', from_branch],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Create and checkout new branch
+            subprocess.run(
+                ['git', 'checkout', '-b', branch_name],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            logger.info(f"Successfully created branch {branch_name}")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to create branch: {e.stderr}")
+            raise RuntimeError(f"Git create branch failed: {e.stderr}")
+    
+    def checkout_branch(self, repo_url: str, branch_name: str) -> None:
+        """
+        Checkout an existing branch
+        
+        Args:
+            repo_url: Repository URL
+            branch_name: Branch name to checkout
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        logger.info(f"Checking out branch {branch_name}")
+        
+        try:
+            subprocess.run(
+                ['git', 'checkout', branch_name],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            logger.info(f"Successfully checked out {branch_name}")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to checkout branch: {e.stderr}")
+            raise RuntimeError(f"Git checkout failed: {e.stderr}")
+    
+    def rebase_branch(self, repo_url: str, branch_name: str, onto_branch: str = "main") -> None:
+        """
+        Rebase a branch onto another branch
+        
+        Args:
+            repo_url: Repository URL
+            branch_name: Branch to rebase
+            onto_branch: Branch to rebase onto (default: main)
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        logger.info(f"Rebasing {branch_name} onto {onto_branch}")
+        
+        try:
+            # First checkout the branch to rebase
+            subprocess.run(
+                ['git', 'checkout', branch_name],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Rebase
+            subprocess.run(
+                ['git', 'rebase', onto_branch],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            logger.info(f"Successfully rebased {branch_name} onto {onto_branch}")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to rebase: {e.stderr}")
+            # Try to abort rebase if it failed
+            try:
+                subprocess.run(
+                    ['git', 'rebase', '--abort'],
+                    cwd=repo_path,
+                    capture_output=True
+                )
+            except:
+                pass
+            raise RuntimeError(f"Git rebase failed: {e.stderr}")
+    
+    def commit_changes(self, repo_url: str, message: str, author_name: str = "AutoCode Bot", 
+                      author_email: str = "bot@autocode.dev") -> str:
+        """
+        Commit all changes
+        
+        Args:
+            repo_url: Repository URL
+            message: Commit message
+            author_name: Author name
+            author_email: Author email
+            
+        Returns:
+            Commit hash
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        logger.info(f"Committing changes: {message}")
+        
+        try:
+            # Stage all changes
+            subprocess.run(
+                ['git', 'add', '.'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Commit
+            subprocess.run(
+                ['git', 'commit', '-m', message, 
+                 f'--author={author_name} <{author_email}>'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Get commit hash
+            result = subprocess.run(
+                ['git', 'rev-parse', 'HEAD'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            commit_hash = result.stdout.strip()
+            logger.info(f"Successfully committed: {commit_hash}")
+            return commit_hash
+            
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to commit: {e.stderr}")
+            raise RuntimeError(f"Git commit failed: {e.stderr}")
+    
+    def push_branch(self, repo_url: str, branch_name: str, token: Optional[str] = None) -> None:
+        """
+        Push branch to remote
+        
+        Args:
+            repo_url: Repository URL
+            branch_name: Branch to push
+            token: Optional GitHub token
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        logger.info(f"Pushing branch {branch_name}")
+        
+        try:
+            # Set remote URL with token if provided
+            if token:
+                remote_url = repo_url.replace('https://', f'https://{token}@')
+                subprocess.run(
+                    ['git', 'remote', 'set-url', 'origin', remote_url],
+                    cwd=repo_path,
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+            
+            # Push
+            subprocess.run(
+                ['git', 'push', '-u', 'origin', branch_name],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            logger.info(f"Successfully pushed {branch_name}")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to push: {e.stderr}")
+            raise RuntimeError(f"Git push failed: {e.stderr}")
+    
+    def get_current_branch(self, repo_url: str) -> str:
+        """
+        Get current branch name
+        
+        Args:
+            repo_url: Repository URL
+            
+        Returns:
+            Current branch name
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        try:
+            result = subprocess.run(
+                ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            return result.stdout.strip()
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to get current branch: {e.stderr}")
+            raise RuntimeError(f"Git branch check failed: {e.stderr}")
+    
+    def has_uncommitted_changes(self, repo_url: str) -> bool:
+        """
+        Check if there are uncommitted changes
+        
+        Args:
+            repo_url: Repository URL
+            
+        Returns:
+            True if there are uncommitted changes
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        try:
+            result = subprocess.run(
+                ['git', 'status', '--porcelain'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            return bool(result.stdout.strip())
+        except subprocess.CalledProcessError:
+            return False

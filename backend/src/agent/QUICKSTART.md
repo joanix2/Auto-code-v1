@@ -16,6 +16,7 @@ pip install -r requirements.txt
 ```
 
 This installs:
+
 - `anthropic` - Claude API client
 - `langgraph` - Workflow framework
 - `langchain-anthropic` - Anthropic integration
@@ -83,7 +84,7 @@ from src.agent.claude_agent import ClaudeAgent
 
 async def test_agent():
     agent = ClaudeAgent()
-    
+
     result = await agent.run(
         ticket_id="test-1",
         ticket_title="Add login page",
@@ -94,11 +95,11 @@ async def test_agent():
         repository_url="https://github.com/user/repo",
         max_iterations=10
     )
-    
+
     print(f"Success: {result['success']}")
     print(f"Status: {result['status']}")
     print(f"Iterations: {result['iterations']}")
-    
+
     if result['code_changes']:
         print("\nCode Changes:")
         for change in result['code_changes']:
@@ -152,23 +153,29 @@ Successful run:
 ## Troubleshooting
 
 ### ImportError: No module named 'anthropic'
+
 ```bash
 pip install anthropic langgraph langchain-anthropic langchain-core
 ```
 
 ### "ANTHROPIC_API_KEY not found"
+
 Check your `.env` file has the key:
+
 ```bash
 cat backend/.env | grep ANTHROPIC
 ```
 
 ### Rate limit errors
+
 - Wait a few seconds between requests
 - Anthropic has rate limits for API calls
 - Consider implementing exponential backoff
 
 ### Agent returns failed status
+
 Check logs:
+
 ```bash
 # In backend console
 # Look for ERROR lines with agent details
@@ -185,10 +192,12 @@ Check logs:
 ## Cost Awareness
 
 **Claude Opus 4 Pricing** (as of Jan 2025):
+
 - Input: ~$15 per million tokens
 - Output: ~$75 per million tokens
 
 **Typical ticket costs**:
+
 - Simple ticket: ~10,000 tokens = $0.15 - $0.75
 - Complex ticket: ~50,000 tokens = $0.75 - $3.75
 
@@ -197,6 +206,7 @@ Monitor usage at https://console.anthropic.com/
 ## Support
 
 For issues or questions:
+
 1. Check `backend/src/agent/README.md`
 2. Review logs in backend console
 3. Test API key at https://console.anthropic.com/
