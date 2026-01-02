@@ -28,6 +28,7 @@ class GitService:
     def get_repo_path(self, repo_url: str) -> Path:
         """
         Get local path for a repository
+        Uses owner/repo structure to avoid naming conflicts
         
         Args:
             repo_url: Repository URL (e.g., https://github.com/user/repo)
@@ -35,8 +36,27 @@ class GitService:
         Returns:
             Path to local repository
         """
-        # Extract repo name from URL
-        repo_name = repo_url.rstrip('/').split('/')[-1].replace('.git', '')
+        # Extract owner and repo name from URL
+        # Supports: https://github.com/owner/repo or git@github.com:owner/repo
+        url_clean = repo_url.rstrip('/').replace('.git', '')
+        
+        if 'github.com' in url_clean:
+            # Extract from URL
+            if ':' in url_clean and '@' in url_clean:
+                # SSH format: git@github.com:owner/repo
+                parts = url_clean.split(':')[1].split('/')
+            else:
+                # HTTPS format: https://github.com/owner/repo
+                parts = url_clean.split('github.com/')[1].split('/')
+            
+            if len(parts) >= 2:
+                owner = parts[0]
+                repo_name = parts[1]
+                # Create owner/repo directory structure
+                return self.workspace_root / owner / repo_name
+        
+        # Fallback: just use repo name
+        repo_name = url_clean.split('/')[-1]
         return self.workspace_root / repo_name
     
     def is_cloned(self, repo_url: str) -> bool:

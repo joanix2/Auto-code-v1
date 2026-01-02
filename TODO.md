@@ -49,7 +49,26 @@ elle va beaucoup ressembler à la liste des repo, tu peut donc copier le code da
 - Documentation complète (README + QUICKSTART)
 - Dépendances ajoutées : anthropic, langgraph, langchain
 
-créer un digramme de flux
+✅ ajout d'un objet Message pour conversation avec LLM
+
+- Modèle Message avec role, content, step, tokens_used
+- MessageRepository avec CRUD et méthodes spécialisées
+- MessageController avec endpoints REST complets
+- Relation HAS_MESSAGE entre Ticket et Message dans Neo4j
+- Intégration dans ClaudeAgent (sauvegarde auto des messages)
+
+✅ implémentation du workflow complet de traitement automatique (WORKFLOW.md)
+
+- GitService : clone, pull, branches, rebase, commit, push
+- CIService : pytest, npm test, make test, GitHub Actions
+- TicketProcessingService : workflow principal itératif
+- Gestion MAX_ITERATIONS avec création auto de bug tickets
+- Boucle LLM → Code → Commit → CI → Validation
+- API endpoints : /start, /validation, /status
+- Ticket.iteration_count ajouté
+- Flowchart Mermaid (flow.mmd)
+
+✅ créer un digramme de flux (flow.mmd + diagramme dans WORKFLOW.md)
 
 mettre le ticket en pending
 
