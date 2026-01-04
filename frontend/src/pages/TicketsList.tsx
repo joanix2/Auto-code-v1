@@ -11,6 +11,7 @@ import { AppBar } from "@/components/AppBar";
 import { Input } from "@/components/ui/input";
 import { SortableTicketCard } from "@/components/SortableTicketCard";
 import { DeleteTicketDialog } from "@/components/DeleteTicketDialog";
+import { DevelopmentLaunchedDialog } from "@/components/DevelopmentLaunchedDialog";
 import { DevelopmentBanner } from "@/components/DevelopmentBanner";
 import { TicketStatusFilter } from "@/components/TicketStatusFilter";
 import type { Ticket, Repository } from "@/types";
@@ -60,6 +61,8 @@ function TicketsList() {
   const [deleting, setDeleting] = useState(false);
   const [developing, setDeveloping] = useState(false);
   const [claudeResponse, setClaudeResponse] = useState<string | null>(null);
+  const [developmentDialogOpen, setDevelopmentDialogOpen] = useState(false);
+  const [developmentStatus, setDevelopmentStatus] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -226,18 +229,9 @@ function TicketsList() {
       // Rafraîchir la liste des tickets
       fetchTickets();
 
-      // Notification de succès améliorée
-      alert(
-        `🚀 Développement automatique lancé avec succès!\n\n` +
-          `📊 Statut: ${result.status}\n\n` +
-          `Le workflow LangGraph est en cours d'exécution en arrière-plan :\n` +
-          `  • Analyse du ticket avec Claude Opus 4\n` +
-          `  • Génération et application des modifications\n` +
-          `  • Commit automatique sur une nouvelle branche\n` +
-          `  • Exécution des tests CI/CD\n\n` +
-          `💡 Le statut du ticket sera mis à jour automatiquement.\n` +
-          `Connectez-vous au WebSocket pour suivre la progression en temps réel.`
-      );
+      // Ouvrir la modale de succès
+      setDevelopmentStatus(result.status);
+      setDevelopmentDialogOpen(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors du développement automatique");
     } finally {
@@ -430,6 +424,9 @@ function TicketsList() {
 
       {/* Delete Confirmation Dialog */}
       <DeleteTicketDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} ticket={ticketToDelete} onConfirm={confirmDelete} loading={deleting} />
+
+      {/* Development Launched Dialog */}
+      <DevelopmentLaunchedDialog open={developmentDialogOpen} onOpenChange={setDevelopmentDialogOpen} status={developmentStatus} />
     </div>
   );
 }

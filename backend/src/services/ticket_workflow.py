@@ -167,7 +167,10 @@ class TicketProcessingWorkflow:
     
     def _check_iterations(self, state: TicketProcessingState) -> TicketProcessingState:
         """Check if MAX_ITERATIONS exceeded"""
-        logger.info(f"Checking iterations for ticket {state.ticket_id}")
+        logger.info("=" * 80)
+        logger.info(f"🔄 [WORKFLOW] Checking iterations for ticket {state.ticket_id}")
+        logger.info(f"📊 Current iteration: {state.iteration_count}/{MAX_ITERATIONS}")
+        logger.info("=" * 80)
         
         # Send WebSocket update
         import asyncio
@@ -229,7 +232,10 @@ class TicketProcessingWorkflow:
     
     def _prepare_repository(self, state: TicketProcessingState) -> TicketProcessingState:
         """Prepare repository: clone/pull and setup branch"""
-        logger.info(f"Preparing repository for ticket {state.ticket_id}")
+        logger.info("=" * 80)
+        logger.info(f"📦 [GIT] Preparing repository for ticket {state.ticket_id}")
+        logger.info(f"📁 Repository: {state.repository.get('name') if state.repository else 'Unknown'}")
+        logger.info("=" * 80)
         
         import asyncio
         asyncio.create_task(manager.send_status_update(
@@ -384,7 +390,11 @@ Please analyze this ticket and implement the required changes. Follow best pract
     
     def _call_llm(self, state: TicketProcessingState) -> TicketProcessingState:
         """Call LLM for reasoning and code generation, then apply modifications"""
-        logger.info(f"Calling LLM for ticket {state.ticket_id}")
+        logger.info("=" * 80)
+        logger.info(f"🤖 [CLAUDE] Calling LLM for ticket {state.ticket_id}")
+        logger.info(f"💬 Messages in conversation: {len(state.messages)}")
+        logger.info(f"🔄 Iteration: {state.iteration_count + 1}/{MAX_ITERATIONS}")
+        logger.info("=" * 80)
         
         import asyncio
         asyncio.create_task(manager.send_status_update(
@@ -414,7 +424,7 @@ Please analyze this ticket and implement the required changes. Follow best pract
             
             # ✅ APPLY FILE MODIFICATIONS using LangChain tools
             if result and result.get("final_output"):
-                logger.info("Applying file modifications...")
+                logger.info("📝 [FILES] Applying file modifications...")
                 asyncio.create_task(manager.send_log(
                     state.ticket_id,
                     "INFO",
@@ -425,7 +435,11 @@ Please analyze this ticket and implement the required changes. Follow best pract
                 mod_results = file_service.apply_modifications(result["final_output"])
                 
                 if mod_results["success"]:
-                    logger.info(f"Successfully modified {mod_results['succeeded']} file(s)")
+                    logger.info(f"✅ [FILES] Successfully modified {mod_results['succeeded']} file(s)")
+                    if mod_results['failed'] > 0:
+                        logger.warning(f"⚠️  [FILES] Failed to modify {mod_results['failed']} file(s)")
+                    for file_path in mod_results.get('modified_files', []):
+                        logger.info(f"  📄 Modified: {file_path}")
                     asyncio.create_task(manager.send_log(
                         state.ticket_id,
                         "INFO",
@@ -479,18 +493,23 @@ Please analyze this ticket and implement the required changes. Follow best pract
     
     def _commit_changes(self, state: TicketProcessingState) -> TicketProcessingState:
         """Commit changes to Git"""
-        logger.info(f"Committing changes for ticket {state.ticket_id}")
+        logger.info("=" * 80)
+        logger.info(f"💾 [GIT] Committing changes for ticket {state.ticket_id}")
+        logger.info(f"🌿 Branch: {state.branch_name}")
+        logger.info("=" * 80)
         
         try:
             if self.git_service.has_uncommitted_changes(state.repository["url"]):
+                commit_message = f"feat(ticket-{state.ticket_id[:8]}): {state.ticket['title']}\n\nIteration {state.iteration_count + 1}"
                 commit_hash = self.git_service.commit_changes(
                     state.repository["url"],
-                    f"feat(ticket-{state.ticket_id[:8]}): {state.ticket['title']}\n\nIteration {state.iteration_count + 1}"
+                    commit_message
                 )
                 state.commit_hash = commit_hash
-                logger.info(f"Changes committed: {commit_hash}")
+                logger.info(f"✅ [GIT] Changes committed: {commit_hash}")
+                logger.info(f"📝 [GIT] Commit message: {commit_message[:100]}...")
             else:
-                logger.info("No uncommitted changes to commit")
+                logger.info("ℹ️  [GIT] No uncommitted changes to commit")
             
             state.status = "committed"
             
@@ -502,7 +521,11 @@ Please analyze this ticket and implement the required changes. Follow best pract
     
     def _run_ci(self, state: TicketProcessingState) -> TicketProcessingState:
         """Run CI/CD tests"""
-        logger.info(f"Running CI for ticket {state.ticket_id}")
+        logger.info("=" * 80)
+        logger.info(f"🧪 [CI/CD] Running tests for ticket {state.ticket_id}")
+        logger.info(f"📦 Repository path: {state.repo_path}")
+        logger.info(f"🔖 Commit: {state.commit_hash[:8] if state.commit_hash else 'No commit'}")
+        logger.info("=" * 80)
         
         try:
             ci_result = self.ci_service.run_ci(
@@ -517,7 +540,13 @@ Please analyze this ticket and implement the required changes. Follow best pract
                 "details": ci_result.details
             }
             
-            logger.info(f"CI result: {ci_result}")
+            if ci_result.success:
+                logger.info(f"✅ [CI/CD] Tests passed successfully!")
+            else:
+                logger.error(f"❌ [CI/CD] Tests failed: {ci_result.message}")
+                if ci_result.details:
+                    logger.error(f"📋 [CI/CD] Details: {ci_result.details}")
+            
             state.status = "ci_completed"
             
         except Exception as e:
@@ -533,7 +562,11 @@ Please analyze this ticket and implement the required changes. Follow best pract
     
     def _handle_ci_result(self, state: TicketProcessingState) -> TicketProcessingState:
         """Handle CI result and increment iteration"""
-        logger.info(f"Handling CI result for ticket {state.ticket_id}")
+        logger.info("=" * 80)
+        logger.info(f"📊 [WORKFLOW] Handling CI result for ticket {state.ticket_id}")
+        ci_success = state.ci_result.get("success", False) if state.ci_result else False
+        logger.info(f"🧪 CI Status: {'✅ PASSED' if ci_success else '❌ FAILED'}")
+        logger.info("=" * 80)
         
         # Increment iteration count
         state.iteration_count += 1
@@ -668,13 +701,28 @@ Manual investigation needed to determine why the automated process failed.
         Returns:
             Final state dictionary
         """
-        logger.info(f"Starting LangGraph workflow for ticket {ticket_id}")
+        logger.info("=" * 100)
+        logger.info("🚀 " + "=" * 96)
+        logger.info(f"🚀 STARTING LANGGRAPH WORKFLOW FOR TICKET: {ticket_id}")
+        logger.info("🚀 " + "=" * 96)
+        logger.info("=" * 100)
         
         # Initialize state
         initial_state = TicketProcessingState(ticket_id=ticket_id)
         
         # Run the workflow
+        logger.info(f"⚙️  Initializing workflow state for ticket {ticket_id}")
         final_state = await self.graph.ainvoke(initial_state)
+        
+        logger.info("=" * 100)
+        logger.info("🏁 " + "=" * 96)
+        logger.info(f"🏁 WORKFLOW COMPLETED FOR TICKET: {ticket_id}")
+        logger.info(f"✅ Success: {final_state.success}")
+        logger.info(f"📊 Status: {final_state.final_status}")
+        logger.info(f"🔄 Iterations: {final_state.iteration_count}/{MAX_ITERATIONS}")
+        logger.info(f"❌ Errors: {len(final_state.errors)}")
+        logger.info("🏁 " + "=" * 96)
+        logger.info("=" * 100)
         
         # Return result
         return {

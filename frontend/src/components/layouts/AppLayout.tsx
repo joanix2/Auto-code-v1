@@ -41,7 +41,8 @@ export function AppLayout({ children }: AppLayoutProps) {
               <div className="flex items-center justify-between gap-2 sm:gap-4">
                 {/* Logo + Title */}
                 <Link to="/projects" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity group">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">Auto-Code</h1>
+                  <img src="/assets/logo_ticket_code.svg" alt="AutoCode Logo" className="h-8 w-8 sm:h-10 sm:w-10 transition-transform group-hover:scale-105" />
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">AutoCode</h1>
                 </Link>
 
                 {/* User Menu */}
