@@ -157,3 +157,28 @@ ajout des KG
 ajout des ontologies
 
 règles sur le graphe
+
+# DevOps
+
+## Docker
+
+```
+  # Nginx Proxy Manager
+  nginx-proxy-manager:
+    image: "jc21/nginx-proxy-manager:latest"
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80" # HTTP
+      - "443:443" # HTTPS
+      - "81:81" # Interface admin NPM
+    volumes:
+      - npm-data:/data
+      - npm-letsencrypt:/etc/letsencrypt
+    networks:
+      - npm-network
+    environment:
+      DB_SQLITE_FILE: "/data/database.sqlite"
+```
+
+## IaC
