@@ -1,9 +1,10 @@
-name: Deploy to EC2
+name: Deploy AutoCode to AWS EC2
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -11,35 +12,76 @@ jobs:
     environment: production
 
     steps:
-      - name: Checkout repository with submodules
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          submodules: true
           fetch-depth: 0
 
       - name: Set up SSH key
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
-          chmod 600 private_key.pem
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/aws_key.pem
+          chmod 600 ~/.ssh/aws_key.pem
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
-      - name: Transfer files to EC2 (including submodules)
+      - name: Create .env file
         run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ secrets.EC2_PUBLIC_DNS }} "mkdir -p /home/ubuntu/app"
-          scp -o StrictHostKeyChecking=no -i private_key.pem -r . ubuntu@${{ secrets.EC2_PUBLIC_DNS }}:/home/ubuntu/app
-
-      - name: Initialize and update submodules on EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ secrets.EC2_PUBLIC_DNS }} << 'EOF'
-            cd /home/ubuntu/app
-            git submodule update --init --recursive
+          cat > .env << EOF
+          NEO4J_URI=bolt://neo4j:7687
+          NEO4J_USER=neo4j
+          NEO4J_PASSWORD=${{ secrets.NEO4J_PASSWORD }}
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          ENVIRONMENT=production
+          BACKEND_URL=http://backend:8000
+          FRONTEND_URL=http://localhost:3000
           EOF
 
-      - name: Build and run Docker Compose on EC2
+      - name: Transfer files to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ secrets.EC2_PUBLIC_DNS }} << 'EOF'
+          ssh -i ~/.ssh/aws_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} "mkdir -p /home/ubuntu/app"
+          rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'backend/venv' --exclude 'backend/__pycache__' \
+            -e "ssh -i ~/.ssh/aws_key.pem" \
+            ./ ubuntu@${{ secrets.EC2_PUBLIC_IP }}:/home/ubuntu/app/
+
+      - name: Deploy with Docker Compose
+        run: |
+          ssh -i ~/.ssh/aws_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'ENDSSH'
+            set -e
             cd /home/ubuntu/app
-            sudo systemctl restart docker
+            
+            # Pull latest images and rebuild
+            docker compose pull || true
             docker compose down
             docker compose build --no-cache
             docker compose up -d
-          EOF
+            
+            # Wait for services to be healthy
+            echo "Waiting for services to start..."
+            sleep 30
+            
+            # Check status
+            docker compose ps
+            
+            # Show logs
+            docker compose logs --tail=50
+          ENDSSH
+
+      - name: Health check
+        run: |
+          sleep 10
+          curl -f http://${{ secrets.EC2_PUBLIC_IP }}:8000/health || echo "Backend health check failed"
+          curl -f http://${{ secrets.EC2_PUBLIC_IP }}:3000 || echo "Frontend health check failed"
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Deployment successful!"
+            echo "Frontend: http://${{ secrets.EC2_PUBLIC_IP }}:3000"
+            echo "Backend: http://${{ secrets.EC2_PUBLIC_IP }}:8000/docs"
+            echo "Neo4j: http://${{ secrets.EC2_PUBLIC_IP }}:7474"
+            echo "NPM: http://${{ secrets.EC2_PUBLIC_IP }}:81"
+          else
+            echo "❌ Deployment failed!"
+          fi

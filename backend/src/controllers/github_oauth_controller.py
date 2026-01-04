@@ -97,9 +97,9 @@ async def github_callback(
         jwt_token = create_access_token({"sub": user.username})
         
         # Rediriger vers le frontend avec le token
-        frontend_url = "http://localhost:8080/auth/callback"
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
         return RedirectResponse(
-            url=f"{frontend_url}?token={jwt_token}",
+            url=f"{frontend_url}/auth/callback?token={jwt_token}",
             status_code=302
         )
         
@@ -108,8 +108,9 @@ async def github_callback(
     except Exception as e:
         logger.error(f"OAuth error: {str(e)}", exc_info=True)
         # Rediriger vers le frontend avec une erreur
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
         return RedirectResponse(
-            url=f"http://localhost:8080/login?error=oauth_failed",
+            url=f"{frontend_url}/login?error=oauth_failed",
             status_code=302
         )
 

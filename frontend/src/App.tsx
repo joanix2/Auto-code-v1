@@ -111,8 +111,15 @@ function App() {
           {/* OAuth Callback Route */}
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* Default route */}
-          <Route path="/" element={<Navigate to="/projects" replace />} />
+          {/* Default route - redirect to projects if authenticated, login otherwise */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Navigate to="/projects" replace />
+              </ProtectedRoute>
+            }
+          />
 
           {/* 404 - Redirect to login */}
           <Route path="*" element={<Navigate to="/login" replace />} />

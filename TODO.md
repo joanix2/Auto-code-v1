@@ -182,3 +182,14 @@ règles sur le graphe
 ```
 
 ## IaC
+
+application_urls = {
+"backend" = "http://13.37.9.94:8000"
+"frontend" = "http://13.37.9.94:3000"
+"neo4j" = "http://13.37.9.94:7474"
+"npm_admin" = "http://13.37.9.94:81"
+}
+instance_id = "i-067522f2398c0f746"
+public_dns = "ec2-13-36-176-35.eu-west-3.compute.amazonaws.com"
+public_ip = "13.37.9.94"
+ssh_connection = "ssh -i ~/.ssh/aws_key.pem ubuntu@13.37.9.94"
