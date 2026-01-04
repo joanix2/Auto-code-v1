@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_BASE_URL } from "../config/env";
 
 export function useGitHubAuth() {
   const [loading, setLoading] = useState(false);
@@ -10,7 +11,7 @@ export function useGitHubAuth() {
       setError(null);
 
       // Récupérer l'URL d'autorisation
-      const response = await fetch("http://localhost:8000/api/auth/github/login", {
+      const response = await fetch(`${API_BASE_URL}/auth/github/login`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -67,7 +68,7 @@ export function useGitHubAuth() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("http://localhost:8000/api/auth/github/disconnect", {
+      const response = await fetch(`${API_BASE_URL}/auth/github/disconnect`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

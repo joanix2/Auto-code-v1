@@ -2,6 +2,7 @@
  * Service pour gérer le traitement automatique des tickets
  */
 import type { Ticket, Repository } from "@/types";
+import { API_BASE_URL } from "../config/env";
 
 interface ProcessingResponse {
   status: string;
@@ -17,7 +18,7 @@ interface NextTicketResponse {
 }
 
 export class TicketProcessingService {
-  private static API_BASE = "http://localhost:8000/api";
+  private static API_BASE = API_BASE_URL;
 
   /**
    * Récupère le prochain ticket dans la queue

@@ -52,7 +52,7 @@ function ProjectsList() {
       return;
     }
 
-    const response = await fetch("http://localhost:8000/api/repositories/sync-github", {
+    const response = await fetch(`${API_BASE_URL}/repositories/sync-github", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
         "X-GitHub-Token": user.github_token,

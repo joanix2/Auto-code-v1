@@ -7,6 +7,7 @@ import { Label } from "../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Alert, AlertDescription } from "../components/ui/alert";
+import { API_BASE_URL } from "../config/env";
 
 export default function LoginPage() {
   const [loginUsername, setLoginUsername] = useState<string>("");
@@ -28,7 +29,7 @@ export default function LoginPage() {
       setError("");
 
       // Récupérer l'URL d'autorisation GitHub
-      const response = await fetch("http://localhost:8000/api/auth/github/login");
+      const response = await fetch(`${API_BASE_URL}/auth/github/login`);
       const data = await response.json();
 
       if (data.auth_url) {

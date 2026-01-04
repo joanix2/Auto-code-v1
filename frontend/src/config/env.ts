@@ -3,11 +3,28 @@
  * Centralized environment variables and constants
  */
 
-// API Base URL - defaults to localhost if not set
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+// API Base URL - use VITE_API_URL from env, or detect from window location in production
+const getApiUrl = (): string => {
+  // If VITE_API_URL is set, use it
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // In production (when served from the same domain), use relative path or detected host
+  if (import.meta.env.PROD) {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:8000/api`;
+  }
+  
+  // Development fallback
+  return "http://localhost:8000/api";
+};
+
+export const API_URL = getApiUrl();
+export const API_BASE_URL = API_URL; // Alias for compatibility
 
 // Other configuration
-export const APP_NAME = "Tag Link";
+export const APP_NAME = "AutoCode";
 export const APP_VERSION = "1.0.0";
 
 // API endpoints

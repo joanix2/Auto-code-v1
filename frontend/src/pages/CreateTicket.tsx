@@ -72,7 +72,7 @@ function CreateTicket() {
 
     try {
       setLoadingTicket(true);
-      const response = await fetch(`http://localhost:8000/api/tickets/${ticketId}`, {
+      const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -115,7 +115,7 @@ function CreateTicket() {
       setLoading(true);
       setError("");
 
-      const url = isEditMode ? `http://localhost:8000/api/tickets/${ticketId}` : "http://localhost:8000/api/tickets";
+      const url = isEditMode ? `${API_BASE_URL}/tickets/${ticketId}` : `${API_BASE_URL}/tickets";
 
       const method = isEditMode ? "PUT" : "POST";
 

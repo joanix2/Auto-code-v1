@@ -36,7 +36,7 @@ function NewRepository() {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:8000/api/repositories", {
+      const response = await fetch(`${API_BASE_URL}/repositories", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

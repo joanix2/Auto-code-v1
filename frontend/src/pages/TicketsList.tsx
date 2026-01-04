@@ -100,7 +100,7 @@ function TicketsList() {
       setRepository(repo);
 
       // Récupérer les tickets du repository
-      const response = await fetch(`http://localhost:8000/api/tickets/repository/${repositoryId}`, {
+      const response = await fetch(`${API_BASE_URL}/tickets/repository/${repositoryId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -180,7 +180,7 @@ function TicketsList() {
 
     try {
       setDeleting(true);
-      const response = await fetch(`http://localhost:8000/api/tickets/${ticketToDelete.id}`, {
+      const response = await fetch(`${API_BASE_URL}/tickets/${ticketToDelete.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -208,7 +208,7 @@ function TicketsList() {
       setError("");
       setClaudeResponse(null);
 
-      const response = await fetch(`http://localhost:8000/api/tickets/processing/start`, {
+      const response = await fetch(`${API_BASE_URL}/tickets/processing/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -260,7 +260,7 @@ function TicketsList() {
           order: index,
         }));
 
-        const response = await fetch("http://localhost:8000/api/tickets/reorder", {
+        const response = await fetch(`${API_BASE_URL}/tickets/reorder", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

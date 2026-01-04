@@ -1,6 +1,5 @@
 import type { User, Repository, Ticket, UserLogin, UserCreate, TokenResponse, TicketCreate } from "../types";
-
-const API_BASE_URL = "http://localhost:8000/api";
+import { API_BASE_URL } from "../config/env";
 
 class ApiClient {
   private getAuthHeader(): HeadersInit {
