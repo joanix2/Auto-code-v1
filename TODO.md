@@ -1,13 +1,13 @@
 # Moteur IA
 
-get next ticket
+✅ get next ticket
 
-créer un service pour les messages qui sera utiliser par l'api et la cli fonctions à ajouté dans le service des messages :
-récupérer le nombre de message
-savoir si le nombre de message est supérieur à n (la limite)
-récupérer le dernier message
+✅ créer un service pour les messages qui sera utiliser par l'api et la cli fonctions à ajouté dans le service des messages :
+✅ récupérer le nombre de message
+✅ savoir si le nombre de message est supérieur à n (la limite)
+✅ récupérer le dernier message
 
-get messages from ticket
+✅ get messages from ticket
 
 ✅ mettre le ticket en pending (immédiatement au clic, workflow en arrière-plan)
 

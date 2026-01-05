@@ -11,6 +11,7 @@ from cli.commands.auth import auth_app
 from cli.commands.repos import repos_app
 from cli.commands.pull import pull_app
 from cli.commands.ticket import ticket_app
+from cli.commands.message import message_app
 from cli.commands.quickstart import quickstart_app
 
 # Initialize main Typer app
@@ -28,6 +29,7 @@ app.add_typer(auth_app, name="auth")
 app.add_typer(repos_app, name="repos")
 app.add_typer(pull_app, name="pull")
 app.add_typer(ticket_app, name="ticket")
+app.add_typer(message_app, name="message")
 app.add_typer(quickstart_app, name="quickstart")
 
 

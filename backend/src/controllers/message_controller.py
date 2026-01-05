@@ -10,6 +10,7 @@ import logging
 from ..models.message import Message, MessageCreate, MessageUpdate
 from ..repositories.message_repository import MessageRepository
 from ..repositories.ticket_repository import TicketRepository
+from ..services.message_service import MessageService
 from ..database import db
 from ..utils.auth import get_current_user
 from ..models.user import User
@@ -308,3 +309,75 @@ async def delete_ticket_messages(
     deleted_count = message_repo.delete_by_ticket_id(ticket_id)
     
     logger.info(f"Deleted {deleted_count} messages for ticket {ticket_id}")
+
+
+@router.get("/ticket/{ticket_id}/count", response_model=dict)
+async def get_message_count(
+    ticket_id: str,
+    current_user: User = Depends(get_current_user)
+) -> dict:
+    """
+    Get the count of messages for a ticket
+    
+    Args:
+        ticket_id: Ticket ID
+        current_user: Authenticated user
+        
+    Returns:
+        Dictionary with message count
+    """
+    logger.info(f"User {current_user.username} getting message count for ticket {ticket_id}")
+    
+    message_service = MessageService()
+    count = message_service.get_message_count(ticket_id)
+    
+    return {"ticket_id": ticket_id, "count": count}
+
+
+@router.get("/ticket/{ticket_id}/check-limit/{limit}", response_model=dict)
+async def check_message_limit(
+    ticket_id: str,
+    limit: int,
+    current_user: User = Depends(get_current_user)
+) -> dict:
+    """
+    Check if message count exceeds a limit
+    
+    Args:
+        ticket_id: Ticket ID
+        limit: Message limit to check
+        current_user: Authenticated user
+        
+    Returns:
+        Dictionary with limit check result
+    """
+    logger.info(f"User {current_user.username} checking message limit for ticket {ticket_id}")
+    
+    message_service = MessageService()
+    result = message_service.check_limit_and_get_stats(ticket_id, limit)
+    
+    return result
+
+
+@router.get("/ticket/{ticket_id}/stats", response_model=dict)
+async def get_message_stats(
+    ticket_id: str,
+    current_user: User = Depends(get_current_user)
+) -> dict:
+    """
+    Get statistics about messages for a ticket
+    
+    Args:
+        ticket_id: Ticket ID
+        current_user: Authenticated user
+        
+    Returns:
+        Dictionary with message statistics
+    """
+    logger.info(f"User {current_user.username} getting message stats for ticket {ticket_id}")
+    
+    message_service = MessageService()
+    stats = message_service.get_message_stats(ticket_id)
+    
+    return stats
+
