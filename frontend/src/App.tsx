@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./pages/Login";
 import ProjectsList from "./pages/ProjectsList";
 import TicketsList from "./pages/TicketsList";
+import { TicketChat } from "./pages/TicketChat";
 import NewRepository from "./pages/NewRepository";
 import CreateTicket from "./pages/CreateTicket";
 import Profile from "./pages/Profile";
@@ -68,6 +69,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <TicketsList />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ticket/:ticketId/chat"
+            element={
+              <ProtectedRoute>
+                <TicketChat />
               </ProtectedRoute>
             }
           />

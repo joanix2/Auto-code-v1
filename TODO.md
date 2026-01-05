@@ -1,14 +1,18 @@
 # Moteur IA
 
+get next ticket
+
+get messages from ticket
+
 ✅ mettre le ticket en pending (immédiatement au clic, workflow en arrière-plan)
 
 ✅ clone / pull les repo dans un workspace (structure owner/repo)
 
 ✅ gestion des branches (créer la branche / aller sur la branche)
 
-✅ créer un agent avec langgraph (agent Claude Opus 4 créé avec 3 workflows)
-
 ✅ créer un message à partir du ticket / récupérer le dernier message
+
+✅ créer un agent avec langgraph (agent Claude Opus 4 créé avec 3 workflows)
 
 ✅ reasoning, création d'un plan
 
@@ -30,13 +34,15 @@ merge de la branche
 
 ✅ refaire le page de login
 
-modifier le logo et index.html
-
-la modification de l'odre des tickets intefert avec le scroll
+gestion des messages liée à un ticket
 
 supprimer les settings
 
 ajouter le token dans les parms utilisateurs
+
+modifier le logo et index.html
+
+la modification de l'odre des tickets intefert avec le scroll
 
 corriger les tickets avec claude
 

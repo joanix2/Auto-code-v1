@@ -137,3 +137,26 @@ export interface ApiError {
   detail: string;
   status?: number;
 }
+
+// Message types
+export interface Message {
+  id: string;
+  ticket_id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
+  model?: string;
+  tokens_used?: number;
+  step?: string;
+}
+
+export interface MessageCreate {
+  ticket_id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  metadata?: Record<string, unknown>;
+  model?: string;
+  tokens_used?: number;
+  step?: string;
+}

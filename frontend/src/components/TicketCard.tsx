@@ -123,6 +123,19 @@ export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
 
         {/* Footer avec boutons */}
         <div className="border-t border-slate-100 dark:border-slate-800 px-6 py-3 bg-slate-50/50 dark:bg-slate-800/50 flex items-center gap-2">
+          <Link to={`/ticket/${ticket.id}/chat`} className="flex-1">
+            <Button variant="ghost" size="sm" className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/50 text-blue-600 dark:text-blue-400">
+              <svg className="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              Chat
+            </Button>
+          </Link>
           {onDelete && (
             <Button variant="ghost" size="sm" onClick={() => onDelete(ticket.id)} className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50">
               <svg className="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

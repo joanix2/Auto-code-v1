@@ -1,4 +1,4 @@
-import type { User, Repository, Ticket, UserLogin, UserCreate, TokenResponse, TicketCreate } from "../types";
+import type { User, Repository, Ticket, UserLogin, UserCreate, TokenResponse, TicketCreate, Message, MessageCreate } from "../types";
 import { API_BASE_URL } from "../config/env";
 
 class ApiClient {
@@ -99,6 +99,18 @@ class ApiClient {
   async deleteTicket(id: string): Promise<void> {
     return this.request<void>(`/tickets/${id}`, {
       method: "DELETE",
+    });
+  }
+
+  // Message endpoints
+  async getTicketMessages(ticketId: string): Promise<Message[]> {
+    return this.request<Message[]>(`/messages/ticket/${ticketId}`);
+  }
+
+  async createMessage(data: MessageCreate): Promise<Message> {
+    return this.request<Message>("/messages", {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 }

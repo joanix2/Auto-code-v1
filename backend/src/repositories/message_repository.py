@@ -6,6 +6,7 @@ Database operations for Message model
 from typing import List, Optional
 from datetime import datetime
 import uuid
+import json
 
 from ..database import db
 from ..models.message import Message
@@ -49,7 +50,7 @@ class MessageRepository:
             "role": message.role,
             "content": message.content,
             "timestamp": message.timestamp.isoformat(),
-            "metadata": message.metadata,
+            "metadata": json.dumps(message.metadata) if message.metadata else None,
             "model": message.model,
             "tokens_used": message.tokens_used,
             "step": message.step
@@ -95,13 +96,21 @@ class MessageRepository:
         record = result[0]
         message_data = record["m"]
         
+        # Parse metadata JSON if it exists
+        metadata = None
+        if message_data.get("metadata"):
+            try:
+                metadata = json.loads(message_data["metadata"])
+            except (json.JSONDecodeError, TypeError):
+                metadata = message_data.get("metadata")
+        
         return Message(
             id=message_data["id"],
             ticket_id=message_data["ticket_id"],
             role=message_data["role"],
             content=message_data["content"],
             timestamp=message_data["timestamp"].to_native(),
-            metadata=message_data.get("metadata"),
+            metadata=metadata,
             model=message_data.get("model"),
             tokens_used=message_data.get("tokens_used"),
             step=message_data.get("step")
@@ -133,13 +142,22 @@ class MessageRepository:
         messages = []
         for record in result:
             message_data = record["m"]
+            
+            # Parse metadata JSON if it exists
+            metadata = None
+            if message_data.get("metadata"):
+                try:
+                    metadata = json.loads(message_data["metadata"])
+                except (json.JSONDecodeError, TypeError):
+                    metadata = message_data.get("metadata")
+            
             messages.append(Message(
                 id=message_data["id"],
                 ticket_id=message_data["ticket_id"],
                 role=message_data["role"],
                 content=message_data["content"],
                 timestamp=message_data["timestamp"].to_native(),
-                metadata=message_data.get("metadata"),
+                metadata=metadata,
                 model=message_data.get("model"),
                 tokens_used=message_data.get("tokens_used"),
                 step=message_data.get("step")
@@ -171,13 +189,22 @@ class MessageRepository:
             return None
         
         message_data = result[0]["m"]
+        
+        # Parse metadata JSON if it exists
+        metadata = None
+        if message_data.get("metadata"):
+            try:
+                metadata = json.loads(message_data["metadata"])
+            except (json.JSONDecodeError, TypeError):
+                metadata = message_data.get("metadata")
+        
         return Message(
             id=message_data["id"],
             ticket_id=message_data["ticket_id"],
             role=message_data["role"],
             content=message_data["content"],
             timestamp=message_data["timestamp"].to_native(),
-            metadata=message_data.get("metadata"),
+            metadata=metadata,
             model=message_data.get("model"),
             tokens_used=message_data.get("tokens_used"),
             step=message_data.get("step")
@@ -209,13 +236,22 @@ class MessageRepository:
         messages = []
         for record in result:
             message_data = record["m"]
+            
+            # Parse metadata JSON if it exists
+            metadata = None
+            if message_data.get("metadata"):
+                try:
+                    metadata = json.loads(message_data["metadata"])
+                except (json.JSONDecodeError, TypeError):
+                    metadata = message_data.get("metadata")
+            
             messages.append(Message(
                 id=message_data["id"],
                 ticket_id=message_data["ticket_id"],
                 role=message_data["role"],
                 content=message_data["content"],
                 timestamp=message_data["timestamp"].to_native(),
-                metadata=message_data.get("metadata"),
+                metadata=metadata,
                 model=message_data.get("model"),
                 tokens_used=message_data.get("tokens_used"),
                 step=message_data.get("step")
@@ -247,7 +283,7 @@ class MessageRepository:
         
         if metadata is not None:
             updates.append("m.metadata = $metadata")
-            params["metadata"] = metadata
+            params["metadata"] = json.dumps(metadata) if metadata else None
         
         if tokens_used is not None:
             updates.append("m.tokens_used = $tokens_used")
@@ -268,13 +304,22 @@ class MessageRepository:
             return None
         
         message_data = result[0]["m"]
+        
+        # Parse metadata JSON if it exists
+        metadata = None
+        if message_data.get("metadata"):
+            try:
+                metadata = json.loads(message_data["metadata"])
+            except (json.JSONDecodeError, TypeError):
+                metadata = message_data.get("metadata")
+        
         return Message(
             id=message_data["id"],
             ticket_id=message_data["ticket_id"],
             role=message_data["role"],
             content=message_data["content"],
             timestamp=message_data["timestamp"].to_native(),
-            metadata=message_data.get("metadata"),
+            metadata=metadata,
             model=message_data.get("model"),
             tokens_used=message_data.get("tokens_used"),
             step=message_data.get("step")

@@ -10,6 +10,7 @@ import logging
 from ..models.message import Message, MessageCreate, MessageUpdate
 from ..repositories.message_repository import MessageRepository
 from ..repositories.ticket_repository import TicketRepository
+from ..database import db
 from ..utils.auth import get_current_user
 from ..models.user import User
 
@@ -36,8 +37,9 @@ async def create_message(
     logger.info(f"User {current_user.username} creating message for ticket {message_data.ticket_id}")
     
     # Verify ticket exists
-    ticket_repo = TicketRepository()
-    ticket = ticket_repo.get_by_id(message_data.ticket_id)
+    db.connect()
+    ticket_repo = TicketRepository(db)
+    ticket = await ticket_repo.get_ticket_by_id(message_data.ticket_id)
     
     if not ticket:
         raise HTTPException(
@@ -84,8 +86,9 @@ async def get_ticket_messages(
     logger.info(f"User {current_user.username} fetching messages for ticket {ticket_id}")
     
     # Verify ticket exists
-    ticket_repo = TicketRepository()
-    ticket = ticket_repo.get_by_id(ticket_id)
+    db.connect()
+    ticket_repo = TicketRepository(db)
+    ticket = await ticket_repo.get_ticket_by_id(ticket_id)
     
     if not ticket:
         raise HTTPException(
