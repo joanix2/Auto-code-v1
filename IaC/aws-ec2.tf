@@ -1,7 +1,7 @@
 # Créez une instance EC2 pour AutoCode
 resource "aws_instance" "autocode" {
   ami           = "ami-06e02ae7bdac6b938" # Ubuntu 22.04 LTS for eu-west-3
-  instance_type = "t3.small"
+  instance_type = "t3.medium" # 4 vCPU, 4GB RAM - better for Neo4j + Backend + Frontend
   key_name      = aws_key_pair.autocode.key_name
   vpc_security_group_ids = [aws_security_group.autocode.id]
 
