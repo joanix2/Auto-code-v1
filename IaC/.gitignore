@@ -1,0 +1,50 @@
+# Terraform files
+.terraform/
+.terraform.*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+tfplan
+tfplan.*
+
+# Sensitive files
+*.pem
+*.key
+*.env
+*.env.*
+!.env.example
+
+# AWS
+aws-s3-old.tf
+
+# Backup files
+*.backup
+*~
+.#*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Other
+trash/
+images.json
+tfkey

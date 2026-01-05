@@ -9,13 +9,13 @@ const getApiUrl = (): string => {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
-  
+
   // In production (when served from the same domain), use relative path or detected host
   if (import.meta.env.PROD) {
     const { protocol, hostname } = window.location;
     return `${protocol}//${hostname}:8000/api`;
   }
-  
+
   // Development fallback
   return "http://localhost:8000/api";
 };
