@@ -7,7 +7,7 @@ from .git import GitService, BranchService, GitHubService
 from .messaging import MessageService
 
 # Utility services
-from .utils import FileModificationService, ImageService, levenshtein_service
+from .utils import FileModificationService, ImageService, TemplateService, levenshtein_service
 
 # Auth services
 from .auth import GitHubOAuthService
@@ -35,6 +35,7 @@ __all__ = [
     # Utils
     "FileModificationService",
     "ImageService",
+    "TemplateService",
     "levenshtein_service",
     # Auth
     "GitHubOAuthService",

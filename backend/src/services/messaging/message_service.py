@@ -5,8 +5,12 @@ Used by both API and CLI
 """
 
 from typing import Optional
+from datetime import datetime
+import uuid
 from ...repositories.message_repository import MessageRepository
 from ...models.message import Message
+from ...models.ticket import Ticket
+from ..utils.template_service import TemplateService
 
 
 class MessageService:
@@ -20,6 +24,7 @@ class MessageService:
             message_repo: Optional message repository instance (for testing)
         """
         self.message_repo = message_repo or MessageRepository()
+        self.template_service = TemplateService()
     
     def get_message_count(self, ticket_id: str) -> int:
         """
@@ -173,3 +178,67 @@ class MessageService:
             "remaining": max(0, limit - count),
             "last_message": last_message,
         }
+    
+    def get_or_create_initial_message(
+        self,
+        ticket: Ticket,
+        repository_name: Optional[str] = None
+    ) -> Message:
+        """
+        Get the last message for a ticket, or create an initial message if none exists
+        
+        Uses Jinja2 templating to create a formatted initial message from ticket properties.
+        
+        Args:
+            ticket: Ticket object
+            repository_name: Optional repository name for the message
+            
+        Returns:
+            Last message if exists, or newly created initial message
+            
+        Examples:
+            >>> from src.models.ticket import Ticket, TicketStatus, TicketPriority, TicketType
+            >>> service = MessageService()
+            >>> ticket = Ticket(
+            ...     id="ticket-123",
+            ...     title="Fix login bug",
+            ...     description="Users cannot login",
+            ...     status=TicketStatus.open,
+            ...     priority=TicketPriority.high,
+            ...     ticket_type=TicketType.bugfix
+            ... )
+            >>> message = service.get_or_create_initial_message(ticket)
+        """
+        # Try to get existing message
+        last_message = self.get_last_message(ticket.id)
+        
+        if last_message:
+            return last_message
+        
+        # No message exists, create initial message from ticket
+        content = self.template_service.render_ticket_initial_message(
+            title=ticket.title,
+            description=ticket.description,
+            ticket_type=ticket.ticket_type.value if ticket.ticket_type else None,
+            priority=ticket.priority.value if ticket.priority else None,
+            repository_name=repository_name,
+            ticket_id=ticket.id,
+            status=ticket.status.value if ticket.status else None,
+        )
+        
+        # Create initial message
+        initial_message = Message(
+            id=str(uuid.uuid4()),
+            ticket_id=ticket.id,
+            role="system",
+            content=content,
+            timestamp=datetime.utcnow(),
+            metadata={
+                "source": "auto_generated",
+                "type": "initial_message",
+                "created_from_ticket": True,
+            }
+        )
+        
+        # Save and return
+        return self.create_message(initial_message)

@@ -194,41 +194,51 @@ def quickstart(ctx: typer.Context):
                 console.print(f"[yellow]⚠️  Continuons avec la branche courante[/yellow]")
                 branch_name = None
         
-        # Step 5: Get last message
-        console.print(f"\n[bold cyan]Step 5/5:[/bold cyan] Récupération du dernier message...")
+        # Step 5: Get or create initial message
+        console.print(f"\n[bold cyan]Step 5/5:[/bold cyan] Récupération du message initial...")
         
         message_service = MessageService()
         
-        with console.status("[cyan]Récupération des messages...[/cyan]"):
+        with console.status("[cyan]Récupération ou création du message initial...[/cyan]"):
             try:
-                last_message = message_service.get_last_message(next_ticket.id)
+                # Use new method to get existing or create initial message
+                message = message_service.get_or_create_initial_message(
+                    ticket=next_ticket,
+                    repository_name=repository.name if repository else None
+                )
                 
-                if last_message:
-                    console.print(f"[green]✅ Dernier message trouvé:[/green]\n")
-                    
-                    message_table = Table(box=box.ROUNDED, show_header=False, padding=(0, 1))
-                    message_table.add_column("Field", style="cyan bold", width=12)
-                    message_table.add_column("Value")
-                    
-                    # Get sender from metadata or use role
-                    sender = last_message.metadata.get('sender', last_message.role) if last_message.metadata else last_message.role
-                    message_table.add_row("De", sender)
-                    message_table.add_row("Rôle", last_message.role)
-                    if last_message.timestamp:
-                        message_table.add_row("Date", last_message.timestamp.strftime('%Y-%m-%d %H:%M:%S'))
-                    
-                    console.print(message_table)
-                    console.print(f"\n[bold]Contenu:[/bold]")
-                    console.print(Panel(last_message.content, border_style="green", padding=(0, 1)))
-                    
-                    # Get message count
-                    message_count = message_service.get_message_count(next_ticket.id)
-                    console.print(f"\n[dim]Total: {message_count} message{'s' if message_count > 1 else ''}[/dim]")
+                is_new = message.metadata and message.metadata.get('source') == 'auto_generated'
+                
+                if is_new:
+                    console.print(f"[green]✅ Message initial créé automatiquement:[/green]\n")
                 else:
-                    console.print(f"[yellow]⚠️  Aucun message trouvé pour ce ticket[/yellow]")
+                    console.print(f"[green]✅ Message existant récupéré:[/green]\n")
+                
+                message_table = Table(box=box.ROUNDED, show_header=False, padding=(0, 1))
+                message_table.add_column("Field", style="cyan bold", width=12)
+                message_table.add_column("Value")
+                
+                # Get sender from metadata or use role
+                sender = message.metadata.get('sender', message.role) if message.metadata else message.role
+                message_table.add_row("De", sender)
+                message_table.add_row("Rôle", message.role)
+                if message.timestamp:
+                    message_table.add_row("Date", message.timestamp.strftime('%Y-%m-%d %H:%M:%S'))
+                if is_new:
+                    message_table.add_row("Type", "Auto-généré")
+                
+                console.print(message_table)
+                console.print(f"\n[bold]Contenu:[/bold]")
+                console.print(Panel(message.content, border_style="green", padding=(0, 1)))
+                
+                # Get message count
+                message_count = message_service.get_message_count(next_ticket.id)
+                console.print(f"\n[dim]Total: {message_count} message{'s' if message_count > 1 else ''}[/dim]")
                     
             except Exception as e:
-                console.print(f"[red]❌ Erreur lors de la récupération du message: {str(e)}[/red]")
+                console.print(f"[red]❌ Erreur lors de la gestion du message: {str(e)}[/red]")
+                import traceback
+                console.print(f"[dim]{traceback.format_exc()}[/dim]")
         
         # Summary
         console.print(f"\n")

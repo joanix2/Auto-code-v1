@@ -13,9 +13,17 @@
 
 ✅ clone / pull les repo dans un workspace (structure owner/repo)
 
-gestion des branches (créer la branche / aller sur la branche)
+✅ gestion des branches (créer la branche / aller sur la branche)
 
-créer un message à partir du ticket / récupérer le dernier message
+✅ on veut récupérer le dernier message mais si il n'y a pas de message, on veut pouvoir le créer en utilisant les propriété du ticket (titre,description, etc) avec un template jinja (le service jinja est à créer dans utils)
+
+créer une interface agent avec une classe dummy agent qui modifi un fichier "toto"
+
+commit
+
+merge de la branche / envoie d'une PR
+
+---
 
 créer un agent avec langgraph (agent Claude Opus 4 créé avec 3 workflows)
 
@@ -23,13 +31,9 @@ reasoning, création d'un plan
 
 modification des fichiers
 
-commit
-
 récupérer la sortie de la CI -> nouveau message
 
 créer un nouveau ticket de bug si limite atteinte
-
-merge de la branche
 
 # TODO
 
@@ -39,7 +43,7 @@ merge de la branche
 
 ✅ refaire le page de login
 
-gestion des messages liée à un ticket
+✅ gestion des messages liée à un ticket
 
 supprimer les settings
 
