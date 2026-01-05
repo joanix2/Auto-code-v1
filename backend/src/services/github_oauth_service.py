@@ -11,10 +11,11 @@ load_dotenv()
 
 
 class GitHubOAuthService:
-    def __init__(self):
+    def __init__(self, redirect_uri: Optional[str] = None):
         self.client_id = os.getenv("GITHUB_CLIENT_ID")
         self.client_secret = os.getenv("GITHUB_CLIENT_SECRET")
-        self.redirect_uri = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:8000/api/auth/github/callback")
+        # Allow custom redirect URI for CLI vs web app
+        self.redirect_uri = redirect_uri or os.getenv("GITHUB_REDIRECT_URI", "http://localhost:8000/callback")
         
         if not self.client_id or not self.client_secret:
             raise ValueError("GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET must be set in environment variables")

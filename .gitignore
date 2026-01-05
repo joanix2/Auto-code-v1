@@ -66,6 +66,12 @@ rabbitmq_data/
 *.sqlite
 *.sqlite3
 
+# Neo4j data
+neo4j/data/
+neo4j/logs/
+neo4j/import/
+neo4j/plugins/
+
 # Workspace (repositories clonés par l'agent)
 workspace/
 /tmp/autocode-workspace/

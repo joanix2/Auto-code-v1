@@ -24,15 +24,23 @@ merge de la branche
 
 # TODO
 
-réglé le problème de localhost
+✅ réglé le problème de localhost
 
-mettre à jour l'app github avec l'ip du serveur
+✅ mettre à jour l'app github avec l'ip du serveur
 
-refaire le page de login
+✅ refaire le page de login
 
 modifier le logo et index.html
 
+la modification de l'odre des tickets intefert avec le scroll
+
+supprimer les settings
+
+ajouter le token dans les parms utilisateurs
+
 corriger les tickets avec claude
+
+améliorer l'agent
 
 deployement d'un blueprint (avec auth et profile)
 

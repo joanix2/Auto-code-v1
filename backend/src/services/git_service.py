@@ -137,6 +137,89 @@ class GitService:
             logger.error(f"Failed to pull: {e.stderr}")
             raise RuntimeError(f"Git pull failed: {e.stderr}")
     
+    def clone_or_pull(self, repo_url: str, token: Optional[str] = None, force: bool = False, dest_path: Optional[Path] = None) -> tuple[Path, bool]:
+        """
+        Clone a repository if not exists, otherwise pull latest changes
+        
+        Args:
+            repo_url: Repository URL
+            token: Optional GitHub token for private repos
+            force: If True, clone even if already exists
+            dest_path: Optional custom destination path (overrides default owner/repo structure)
+            
+        Returns:
+            Tuple of (repo_path, is_new_clone)
+            - repo_path: Path to the repository
+            - is_new_clone: True if repository was cloned, False if pulled
+        """
+        # Use custom path if provided, otherwise use default
+        if dest_path:
+            repo_path = Path(dest_path)
+            is_cloned = repo_path.exists() and (repo_path / '.git').exists()
+        else:
+            repo_path = self.get_repo_path(repo_url)
+            is_cloned = self.is_cloned(repo_url)
+        
+        if is_cloned:
+            if force:
+                logger.info(f"Repository already cloned but force=True, pulling anyway")
+                self._pull_at_path(repo_path)
+                return repo_path, False
+            else:
+                logger.info(f"Repository already cloned, pulling latest changes")
+                self._pull_at_path(repo_path)
+                return repo_path, False
+        else:
+            logger.info(f"Repository not cloned, cloning now")
+            if dest_path:
+                cloned_path = self._clone_to_path(repo_url, dest_path, token=token)
+            else:
+                cloned_path = self.clone(repo_url, token=token)
+            return cloned_path, True
+    
+    def _pull_at_path(self, repo_path: Path) -> None:
+        """Pull latest changes at specific path"""
+        logger.info(f"Pulling latest changes at {repo_path}")
+        
+        try:
+            subprocess.run(
+                ['git', 'pull'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            logger.info("Successfully pulled latest changes")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to pull: {e.stderr}")
+            raise RuntimeError(f"Git pull failed: {e.stderr}")
+    
+    def _clone_to_path(self, repo_url: str, dest_path: Path, token: Optional[str] = None) -> Path:
+        """Clone repository to specific path"""
+        # Build clone URL with token if provided
+        if token and 'github.com' in repo_url:
+            clone_url = repo_url.replace('https://', f'https://{token}@')
+        else:
+            clone_url = repo_url
+        
+        logger.info(f"Cloning {repo_url} to {dest_path}")
+        
+        try:
+            # Create parent directory
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            subprocess.run(
+                ['git', 'clone', clone_url, str(dest_path)],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            logger.info(f"Successfully cloned to {dest_path}")
+            return dest_path
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to clone repository: {e.stderr}")
+            raise RuntimeError(f"Git clone failed: {e.stderr}")
+    
     def branch_exists(self, repo_url: str, branch_name: str) -> bool:
         """
         Check if a branch exists

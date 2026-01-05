@@ -65,6 +65,8 @@ python-multipart==0.0.6
 pytz==2025.2
 PyYAML==6.0.3
 requests==2.32.5
+rich==13.9.4
+typer==0.15.1
 requests-toolbelt==1.0.0
 rsa==4.9.1
 six==1.17.0

@@ -55,6 +55,46 @@ class GitHubService:
             logger.error(f"Error getting GitHub repositories: {e}")
             return []
     
+    def get_repository(self, repo_full_name: str) -> Optional[Dict]:
+        """Get repository information from GitHub"""
+        try:
+            if not self.client:
+                logger.error("GitHub client not initialized")
+                return None
+            
+            repo = self.client.get_repo(repo_full_name)
+            
+            result = {
+                "id": repo.id,
+                "name": repo.name,
+                "full_name": repo.full_name,
+                "description": repo.description,
+                "html_url": repo.html_url,
+                "clone_url": repo.clone_url,
+                "ssh_url": repo.ssh_url,
+                "private": repo.private,
+                "language": repo.language,
+                "stargazers_count": repo.stargazers_count,
+                "forks_count": repo.forks_count,
+                "default_branch": repo.default_branch,
+                "created_at": repo.created_at.isoformat() if repo.created_at else None,
+                "updated_at": repo.updated_at.isoformat() if repo.updated_at else None,
+                "owner": {
+                    "login": repo.owner.login,
+                    "avatar_url": repo.owner.avatar_url,
+                }
+            }
+            
+            logger.info(f"Retrieved repository info: {repo_full_name}")
+            return result
+            
+        except GithubException as e:
+            logger.error(f"GitHub API error getting repository: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get repository: {e}")
+            return None
+    
     def create_issue(self, repo_full_name: str, title: str, body: str, labels: Optional[list] = None) -> Optional[Dict]:
         """Create a new issue in the repository"""
         try:
