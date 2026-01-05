@@ -7,7 +7,7 @@ from pathlib import Path
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from cli.utils import console, get_github_service, GITHUB_TOKEN
+from cli.utils import console, get_github_service, get_stored_token
 from src.services.git_service import GitService
 
 # Create sub-app for quickstart commands
@@ -55,8 +55,7 @@ def quickstart(ctx: typer.Context):
         console.print("\n[bold cyan]Step 2/3:[/bold cyan] Fetching your repositories...")
         
         with console.status("[bold cyan]Loading repositories...[/bold cyan]"):
-            repos = asyncio.run(github_service.list_user_repositories(
-                sort='updated',
+            repos = asyncio.run(github_service.get_user_repositories(
                 per_page=5
             ))
         
@@ -91,8 +90,17 @@ def quickstart(ctx: typer.Context):
         console.print(f"\n[cyan]Repository:[/cyan] {repo_name}")
         console.print(f"[cyan]Directory:[/cyan] {workspace_dir}\n")
         
-        # Create git service and clone
-        git_service = GitService(GITHUB_TOKEN)
+        # Create git service with workspace directory
+        git_service = GitService(workspace_root=str(workspace_dir))
+        
+        # Build GitHub URL
+        repo_url = f"https://github.com/{repo_name}.git"
+        
+        # Get token
+        try:
+            token = get_stored_token()
+        except:
+            token = None
         
         with Progress(
             SpinnerColumn(),
@@ -101,12 +109,12 @@ def quickstart(ctx: typer.Context):
         ) as progress:
             task = progress.add_task("[cyan]Cloning repository...", total=None)
             
-            result = asyncio.run(git_service.clone_repository(
-                repo_name=repo_name,
-                target_dir=str(workspace_dir)
-            ))
-            
-            progress.update(task, completed=True)
+            try:
+                result = git_service.clone(repo_url, token=token)
+                progress.update(task, completed=True)
+            except Exception as e:
+                progress.update(task, completed=True)
+                raise e
         
         if result:
             console.print(f"\n[green]✅ Successfully cloned {repo_name}[/green]")

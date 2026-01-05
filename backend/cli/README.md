@@ -19,7 +19,7 @@ cli/
 
 ## Entry Point
 
-The main CLI entry point is `cli_main.py` in the parent directory, which:
+The main CLI entry point is `cli.py` in the parent directory, which:
 
 - Creates the main Typer app
 - Imports all command sub-apps
@@ -154,7 +154,7 @@ from .mycommand import mycommand_app
 __all__ = [..., 'mycommand_app']
 ```
 
-3. Register in `cli_main.py`:
+3. Register in `cli.py`:
 
 ```python
 from cli.commands import mycommand_app
@@ -168,9 +168,9 @@ From the backend directory:
 
 ```bash
 # Using the modular CLI
-python cli_main.py auth login
-python cli_main.py repos list
-python cli_main.py ticket list --status pending
+python cli.py auth login
+python cli.py repos list
+python cli.py ticket list --status pending
 
 # Or using the legacy CLI (if still available)
 python cli.py auth
@@ -206,4 +206,14 @@ from typer.testing import CliRunner
 runner = CliRunner()
 result = runner.invoke(ticket_app, ["list"])
 assert result.exit_code == 0
+```
+
+# Utilisation
+
+```
+python cli.py auth login
+python cli.py repos list
+python cli.py ticket list
+python cli.py pull clone my-repo
+python cli.py quickstart
 ```

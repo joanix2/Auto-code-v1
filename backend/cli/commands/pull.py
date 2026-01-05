@@ -8,7 +8,7 @@ from typing import Optional
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from cli.utils import console, get_github_service, GITHUB_TOKEN
+from cli.utils import console, get_github_service
 from src.services.git_service import GitService
 
 # Create sub-app for pull/clone commands
@@ -61,8 +61,19 @@ def clone(
             console.print(f"[cyan]Branch:[/cyan] {branch}")
         console.print()
         
-        # Create git service
-        git_service = GitService(GITHUB_TOKEN)
+        # Create git service with workspace directory
+        git_service = GitService(workspace_root=directory)
+        
+        # Build GitHub URL
+        repo_url = f"https://github.com/{repo}.git"
+        
+        # Get token for private repos
+        token = None
+        try:
+            from cli.utils import get_stored_token
+            token = get_stored_token()
+        except:
+            pass
         
         # Clone repository
         with Progress(
@@ -72,13 +83,12 @@ def clone(
         ) as progress:
             task = progress.add_task("[cyan]Cloning repository...", total=None)
             
-            result = asyncio.run(git_service.clone_repository(
-                repo_name=repo,
-                target_dir=directory,
-                branch=branch
-            ))
-            
-            progress.update(task, completed=True)
+            try:
+                result = git_service.clone(repo_url, token=token)
+                progress.update(task, completed=True)
+            except Exception as e:
+                progress.update(task, completed=True)
+                raise e
         
         if result:
             console.print(f"\n[green]✅ Successfully cloned {repo}[/green]")
@@ -89,6 +99,9 @@ def clone(
             
     except FileNotFoundError:
         console.print("[red]❌ Not authenticated. Run 'autocode auth login' first.[/red]")
+        raise typer.Exit(1)
+    except RuntimeError as e:
+        console.print(f"\n[red]❌ Clone failed: {str(e)}[/red]")
         raise typer.Exit(1)
     except Exception as e:
         console.print(f"\n[red]❌ Clone failed: {str(e)}[/red]")
@@ -130,10 +143,7 @@ def update(
             console.print(f"[cyan]Branch:[/cyan] {branch}")
         console.print()
         
-        # Create git service
-        git_service = GitService(GITHUB_TOKEN)
-        
-        # Pull changes
+        # Pull changes using git command directly
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -141,21 +151,39 @@ def update(
         ) as progress:
             task = progress.add_task("[cyan]Pulling latest changes...", total=None)
             
-            result = asyncio.run(git_service.pull_repository(
-                repo_path=str(repo_path),
-                branch=branch
-            ))
-            
-            progress.update(task, completed=True)
+            try:
+                import subprocess
+                
+                # Change to repo directory and pull
+                cmd = ['git', '-C', str(repo_path), 'pull']
+                if branch:
+                    cmd.extend(['origin', branch])
+                
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                
+                progress.update(task, completed=True)
+                output = result.stdout.strip()
+                
+            except subprocess.CalledProcessError as e:
+                progress.update(task, completed=True)
+                raise RuntimeError(e.stderr)
         
-        if result:
+        if output and "Already up to date" not in output:
             console.print(f"\n[green]✅ Successfully updated repository[/green]")
-            console.print(f"[dim]{result}[/dim]\n")
+            console.print(f"[dim]{output}[/dim]\n")
         else:
             console.print(f"\n[yellow]⚠️  Repository already up to date[/yellow]\n")
             
     except FileNotFoundError:
         console.print("[red]❌ Not authenticated. Run 'autocode auth login' first.[/red]")
+        raise typer.Exit(1)
+    except RuntimeError as e:
+        console.print(f"\n[red]❌ Pull failed: {str(e)}[/red]")
         raise typer.Exit(1)
     except Exception as e:
         console.print(f"\n[red]❌ Pull failed: {str(e)}[/red]")

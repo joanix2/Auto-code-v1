@@ -16,8 +16,6 @@ repos_app = typer.Typer(help="Repository management commands")
 @repos_app.command()
 def list(
     limit: int = typer.Option(10, "--limit", "-l", help="Number of repositories to show"),
-    sort: str = typer.Option("updated", "--sort", "-s", help="Sort by: updated, created, pushed, full_name"),
-    visibility: Optional[str] = typer.Option(None, "--visibility", "-v", help="Filter by visibility: all, public, private"),
 ):
     """
     List your GitHub repositories
@@ -27,8 +25,6 @@ def list(
     Examples:
         autocode repos list                           # Show 10 most recently updated
         autocode repos list --limit 20                # Show 20 repositories
-        autocode repos list --sort created            # Sort by creation date
-        autocode repos list --visibility private      # Only private repos
     """
     console.print(Panel.fit(
         "[bold blue]GitHub Repositories[/bold blue]",
@@ -39,9 +35,7 @@ def list(
         github_service = get_github_service()
         
         with console.status("[bold cyan]Fetching repositories...[/bold cyan]"):
-            repos = asyncio.run(github_service.list_user_repositories(
-                sort=sort,
-                visibility=visibility,
+            repos = asyncio.run(github_service.get_user_repositories(
                 per_page=limit
             ))
         
