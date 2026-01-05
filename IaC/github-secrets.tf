@@ -33,13 +33,13 @@ resource "github_actions_secret" "anthropic_api_key" {
 
 resource "github_actions_secret" "github_client_id" {
   repository      = var.github_repo_name
-  secret_name     = "GITHUB_CLIENT_ID"
+  secret_name     = "GH_CLIENT_ID"
   plaintext_value = var.github_client_id
 }
 
 resource "github_actions_secret" "github_client_secret" {
   repository      = var.github_repo_name
-  secret_name     = "GITHUB_CLIENT_SECRET"
+  secret_name     = "GH_CLIENT_SECRET"
   plaintext_value = var.github_client_secret
 }
 

@@ -14,7 +14,7 @@ cp .env.example .env
 2. Cliquez sur "New OAuth App"
 3. Remplissez :
    - **Application name** : `AutoCode`
-   - **Homepage URL** : 
+   - **Homepage URL** :
      - Local : `http://localhost:3000`
      - AWS : `http://35.181.22.28:3000` (remplacez par votre IP)
    - **Authorization callback URL** :
@@ -23,6 +23,7 @@ cp .env.example .env
 4. Copiez le **Client ID** et générez un **Client Secret**
 
 Dans votre `.env` :
+
 ```bash
 GITHUB_CLIENT_ID=Ov23li...votre_client_id
 GITHUB_CLIENT_SECRET=...votre_secret
@@ -37,6 +38,7 @@ GITHUB_REDIRECT_URI=http://localhost:8000/api/auth/github/callback
 4. Copiez le token
 
 Dans votre `.env` :
+
 ```bash
 GITHUB_TOKEN=ghp_...votre_token
 ```
@@ -50,6 +52,7 @@ GITHUB_TOKEN=ghp_...votre_token
 3. Copiez la clé
 
 Dans votre `.env` :
+
 ```bash
 ANTHROPIC_API_KEY=sk-ant-...votre_cle
 ```
@@ -63,6 +66,7 @@ openssl rand -hex 32
 ```
 
 Copiez le résultat dans votre `.env` :
+
 ```bash
 SECRET_KEY=996320cd7d7f9a9ed6b9bf4dc66f90dc52440ebc4d9e4902437c119dfd6d348b
 ```
@@ -78,6 +82,7 @@ NEO4J_PASSWORD=VotreMotDePasseSecurise123
 ### 🌐 URLs (selon votre environnement)
 
 **Pour développement local** :
+
 ```bash
 FRONTEND_URL=http://localhost:3000
 GITHUB_REDIRECT_URI=http://localhost:8000/api/auth/github/callback
@@ -85,6 +90,7 @@ ENVIRONMENT=development
 ```
 
 **Pour AWS** :
+
 ```bash
 FRONTEND_URL=http://35.181.22.28:3000
 GITHUB_REDIRECT_URI=http://35.181.22.28:8000/api/auth/github/callback
@@ -151,7 +157,8 @@ make start-dev
 
 ## 🔒 Sécurité
 
-⚠️ **IMPORTANT** : 
+⚠️ **IMPORTANT** :
+
 - Ne commitez JAMAIS le fichier `.env` sur Git
 - Le `.env` est déjà dans le `.gitignore`
 - Utilisez des mots de passe forts pour la production
@@ -160,10 +167,13 @@ make start-dev
 ## 🆘 Problèmes courants
 
 ### "OAuth callback mismatch"
+
 ➡️ Vérifiez que `GITHUB_REDIRECT_URI` correspond exactement à l'URL de callback dans votre OAuth App
 
 ### "Invalid API key"
+
 ➡️ Vérifiez que votre clé Anthropic est valide et n'a pas expiré
 
 ### "Connection refused Neo4j"
+
 ➡️ Lancez `make start-dev` pour démarrer Neo4j

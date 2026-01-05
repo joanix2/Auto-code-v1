@@ -1,12 +1,4 @@
-provider "aws" {
-  region = "eu-west-3"
-}
-
-# Note: Variables are now in providers.tf
-
-# Créez une clé SSH (moved to providers.tf)
-# resource "aws_key_pair" "autocode" is now in providers.tf
-
+# Note: Provider configuration is in providers.tf
 
 # Créez un groupe de sécurité
 resource "aws_security_group" "autocode" {

@@ -81,13 +81,13 @@ jobs:
         run: |
           echo "Waiting for services to be fully ready..."
           sleep 20
-          
+
           echo "Checking backend health..."
           curl -f http://${{ secrets.EC2_PUBLIC_IP }}:8000/health || echo "⚠️ Backend health check failed"
-          
+
           echo "Checking frontend..."
           curl -f http://${{ secrets.EC2_PUBLIC_IP }}:3000 || echo "⚠️ Frontend health check failed"
-          
+
           echo "Checking Neo4j..."
           curl -f http://${{ secrets.EC2_PUBLIC_IP }}:7474 || echo "⚠️ Neo4j health check failed"
 
