@@ -2,11 +2,13 @@
 from . import (
     user_controller,
     repository_controller,
-    ticket_controller
+    ticket_controller,
+    branch_controller
 )
 
 __all__ = [
     "user_controller",
     "repository_controller",
-    "ticket_controller"
+    "ticket_controller",
+    "branch_controller"
 ]

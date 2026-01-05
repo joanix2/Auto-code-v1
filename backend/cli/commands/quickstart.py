@@ -8,7 +8,7 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from cli.utils import console, get_github_service, get_stored_token
-from src.services.git_service import GitService
+from src.services.git.git_service import GitService
 
 # Create sub-app for quickstart commands
 quickstart_app = typer.Typer(help="Quick workflow automation")

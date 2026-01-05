@@ -14,7 +14,7 @@ from rich.table import Table
 from rich.panel import Panel
 
 from cli.utils import console, save_token, GITHUB_TOKEN
-from src.services.github_service import GitHubService
+from src.services.git.github_service import GitHubService
 
 # Create sub-app for auth commands
 auth_app = typer.Typer(help="Authentication commands")
@@ -56,7 +56,7 @@ def login(
             # Import OAuth service
             import sys
             sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-            from src.services.github_oauth_service import GitHubOAuthService
+            from src.services.auth.github_oauth_service import GitHubOAuthService
             import os
             
             # Create OAuth service with CLI redirect URI (use existing callback from .env)

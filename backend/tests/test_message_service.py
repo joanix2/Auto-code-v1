@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import Mock, MagicMock
 from datetime import datetime
 
-from src.services.message_service import MessageService
+from src.services.messaging.message_service import MessageService
 from src.models.message import Message
 
 

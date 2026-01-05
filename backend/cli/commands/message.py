@@ -9,7 +9,7 @@ from rich import box
 
 from cli.utils import console
 from src.database import db
-from src.services.message_service import MessageService
+from src.services.messaging.message_service import MessageService
 
 # Create sub-app for message commands
 message_app = typer.Typer(help="Message management commands")

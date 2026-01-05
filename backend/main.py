@@ -17,7 +17,8 @@ from src.controllers import (
     agent_controller,
     message_controller,
     ticket_processing_controller,
-    websocket_controller
+    websocket_controller,
+    branch_controller
 )
 
 logging.basicConfig(
@@ -70,6 +71,7 @@ app.include_router(user_controller.router, prefix="/api", tags=["users"])
 app.include_router(repository_controller.router, prefix="/api", tags=["repositories"])
 app.include_router(ticket_controller.router, prefix="/api", tags=["tickets"])
 app.include_router(message_controller.router, prefix="/api", tags=["messages"])
+app.include_router(branch_controller.router, prefix="/api", tags=["branches"])
 app.include_router(agent_controller.router, prefix="/api", tags=["agent"])
 app.include_router(ticket_processing_controller.router, prefix="/api", tags=["ticket-processing"])
 app.include_router(websocket_controller.router)  # WebSocket routes

@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from cli.utils import console, get_github_service
-from src.services.git_service import GitService
+from src.services.git.git_service import GitService
 
 # Create sub-app for pull/clone commands
 pull_app = typer.Typer(help="Clone and pull repository commands")

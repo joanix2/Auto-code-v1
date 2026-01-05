@@ -5,8 +5,8 @@ Used by both API and CLI
 """
 
 from typing import Optional
-from ..repositories.message_repository import MessageRepository
-from ..models.message import Message
+from ...repositories.message_repository import MessageRepository
+from ...models.message import Message
 
 
 class MessageService:

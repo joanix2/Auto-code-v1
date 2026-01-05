@@ -10,7 +10,7 @@ import logging
 from ..models.message import Message, MessageCreate, MessageUpdate
 from ..repositories.message_repository import MessageRepository
 from ..repositories.ticket_repository import TicketRepository
-from ..services.message_service import MessageService
+from ..services.messaging.message_service import MessageService
 from ..database import db
 from ..utils.auth import get_current_user
 from ..models.user import User

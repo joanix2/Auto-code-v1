@@ -52,7 +52,7 @@ def save_token(token: str):
 
 def get_github_service():
     """Get initialized GitHub service (returns None if no token)"""
-    from src.services.github_service import GitHubService
+    from src.services.git.github_service import GitHubService
     
     token = get_stored_token() or GITHUB_TOKEN
     if not token:
