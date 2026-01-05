@@ -6,7 +6,7 @@ from src.models.user import User
 from src.repositories.repository_repository import RepositoryRepository
 from src.database import Neo4jConnection
 from src.utils.auth import get_current_user
-from src.services.github_service import GitHubService
+from src.services import GitHubService
 
 router = APIRouter()
 

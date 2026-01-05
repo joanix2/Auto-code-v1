@@ -15,10 +15,10 @@ from ...repositories.message_repository import MessageRepository
 from ...repositories.repository_repository import RepositoryRepository
 from ...repositories.user_repository import UserRepository
 from ..git.git_service import GitService
+from ..git.github_service import GitHubService
 from ..ci.ci_service import CIService, CIResult
 from ..workflows.ticket_workflow import TicketProcessingWorkflow
-from ..agent.claude_agent import ClaudeAgent, AgentState
-from .github_service import GitHubService
+from ...agent.claude_agent import ClaudeAgent, AgentState
 
 logger = logging.getLogger(__name__)
 

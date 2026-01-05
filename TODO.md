@@ -13,17 +13,17 @@
 
 ✅ clone / pull les repo dans un workspace (structure owner/repo)
 
-✅ gestion des branches (créer la branche / aller sur la branche)
+gestion des branches (créer la branche / aller sur la branche)
 
-✅ créer un message à partir du ticket / récupérer le dernier message
+créer un message à partir du ticket / récupérer le dernier message
 
-✅ créer un agent avec langgraph (agent Claude Opus 4 créé avec 3 workflows)
+créer un agent avec langgraph (agent Claude Opus 4 créé avec 3 workflows)
 
-✅ reasoning, création d'un plan
+reasoning, création d'un plan
 
-✅ modification des fichiers
+modification des fichiers
 
-✅ commit
+commit
 
 récupérer la sortie de la CI -> nouveau message
 

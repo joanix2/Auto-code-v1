@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import logging
 
-from ..services.ticket_processing_service import TicketProcessingService
+from ..services import TicketProcessingService
 from ..utils.auth import get_current_user
 from ..models.user import User
 from ..repositories.ticket_repository import TicketRepository

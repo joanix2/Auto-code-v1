@@ -4,7 +4,7 @@ Endpoints pour l'authentification OAuth2 avec GitHub
 """
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import RedirectResponse
-from src.services.github_oauth_service import GitHubOAuthService
+from src.services import GitHubOAuthService
 from src.repositories.user_repository import UserRepository
 from src.utils.auth import create_access_token, get_current_user
 from src.models.user import User, UserCreate

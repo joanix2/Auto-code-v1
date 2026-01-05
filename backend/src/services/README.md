@@ -83,6 +83,7 @@ from src.services.workflows import TicketWorkflow
 ### 🔀 Git Services (`services/git/`)
 
 Services liés à Git et GitHub :
+
 - **GitService** : Opérations Git de base (clone, pull, commit, push, rebase)
 - **BranchService** : Gestion automatique des branches pour les tickets
 - **GitHubService** : Interaction avec l'API GitHub
@@ -92,6 +93,7 @@ Services liés à Git et GitHub :
 ### 🤖 AI Services (`services/ai/`)
 
 Services d'intelligence artificielle :
+
 - **ClaudeService** : Communication avec l'API Claude (Anthropic)
 - **TicketProcessingService** : Orchestration du traitement des tickets par IA
 
@@ -100,6 +102,7 @@ Services d'intelligence artificielle :
 ### 💬 Messaging Services (`services/messaging/`)
 
 Gestion des conversations :
+
 - **MessageService** : CRUD et statistiques sur les messages des tickets
 
 **Use case** : Récupérer l'historique des messages, vérifier les limites
@@ -107,6 +110,7 @@ Gestion des conversations :
 ### 🛠️ Utils Services (`services/utils/`)
 
 Services utilitaires :
+
 - **FileModificationService** : Modification intelligente de fichiers
 - **ImageService** : Traitement et manipulation d'images
 - **levenshtein_service** : Calcul de distance de Levenshtein (fuzzy matching)
@@ -116,6 +120,7 @@ Services utilitaires :
 ### 🔐 Auth Services (`services/auth/`)
 
 Services d'authentification :
+
 - **GitHubOAuthService** : Authentification OAuth avec GitHub
 
 **Use case** : Gérer l'authentification des utilisateurs
@@ -123,6 +128,7 @@ Services d'authentification :
 ### 🚀 CI Services (`services/ci/`)
 
 Services CI/CD :
+
 - **CIService** : Interaction avec les systèmes de CI/CD
 
 **Use case** : Récupérer le statut des workflows GitHub Actions
@@ -130,6 +136,7 @@ Services CI/CD :
 ### 📋 Workflow Services (`services/workflows/`)
 
 Workflows complexes :
+
 - **TicketWorkflow** : Workflow de traitement des tickets avec LangGraph
 
 **Use case** : Orchestrer le traitement complet d'un ticket

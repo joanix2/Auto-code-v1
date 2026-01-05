@@ -9,6 +9,8 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from langgraph.graph import StateGraph, END
+
+
 from ...models.ticket import Ticket
 from ...models.message import Message
 from ...repositories.ticket_repository import TicketRepository
@@ -16,9 +18,9 @@ from ...repositories.message_repository import MessageRepository
 from ...repositories.repository_repository import RepositoryRepository
 from ..git.git_service import GitService
 from ..ci.ci_service import CIService, CIResult
-from ..file_modification_service import FileModificationService
-from ..agent.claude_agent import ClaudeAgent
-from ..websocket.connection_manager import manager
+from ...agent.claude_agent import ClaudeAgent
+from ...websocket.connection_manager import manager
+from ..utils.file_modification_service import FileModificationService
 
 logger = logging.getLogger(__name__)
 

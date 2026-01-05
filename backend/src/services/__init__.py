@@ -22,8 +22,8 @@ def _lazy_import_ai():
 
 # Workflow services - lazy import
 def _lazy_import_workflows():
-    from .workflows import TicketWorkflow
-    return TicketWorkflow
+    from .workflows import TicketProcessingWorkflow
+    return TicketProcessingWorkflow
 
 __all__ = [
     # Git
@@ -44,7 +44,7 @@ __all__ = [
     "ClaudeService",
     "TicketProcessingService",
     # Workflows - lazy loaded
-    "TicketWorkflow",
+    "TicketProcessingWorkflow",
 ]
 
 # Export lazy imports
@@ -55,7 +55,7 @@ def __getattr__(name):
     elif name == "TicketProcessingService":
         _, TicketProcessingService = _lazy_import_ai()
         return TicketProcessingService
-    elif name == "TicketWorkflow":
+    elif name == "TicketProcessingWorkflow":
         return _lazy_import_workflows()
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
