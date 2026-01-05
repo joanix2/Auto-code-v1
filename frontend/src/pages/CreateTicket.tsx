@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../config/env";
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -115,7 +116,7 @@ function CreateTicket() {
       setLoading(true);
       setError("");
 
-      const url = isEditMode ? `${API_BASE_URL}/tickets/${ticketId}` : `${API_BASE_URL}/tickets";
+      const url = isEditMode ? `${API_BASE_URL}/tickets/${ticketId}` : `${API_BASE_URL}/tickets`;
 
       const method = isEditMode ? "PUT" : "POST";
 

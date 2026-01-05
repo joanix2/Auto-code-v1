@@ -9,6 +9,7 @@ import { RepositoryCard } from "@/components/RepositoryCard";
 import { AppBar } from "@/components/AppBar";
 import { Input } from "@/components/ui/input";
 import type { Repository } from "@/types";
+import { API_BASE_URL } from "../config/env";
 
 // Fonction de distance de Levenshtein
 function levenshteinDistance(str1: string, str2: string): number {
@@ -52,7 +53,7 @@ function ProjectsList() {
       return;
     }
 
-    const response = await fetch(`${API_BASE_URL}/repositories/sync-github", {
+    const response = await fetch(`${API_BASE_URL}/repositories/sync-github`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
         "X-GitHub-Token": user.github_token,

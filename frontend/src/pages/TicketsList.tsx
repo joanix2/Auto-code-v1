@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../config/env";
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -260,7 +261,7 @@ function TicketsList() {
           order: index,
         }));
 
-        const response = await fetch(`${API_BASE_URL}/tickets/reorder", {
+        const response = await fetch(`${API_BASE_URL}/tickets/reorder`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

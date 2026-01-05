@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../config/env";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -36,7 +37,7 @@ function NewRepository() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_BASE_URL}/repositories", {
+      const response = await fetch(`${API_BASE_URL}/repositories`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
