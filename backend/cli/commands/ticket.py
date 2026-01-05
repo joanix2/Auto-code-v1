@@ -154,6 +154,108 @@ def list(
 
 
 @ticket_app.command()
+def next(
+    repository: str = typer.Argument(..., help="Repository ID or name to get next ticket from"),
+):
+    """
+    Get the next ticket to work on
+    
+    Returns the next open ticket in the queue (first open ticket by order).
+    
+    Examples:
+        autocode ticket next repo-id               # Get next ticket by repository ID
+        autocode ticket next Auto-code-v1          # Get next ticket by repository name
+    """
+    console.print(Panel.fit(
+        "[bold blue]Next Ticket in Queue[/bold blue]",
+        border_style="blue"
+    ))
+    
+    try:
+        ticket_repo = _get_ticket_repo()
+        
+        with console.status("[bold cyan]Finding next ticket...[/bold cyan]"):
+            # First, try to find repository by name if it's not a UUID
+            repository_id = repository
+            if not repository.startswith(('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')) or len(repository) < 32:
+                # Likely a repository name, try to find the ID
+                query = """
+                MATCH (r:Repository {name: $repo_name})
+                RETURN r.id as id
+                """
+                result = db.execute_query(query, {"repo_name": repository})
+                if result and len(result) > 0:
+                    repository_id = result[0]["id"]
+                    console.print(f"[dim]Found repository ID: {repository_id}[/dim]")
+                else:
+                    console.print(f"\n[red]❌ Repository not found: {repository}[/red]")
+                    console.print(f"[dim]Try using the repository ID or check the repository name[/dim]")
+                    raise typer.Exit(1)
+            
+            # Get all tickets for the repository
+            all_tickets = asyncio.run(ticket_repo.get_tickets_by_repository(repository_id))
+            
+            # Filter for open tickets
+            from src.models.ticket import TicketStatus
+            open_tickets = [t for t in all_tickets if t.status == TicketStatus.open]
+            
+            # Sort by order (already sorted from DB, but ensure it)
+            open_tickets.sort(key=lambda t: t.order)
+        
+        if not open_tickets:
+            console.print("\n[yellow]No open tickets found in queue[/yellow]")
+            console.print(f"[dim]Repository: {repository}[/dim]")
+            return
+        
+        next_ticket = open_tickets[0]
+        total_open = len(open_tickets)
+        
+        console.print()
+        console.print(f"[green]Found next ticket ({total_open} open ticket{'s' if total_open > 1 else ''} in queue):[/green]\n")
+        
+        # Display ticket details
+        info_table = Table(show_header=False, box=box.SIMPLE, padding=(0, 2))
+        info_table.add_column("Field", style="cyan bold", width=15)
+        info_table.add_column("Value", style="white")
+        
+        info_table.add_row("ID", str(next_ticket.id))
+        info_table.add_row("Title", next_ticket.title)
+        info_table.add_row("Status", f"[yellow]{next_ticket.status.value}[/yellow]")
+        info_table.add_row("Priority", next_ticket.priority.value)
+        info_table.add_row("Type", next_ticket.ticket_type.value)
+        info_table.add_row("Order", str(next_ticket.order))
+        info_table.add_row("Created By", next_ticket.created_by)
+        
+        if next_ticket.created_at:
+            info_table.add_row("Created", next_ticket.created_at.strftime('%Y-%m-%d %H:%M'))
+        
+        console.print(Panel(
+            info_table,
+            title=f"[bold green]Next Ticket[/bold green]",
+            border_style="green"
+        ))
+        
+        if next_ticket.description:
+            console.print()
+            console.print(Panel(
+                next_ticket.description,
+                title="[bold]Description[/bold]",
+                border_style="dim"
+            ))
+        
+        console.print()
+        console.print(f"[dim]Queue position: 1/{total_open}[/dim]")
+        console.print()
+        
+    except Exception as e:
+        console.print(f"[red]❌ Failed to fetch next ticket: {str(e)}[/red]")
+        console.print(f"[dim]Make sure Neo4j is running and the repository exists[/dim]")
+        import traceback
+        console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        raise typer.Exit(1)
+
+
+@ticket_app.command()
 def get(
     ticket_id: str = typer.Argument(..., help="Ticket ID"),
     show_messages: bool = typer.Option(False, "--messages", "-m", help="Show conversation messages"),
