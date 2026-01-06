@@ -1,10 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components/layout/Layout";
-import { Login } from "./pages/Login";
-import { Repositories } from "./pages/Repositories";
-import { Issues } from "./pages/Issues";
-import { IssueDetails } from "./pages/IssueDetails";
+import { Login } from "./pages/auth/Login";
+import { Repositories } from "./pages/repository/Repositories";
+import { Issues } from "./pages/issues/Issues";
+import IssueDetails from "./pages/issues/IssueDetails";
+import { Messages } from "./pages/messages/Messages";
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -80,6 +81,17 @@ function App() {
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <IssueDetails />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/issues/:issueId/messages"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <Messages />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }
