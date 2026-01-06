@@ -4,8 +4,10 @@ Provides CLI commands for Git operations: commit, merge, and PR creation
 """
 
 import os
+import uuid
 import asyncio
 import typer
+from datetime import datetime
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -15,9 +17,11 @@ from pathlib import Path
 from src.services.git import GitService, PullRequestService
 from src.services.messaging import MessageService
 from src.repositories.ticket_repository import TicketRepository
+from src.models.message import Message
 from src.database import db as database
 
 app = typer.Typer(help="Git operations: commit, merge, pull request")
+console = Console()
 console = Console()
 
 
@@ -74,15 +78,19 @@ def commit(
         # Determine branch name
         branch_name = f"ticket-{ticket.ticket_id}" if push else None
         
+        # Get GitHub token
+        github_token = os.getenv("GITHUB_TOKEN")
+        
         # Perform add, commit, and push in one operation
-        console.print(f"[cyan]� Adding, committing and pushing changes...[/cyan]")
+        console.print(f"[cyan]🚀 Adding, committing and pushing changes...[/cyan]")
         console.print(f"[dim]Message: {commit_message}[/dim]")
         
         result = git_service.add_commit_and_push(
             repo_url=ticket.repository_url,
             commit_message=commit_message,
             branch_name=branch_name,
-            files=file_list
+            files=file_list,
+            token=github_token
         )
         
         if not result.get("success"):
@@ -104,15 +112,19 @@ def commit(
         
         # Add message to ticket
         message_service = MessageService()
-        message_service.create_message(
+        commit_msg = Message(
+            id=str(uuid.uuid4()),
             ticket_id=ticket.ticket_id,
+            role="system",
             content=f"Changes committed and pushed: {commit_hash}\n{commit_message}",
+            timestamp=datetime.now(),
             metadata={
                 "commit_hash": result.get("commit_hash"),
                 "branch": branch,
                 "source": "auto_generated"
             }
         )
+        message_service.create_message(commit_msg)
         
     except Exception as e:
         console.print(f"[red]❌ Error: {str(e)}[/red]")
@@ -263,15 +275,19 @@ Closes #{ticket.ticket_id}
         
         # Add message to ticket
         message_service = MessageService()
-        message_service.create_message(
+        pr_msg = Message(
+            id=str(uuid.uuid4()),
             ticket_id=ticket.ticket_id,
+            role="system",
             content=f"Pull Request created: #{pr_number}\n{pr_url}",
+            timestamp=datetime.now(),
             metadata={
                 "pr_number": pr_number,
                 "pr_url": pr_url,
                 "source": "auto_generated"
             }
         )
+        message_service.create_message(pr_msg)
         
     except Exception as e:
         console.print(f"[red]❌ Error: {str(e)}[/red]")

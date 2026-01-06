@@ -621,7 +621,8 @@ class GitService:
         branch_name: Optional[str] = None,
         author_name: str = "AutoCode Bot",
         author_email: str = "bot@autocode.dev",
-        files: Optional[List[str]] = None
+        files: Optional[List[str]] = None,
+        token: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Add, commit and push changes in one operation
@@ -633,6 +634,7 @@ class GitService:
             author_name: Author name for commit
             author_email: Author email for commit
             files: Specific files to add (None = add all changes)
+            token: Optional GitHub token for push
             
         Returns:
             dict with operation results:
@@ -708,14 +710,14 @@ class GitService:
             
             # Push to remote
             logger.info(f"Pushing to {branch_name}")
-            push_result = self.push_branch(repo_url, branch_name)
-            
-            if not push_result.get("success"):
+            try:
+                self.push_branch(repo_url, branch_name, token)
+            except RuntimeError as e:
                 return {
                     "success": False,
                     "commit_hash": commit_hash,
                     "branch": branch_name,
-                    "message": f"Committed but push failed: {push_result.get('message')}"
+                    "message": f"Committed but push failed: {str(e)}"
                 }
             
             logger.info(f"Successfully added, committed ({commit_hash[:7]}) and pushed to {branch_name}")
