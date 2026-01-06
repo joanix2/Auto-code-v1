@@ -17,7 +17,7 @@
 
 ✅ on veut récupérer le dernier message mais si il n'y a pas de message, on veut pouvoir le créer en utilisant les propriété du ticket (titre,description, etc) avec un template jinja (le service jinja est à créer dans utils)
 
-créer une interface agent avec une classe dummy agent qui modifi un fichier "toto"
+créer une interface/calsse abstraite agent avec une classe dummy agent qui modifi un fichier "toto"
 
 commit
 
