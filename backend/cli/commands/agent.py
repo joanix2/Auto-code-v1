@@ -3,6 +3,7 @@ Agent management commands
 """
 import typer
 import asyncio
+import os
 from pathlib import Path
 from rich.table import Table
 from rich.panel import Panel
@@ -14,7 +15,7 @@ from src.database import db
 from src.repositories.ticket_repository import TicketRepository
 from src.repositories.repository_repository import RepositoryRepository
 from src.services import MessageService
-from src.agent import DummyAgent
+from src.agent import DummyAgent, SimpleClaudeAgent
 
 # Create sub-app for agent commands
 agent_app = typer.Typer(help="Agent management and execution commands")
@@ -44,10 +45,10 @@ def list():
             "status": "✅ Available"
         },
         {
-            "name": "ClaudeAgent",
-            "description": "AI agent powered by Claude Opus 4",
-            "capabilities": ["code_analysis", "code_generation", "planning", "reasoning"],
-            "status": "⚠️  Disabled (langgraph issues)"
+            "name": "SimpleClaudeAgent",
+            "description": "AI agent powered by Claude Opus 4 with file modification service",
+            "capabilities": ["ticket_analysis", "code_generation", "file_modification", "python_validation"],
+            "status": "✅ Available (requires ANTHROPIC_API_KEY)"
         }
     ]
     
@@ -188,9 +189,22 @@ def run(
         
         if agent_name == "DummyAgent":
             agent = DummyAgent(workspace_root=str(workspace_path))
+        elif agent_name == "SimpleClaudeAgent":
+            # Check for API key
+            api_key = os.getenv("ANTHROPIC_API_KEY")
+            if not api_key:
+                console.print(f"[red]❌ ANTHROPIC_API_KEY environment variable not set[/red]")
+                console.print(f"[yellow]Please set your Anthropic API key:[/yellow]")
+                console.print(f"[dim]export ANTHROPIC_API_KEY='your-api-key-here'[/dim]")
+                raise typer.Exit(1)
+            
+            agent = SimpleClaudeAgent(
+                api_key=api_key,
+                workspace_root=str(workspace_path)
+            )
         else:
             console.print(f"[red]❌ Unknown agent: {agent_name}[/red]")
-            console.print(f"[yellow]Available agents: DummyAgent[/yellow]")
+            console.print(f"[yellow]Available agents: DummyAgent, SimpleClaudeAgent[/yellow]")
             raise typer.Exit(1)
         
         console.print(f"[green]✅ Agent initialized: {agent.get_agent_name()}[/green]")
@@ -301,11 +315,42 @@ def info(
                 "Used for testing the agent interface and workflow.",
                 border_style="dim"
             ))
+        
+        elif agent_name == "SimpleClaudeAgent":
+            # Check for API key
+            api_key = os.getenv("ANTHROPIC_API_KEY")
+            if not api_key:
+                console.print(f"[red]❌ ANTHROPIC_API_KEY environment variable not set[/red]")
+                raise typer.Exit(1)
+            
+            agent = SimpleClaudeAgent(api_key=api_key)
+            info = agent.get_agent_info()
+            
+            console.print(f"\n[bold cyan]Name:[/bold cyan] {info['name']}")
+            console.print(f"[bold cyan]Workspace:[/bold cyan] {info['workspace_root']}")
+            console.print(f"[bold cyan]Model:[/bold cyan] {agent.model}")
+            
+            console.print(f"\n[bold cyan]Capabilities:[/bold cyan]")
+            for cap in info['capabilities']:
+                console.print(f"  • {cap}")
+            
+            console.print(f"\n[bold cyan]Description:[/bold cyan]")
+            console.print(Panel(
+                "AI agent powered by Claude Opus 4 for autonomous development.\n\n"
+                "Features:\n"
+                "• Analyzes tickets and creates implementation plans\n"
+                "• Generates production-ready code\n"
+                "• Applies modifications using FileModificationService\n"
+                "• Validates changes (Python syntax, file existence)\n\n"
+                "This agent uses the complete Claude Opus 4.5 model for deep code understanding.",
+                border_style="dim"
+            ))
             
         else:
             console.print(f"[red]❌ Unknown agent: {agent_name}[/red]")
             console.print(f"\n[yellow]Available agents:[/yellow]")
             console.print("  • DummyAgent")
+            console.print("  • SimpleClaudeAgent")
             raise typer.Exit(1)
     
     except typer.Exit:

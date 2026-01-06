@@ -1,14 +1,15 @@
 """
 Agent Controller
-API endpoints for Claude Opus 4 LangGraph agent
+API endpoints for SimpleClaudeAgent
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 import logging
+from pathlib import Path
 
-from ..agent.claude_agent import ClaudeAgent
+from ..agent.simple_claude_agent import SimpleClaudeAgent
 from ..repositories.ticket_repository import TicketRepository
 from ..repositories.repository_repository import RepositoryRepository
 from ..models.ticket import Ticket
@@ -21,10 +22,8 @@ router = APIRouter(prefix="/agent", tags=["agent"])
 
 
 class AgentDevelopRequest(BaseModel):
-    """Request to develop a ticket with LangGraph agent"""
+    """Request to develop a ticket with SimpleClaudeAgent"""
     ticket_id: str
-    workflow_type: Optional[str] = "standard"  # standard, iterative, tdd
-    max_iterations: Optional[int] = 20
 
 
 class AgentDevelopResponse(BaseModel):
@@ -43,19 +42,20 @@ async def develop_ticket_with_agent(
     current_user: User = Depends(get_current_user)
 ) -> AgentDevelopResponse:
     """
-    Develop a ticket using Claude Opus 4 LangGraph agent
+    Develop a ticket using SimpleClaudeAgent (Claude Opus 4)
     
     This endpoint triggers autonomous development workflow:
     1. Analyze ticket requirements
     2. Generate implementation code
-    3. Review and suggest tests
+    3. Apply file modifications
+    4. Validate changes
     
     Args:
-        request: Development request with ticket ID and workflow type
+        request: Development request with ticket ID
         current_user: Authenticated user
         
     Returns:
-        AgentDevelopResponse with workflow results
+        AgentDevelopResponse with processing results
     """
     logger.info(f"User {current_user.username} requested agent development for ticket {request.ticket_id}")
     
@@ -80,19 +80,14 @@ async def develop_ticket_with_agent(
                 detail=f"Repository {ticket.repository_id} not found"
             )
         
-        # Initialize Claude agent
-        agent = ClaudeAgent()
+        # Initialize SimpleClaudeAgent
+        agent = SimpleClaudeAgent()
         
-        # Run agent workflow
-        result = await agent.run(
-            ticket_id=ticket.id,
-            ticket_title=ticket.title,
-            ticket_description=ticket.description,
-            ticket_type=ticket.type,
-            priority=ticket.priority,
-            repository_path=repository.local_path,
-            repository_url=repository.url,
-            max_iterations=request.max_iterations
+        # Process ticket with agent
+        repository_path = Path(repository.local_path)
+        result = agent.process_ticket(
+            ticket=ticket,
+            repository_path=repository_path
         )
         
         # Update ticket status based on result
@@ -106,14 +101,10 @@ async def develop_ticket_with_agent(
         return AgentDevelopResponse(
             success=result["success"],
             ticket_id=request.ticket_id,
-            status=result["status"],
-            iterations=result["iterations"],
-            message="Agent workflow completed" if result["success"] else "Agent workflow failed",
-            details={
-                "code_changes": result.get("code_changes", []),
-                "errors": result.get("errors", []),
-                "messages": result.get("messages", [])
-            }
+            status="completed" if result["success"] else "failed",
+            iterations=1,  # SimpleClaudeAgent doesn't use iterations like LangGraph
+            message=result.get("message", "Agent processing completed"),
+            details=result.get("details", {})
         )
         
     except HTTPException:

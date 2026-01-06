@@ -4,6 +4,7 @@ Simple sequential workflow without LangGraph dependency
 """
 
 import logging
+import os
 from typing import Optional, Dict, Any
 from datetime import datetime
 
@@ -18,7 +19,7 @@ from ..git.pull_request_service import PullRequestService
 from ..git.branch_service import BranchService
 from ..ci.ci_service import CIService
 from ..messaging.message_service import MessageService
-from ...agent.dummy_agent import DummyAgent
+from ...agent.simple_claude_agent import SimpleClaudeAgent
 
 from .workflow_state import TicketProcessingState
 from .workflow_helpers import safe_ws_update, safe_ws_log, log_workflow_step, MAX_ITERATIONS
@@ -55,8 +56,18 @@ class TicketProcessingWorkflow:
         self.pr_service = PullRequestService(github_token) if github_token else None
         self.ci_service = CIService(github_token)
         
-        # Initialize agent
-        self.agent = DummyAgent()
+        # Initialize agent (SimpleClaudeAgent with ANTHROPIC_API_KEY)
+        try:
+            api_key = os.getenv("ANTHROPIC_API_KEY")
+            if api_key:
+                self.agent = SimpleClaudeAgent(api_key=api_key)
+                logger.info("SimpleClaudeAgent initialized successfully")
+            else:
+                logger.warning("ANTHROPIC_API_KEY not found, agent will not be available")
+                self.agent = None
+        except Exception as e:
+            logger.error(f"Failed to initialize SimpleClaudeAgent: {e}")
+            self.agent = None
         
         # Initialize repositories with db connection
         db = Neo4jConnection()
@@ -329,11 +340,15 @@ class TicketProcessingWorkflow:
                     timestamp=datetime.now()
                 )
             
+            # Check if agent is available
+            if not self.agent:
+                raise Exception("Agent not initialized. Please set ANTHROPIC_API_KEY environment variable.")
+            
             # Call agent to process ticket
             from pathlib import Path
             repo_path = Path(state.repo_path) if state.repo_path else Path("/tmp/placeholder")
             
-            logger.info(f"Calling DummyAgent with repo_path: {repo_path}")
+            logger.info(f"Calling SimpleClaudeAgent with repo_path: {repo_path}")
             result = self.agent.process_ticket(ticket, repo_path, initial_message)
             
             logger.info(f"Agent result: {result}")
