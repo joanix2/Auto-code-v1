@@ -10,17 +10,10 @@ from contextlib import asynccontextmanager
 from src.database import db
 from src.utils.config import config
 from src.controllers import (
-    user_controller,
-    repository_controller,
-    ticket_controller,
-    github_oauth_controller,
-    agent_controller,
-    message_controller,
-    ticket_processing_controller,
-    websocket_controller,
-    branch_controller,
-    github_issue_controller,
-    copilot_development_controller
+    auth_router,
+    repository_router,
+    issue_router,
+    message_router,
 )
 
 logging.basicConfig(
@@ -69,17 +62,10 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(user_controller.router, prefix="/api", tags=["users"])
-app.include_router(repository_controller.router, prefix="/api", tags=["repositories"])
-app.include_router(ticket_controller.router, prefix="/api", tags=["tickets"])
-app.include_router(message_controller.router, prefix="/api", tags=["messages"])
-app.include_router(branch_controller.router, prefix="/api", tags=["branches"])
-app.include_router(agent_controller.router, prefix="/api", tags=["agent"])
-app.include_router(ticket_processing_controller.router, prefix="/api", tags=["ticket-processing"])
-app.include_router(github_issue_controller.router, prefix="/api/github-issues", tags=["github-issues"])
-app.include_router(copilot_development_controller.router, prefix="/api/copilot", tags=["copilot-development"])
-app.include_router(websocket_controller.router)  # WebSocket routes
-app.include_router(github_oauth_controller.router)  # OAuth routes have their own prefix
+app.include_router(auth_router)
+app.include_router(repository_router)
+app.include_router(issue_router)
+app.include_router(message_router)
 
 
 @app.get("/")

@@ -9,6 +9,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import os
 
+# Import database dependency
+from ..database import get_db
+
 # Configuration du hachage de mots de passe
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -54,7 +57,10 @@ def decode_access_token(token: str) -> Optional[dict]:
 security = HTTPBearer()
 
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db = Depends(get_db)
+):
     """Dependency to get current authenticated user from JWT token"""
     from src.models.user import User
     from src.repositories.user_repository import UserRepository
@@ -74,7 +80,9 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     if username is None:
         raise credentials_exception
     
-    user = UserRepository.get_by_username(username)
+    # Instantiate repository with DB connection
+    user_repo = UserRepository(db)
+    user = await user_repo.get_by_username(username)
     if user is None:
         raise credentials_exception
     

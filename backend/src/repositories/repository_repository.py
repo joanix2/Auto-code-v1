@@ -2,7 +2,7 @@
 Repository repository - Data access layer for GitHub repositories
 """
 from typing import Optional, List
-from .base import BaseRepository
+from .base import BaseRepository, convert_neo4j_types
 from ..models.repository import Repository
 import logging
 
@@ -29,10 +29,10 @@ class RepositoryRepository(BaseRepository[Repository]):
         MATCH (n:Repository {github_id: $github_id})
         RETURN n
         """
-        result = await self.db.execute_query(query, {"github_id": github_id})
+        result = self.db.execute_query(query, {"github_id": github_id})
         if not result:
             return None
-        return self.model(**result[0]["n"])
+        return self.model(**convert_neo4j_types(result[0]["n"]))
 
     async def get_by_full_name(self, full_name: str) -> Optional[Repository]:
         """
@@ -48,10 +48,10 @@ class RepositoryRepository(BaseRepository[Repository]):
         MATCH (n:Repository {full_name: $full_name})
         RETURN n
         """
-        result = await self.db.execute_query(query, {"full_name": full_name})
+        result = self.db.execute_query(query, {"full_name": full_name})
         if not result:
             return None
-        return self.model(**result[0]["n"])
+        return self.model(**convert_neo4j_types(result[0]["n"]))
 
     async def get_by_owner(self, owner_username: str) -> List[Repository]:
         """
@@ -68,5 +68,5 @@ class RepositoryRepository(BaseRepository[Repository]):
         RETURN n
         ORDER BY n.created_at DESC
         """
-        result = await self.db.execute_query(query, {"owner_username": owner_username})
-        return [self.model(**row["n"]) for row in result]
+        result = self.db.execute_query(query, {"owner_username": owner_username})
+        return [self.model(**convert_neo4j_types(row["n"])) for row in result]

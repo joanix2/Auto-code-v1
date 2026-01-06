@@ -2,7 +2,7 @@
 User repository - Data access layer for users
 """
 from typing import Optional
-from .base import BaseRepository
+from .base import BaseRepository, convert_neo4j_types
 from ..models.user import User
 import logging
 
@@ -29,10 +29,10 @@ class UserRepository(BaseRepository[User]):
         MATCH (n:User {username: $username})
         RETURN n
         """
-        result = await self.db.execute_query(query, {"username": username})
+        result = self.db.execute_query(query, {"username": username})
         if not result:
             return None
-        return self.model(**result[0]["n"])
+        return self.model(**convert_neo4j_types(result[0]["n"]))
 
     async def get_by_github_id(self, github_id: int) -> Optional[User]:
         """
@@ -48,10 +48,10 @@ class UserRepository(BaseRepository[User]):
         MATCH (n:User {github_id: $github_id})
         RETURN n
         """
-        result = await self.db.execute_query(query, {"github_id": github_id})
+        result = self.db.execute_query(query, {"github_id": github_id})
         if not result:
             return None
-        return self.model(**result[0]["n"])
+        return self.model(**convert_neo4j_types(result[0]["n"]))
 
     async def update_github_token(self, user_id: str, github_token: str) -> Optional[User]:
         """

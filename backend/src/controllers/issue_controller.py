@@ -10,7 +10,7 @@ from ..models.user import User
 from ..models.issue import Issue, IssueCreate, IssueUpdate
 from ..repositories.issue_repository import IssueRepository
 from ..repositories.repository_repository import RepositoryRepository
-from ..services.github import GitHubCopilotAgentService
+from ..services.copilot_agent_service import GitHubCopilotAgentService
 from ..utils.auth import get_current_user
 from ..database import get_db
 

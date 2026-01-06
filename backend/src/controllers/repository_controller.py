@@ -8,7 +8,7 @@ import logging
 from ..models.user import User
 from ..models.repository import Repository, RepositoryCreate, RepositoryUpdate
 from ..repositories.repository_repository import RepositoryRepository
-from ..services.github import GitHubSyncService
+from ..services.repository_service import RepositoryService
 from ..repositories.issue_repository import IssueRepository
 from ..utils.auth import get_current_user
 from ..database import get_db
@@ -36,15 +36,13 @@ async def sync_repositories(
             )
         
         repo_repository = RepositoryRepository(db)
-        issue_repository = IssueRepository(db)
         
-        sync_service = GitHubSyncService(
+        repository_service = RepositoryService(repo_repository)
+        
+        repositories = await repository_service.sync_from_github(
             current_user.github_token,
-            repo_repository,
-            issue_repository
+            username=current_user.username
         )
-        
-        repositories = await sync_service.sync_user_repositories(current_user.username)
         
         logger.info(f"Synced {len(repositories)} repositories for {current_user.username}")
         return {
@@ -239,15 +237,13 @@ async def sync_repository_issues(
                 detail="Not authorized to sync this repository"
             )
         
-        sync_service = GitHubSyncService(
-            current_user.github_token,
-            repo_repository,
-            issue_repository
-        )
+        from ..services.issue_service import IssueService
+        issue_service = IssueService(issue_repository)
         
-        issues = await sync_service.sync_repository_issues(
-            repository_id,
-            current_user.username
+        issues = await issue_service.sync_from_github(
+            current_user.github_token,
+            owner=repository.owner_username,
+            repo=repository.name
         )
         
         logger.info(f"Synced {len(issues)} issues for repository {repository_id}")

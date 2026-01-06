@@ -4,11 +4,39 @@ Base repository with generic CRUD operations
 from typing import TypeVar, Generic, Optional, List, Type, Dict, Any
 from pydantic import BaseModel
 from abc import ABC
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar('T', bound=BaseModel)
+
+
+def convert_neo4j_types(node: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Convert Neo4j types to Python native types
+    
+    Args:
+        node: Node data from Neo4j
+        
+    Returns:
+        Dict with converted types
+    """
+    from neo4j.time import DateTime as Neo4jDateTime
+    
+    converted = {}
+    for key, value in node.items():
+        if isinstance(value, Neo4jDateTime):
+            # Convert Neo4j DateTime to Python datetime
+            converted[key] = datetime(
+                value.year, value.month, value.day,
+                value.hour, value.minute, value.second,
+                value.nanosecond // 1000  # Convert nanoseconds to microseconds
+            )
+        else:
+            converted[key] = value
+    
+    return converted
 
 
 class BaseRepository(ABC, Generic[T]):
@@ -46,11 +74,11 @@ class BaseRepository(ABC, Generic[T]):
         SET n.created_at = datetime()
         RETURN n
         """
-        result = await self.db.execute_query(query, {"props": data})
+        result = self.db.execute_query(query, {"props": data})
         if not result:
             raise ValueError(f"Failed to create {self.label}")
         
-        node = result[0]["n"]
+        node = convert_neo4j_types(result[0]["n"])
         logger.info(f"Created {self.label} with id={node.get('id')}")
         return self.model(**node)
 
@@ -68,10 +96,10 @@ class BaseRepository(ABC, Generic[T]):
         MATCH (n:{self.label} {{id: $id}})
         RETURN n
         """
-        result = await self.db.execute_query(query, {"id": entity_id})
+        result = self.db.execute_query(query, {"id": entity_id})
         if not result:
             return None
-        return self.model(**result[0]["n"])
+        return self.model(**convert_neo4j_types(result[0]["n"]))
 
     async def get_all(self, skip: int = 0, limit: int = 100) -> List[T]:
         """
@@ -91,8 +119,8 @@ class BaseRepository(ABC, Generic[T]):
         SKIP $skip
         LIMIT $limit
         """
-        result = await self.db.execute_query(query, {"skip": skip, "limit": limit})
-        return [self.model(**row["n"]) for row in result]
+        result = self.db.execute_query(query, {"skip": skip, "limit": limit})
+        return [self.model(**convert_neo4j_types(row["n"])) for row in result]
 
     async def update(self, entity_id: str, updates: Dict[str, Any]) -> Optional[T]:
         """
@@ -117,13 +145,13 @@ class BaseRepository(ABC, Generic[T]):
         SET n.updated_at = datetime()
         RETURN n
         """
-        result = await self.db.execute_query(query, {"id": entity_id, "updates": updates})
+        result = self.db.execute_query(query, {"id": entity_id, "updates": updates})
         if not result:
             logger.warning(f"{self.label} with id={entity_id} not found for update")
             return None
         
         logger.info(f"Updated {self.label} with id={entity_id}")
-        return self.model(**result[0]["n"])
+        return self.model(**convert_neo4j_types(result[0]["n"]))
 
     async def delete(self, entity_id: str) -> bool:
         """
@@ -140,7 +168,7 @@ class BaseRepository(ABC, Generic[T]):
         DELETE n
         RETURN count(n) as deleted
         """
-        result = await self.db.execute_query(query, {"id": entity_id})
+        result = self.db.execute_query(query, {"id": entity_id})
         deleted = result[0]["deleted"] > 0
         
         if deleted:

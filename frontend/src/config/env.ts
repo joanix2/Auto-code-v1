@@ -13,11 +13,11 @@ const getApiUrl = (): string => {
   // In production (when served from the same domain), use relative path or detected host
   if (import.meta.env.PROD) {
     const { protocol, hostname } = window.location;
-    return `${protocol}//${hostname}:8000/api`;
+    return `${protocol}//${hostname}:8000`;
   }
 
   // Development fallback
-  return "http://localhost:8000/api";
+  return "http://localhost:8000";
 };
 
 export const API_URL = getApiUrl();
@@ -30,18 +30,19 @@ export const APP_VERSION = "1.0.0";
 // API endpoints
 export const API_ENDPOINTS = {
   // Auth
-  AUTH_REGISTER: "/users/register",
-  AUTH_LOGIN: "/users/login",
-  AUTH_ME: "/users/me",
+  AUTH_REGISTER: "/api/users/register",
+  AUTH_LOGIN: "/api/users/login",
+  AUTH_ME: "/api/auth/me",
+  GITHUB_LOGIN: "/api/auth/github/login",
 
   // Users
-  USERS: "/users",
+  USERS: "/api/users",
 
   // Repositories
-  REPOSITORIES: "/repositories",
+  REPOSITORIES: "/api/repositories",
 
   // Tickets
-  TICKETS: "/tickets",
+  TICKETS: "/api/tickets",
 } as const;
 
 // Build full API URL
