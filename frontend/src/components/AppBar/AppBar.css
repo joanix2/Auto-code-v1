@@ -1,0 +1,81 @@
+.app-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.app-bar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.app-bar-left {
+  display: flex;
+  align-items: center;
+}
+
+.app-bar-logo {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.app-bar-logo:hover {
+  opacity: 0.8;
+}
+
+.app-bar-logo img {
+  width: 32px;
+  height: 32px;
+  margin-right: 12px;
+}
+
+.app-bar-logo span {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.app-bar-right {
+  display: flex;
+  align-items: center;
+}
+
+.profile-zone {
+  position: relative;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.profile-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
