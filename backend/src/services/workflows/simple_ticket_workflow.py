@@ -227,7 +227,17 @@ class TicketProcessingWorkflow:
             
             if not repository:
                 state.status = "failed"
-                state.errors.append(f"Repository {repo_id} not found")
+                error_msg = f"Repository {repo_id} not found"
+                state.errors.append(error_msg)
+                
+                # Send error via WebSocket
+                await safe_ws_update(
+                    state.ticket_id, 
+                    "cancelled", 
+                    f"Erreur: {error_msg}", 
+                    error=error_msg,
+                    progress=10
+                )
                 return state
             
             state.repository = {
@@ -249,7 +259,17 @@ class TicketProcessingWorkflow:
             except Exception as e:
                 logger.error(f"Failed to clone/pull repository: {e}")
                 state.status = "failed"
-                state.errors.append(f"Repository clone/pull failed: {str(e)}")
+                error_msg = f"Repository clone/pull failed: {str(e)}"
+                state.errors.append(error_msg)
+                
+                # Send error via WebSocket
+                await safe_ws_update(
+                    state.ticket_id, 
+                    "cancelled", 
+                    f"Erreur lors du clonage du dépôt: {str(e)}", 
+                    error=str(e),
+                    progress=10
+                )
                 return state
             
             # Create/checkout branch
@@ -278,7 +298,17 @@ class TicketProcessingWorkflow:
         except Exception as e:
             logger.error(f"Error preparing repository: {e}", exc_info=True)
             state.status = "failed"
-            state.errors.append(f"Repository preparation failed: {str(e)}")
+            error_msg = f"Repository preparation failed: {str(e)}"
+            state.errors.append(error_msg)
+            
+            # Send error via WebSocket
+            await safe_ws_update(
+                state.ticket_id, 
+                "cancelled", 
+                f"Erreur lors de la préparation du dépôt: {str(e)}", 
+                error=str(e),
+                progress=10
+            )
         
         return state
     
@@ -361,8 +391,18 @@ class TicketProcessingWorkflow:
         except Exception as e:
             logger.error(f"Error calling agent: {e}", exc_info=True)
             state.status = "failed"
-            state.errors.append(f"Agent error: {str(e)}")
+            error_msg = f"Agent error: {str(e)}"
+            state.errors.append(error_msg)
             state.llm_response = {"success": False, "error": str(e)}
+            
+            # Send error via WebSocket
+            await safe_ws_update(
+                state.ticket_id, 
+                "cancelled", 
+                f"Erreur lors de la génération du code: {str(e)}", 
+                error=str(e),
+                progress=30
+            )
         
         return state
     
@@ -422,12 +462,32 @@ class TicketProcessingWorkflow:
             else:
                 logger.error(f"Commit failed: {result.get('message')}")
                 state.status = "failed"
-                state.errors.append(f"Commit failed: {result.get('message')}")
+                error_msg = f"Commit failed: {result.get('message')}"
+                state.errors.append(error_msg)
+                
+                # Send error via WebSocket
+                await safe_ws_update(
+                    state.ticket_id, 
+                    "cancelled", 
+                    f"Erreur lors du commit: {result.get('message')}", 
+                    error=result.get('message'),
+                    progress=60
+                )
             
         except Exception as e:
             logger.error(f"Error committing changes: {e}", exc_info=True)
             state.status = "failed"
-            state.errors.append(f"Commit failed: {str(e)}")
+            error_msg = f"Commit failed: {str(e)}"
+            state.errors.append(error_msg)
+            
+            # Send error via WebSocket
+            await safe_ws_update(
+                state.ticket_id, 
+                "cancelled", 
+                f"Erreur lors du commit: {str(e)}", 
+                error=str(e),
+                progress=60
+            )
         
         return state
     

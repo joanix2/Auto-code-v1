@@ -63,7 +63,7 @@ function TicketsList() {
   const [processingTicketId, setProcessingTicketId] = useState<string | null>(null);
 
   // WebSocket connection for real-time updates
-  const { status: wsStatus, message: wsMessage, progress: wsProgress, isConnected } = useTicketProcessing(processingTicketId);
+  const { status: wsStatus, message: wsMessage, progress: wsProgress, error: wsError, isConnected } = useTicketProcessing(processingTicketId);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -181,6 +181,14 @@ function TicketsList() {
       }, 500);
     }
   }, [wsStatus, fetchTickets]);
+
+  // Display WebSocket errors in the UI
+  useEffect(() => {
+    if (wsError) {
+      console.error("[TicketsList] WebSocket error received:", wsError);
+      setError(`Erreur de développement: ${wsError}`);
+    }
+  }, [wsError]);
 
   const handleEdit = (ticketId: string) => {
     navigate(`/ticket/${ticketId}/edit`);
