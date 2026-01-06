@@ -10,7 +10,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 export interface ProcessingStatus {
-  status: "IDLE" | "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED" | "CANCELLED";
+  status: "idle" | "open" | "in_progress" | "pending_validation" | "closed" | "cancelled";
   message: string;
   step?: string;
   progress?: number;
@@ -26,7 +26,7 @@ export interface LogEntry {
 
 export function useTicketProcessing(ticketId: string | null) {
   const [status, setStatus] = useState<ProcessingStatus>({
-    status: "IDLE",
+    status: "idle",
     message: "En attente...",
   });
   const [logs, setLogs] = useState<LogEntry[]>([]);

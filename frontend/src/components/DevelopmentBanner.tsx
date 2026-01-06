@@ -10,11 +10,10 @@ interface Ticket {
 
 interface DevelopmentBannerProps {
   tickets: Ticket[];
-  developing: boolean;
   onDevelop: (ticketId: string) => void;
 }
 
-export function DevelopmentBanner({ tickets, developing, onDevelop }: DevelopmentBannerProps) {
+export function DevelopmentBanner({ tickets, onDevelop }: DevelopmentBannerProps) {
   if (tickets.length === 0) return null;
 
   const openTickets = tickets.filter((t) => t.status === TicketStatus.OPEN);
@@ -45,26 +44,13 @@ export function DevelopmentBanner({ tickets, developing, onDevelop }: Developmen
         {/* Ligne 3: Bouton pleine largeur */}
         <Button
           onClick={() => onDevelop(nextTicket.id)}
-          disabled={developing}
           size="lg"
-          className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
         >
-          {developing ? (
-            <>
-              <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Développement en cours...
-            </>
-          ) : (
-            <>
-              <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-              </svg>
-              Développer automatiquement
-            </>
-          )}
+          <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+          Développer automatiquement
         </Button>
       </div>
     </div>

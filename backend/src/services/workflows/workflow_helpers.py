@@ -11,9 +11,9 @@ logger = logging.getLogger(__name__)
 MAX_ITERATIONS = 10
 
 
-def safe_ws_update(ticket_id: str, status: str, message: str, **kwargs):
+async def safe_ws_update(ticket_id: str, status: str, message: str, **kwargs):
     """
-    Safely send WebSocket update - skip if no event loop (LangGraph sync nodes)
+    Safely send WebSocket update
     
     Args:
         ticket_id: Ticket ID
@@ -22,18 +22,25 @@ def safe_ws_update(ticket_id: str, status: str, message: str, **kwargs):
         **kwargs: Additional parameters
     """
     try:
-        import asyncio
-        from ....websocket.connection_manager import manager
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            asyncio.create_task(manager.send_status_update(ticket_id, status, message, **kwargs))
+        # Use absolute import to avoid issues
+        try:
+            from src.websocket.connection_manager import manager
+        except ImportError:
+            logger.debug(f"WebSocket manager not available: {message}")
+            return
+        
+        # Send status update
+        logger.info(f"[WebSocket] Sending status update to ticket {ticket_id}: {status} - {message}")
+        await manager.send_status_update(ticket_id, status, message, **kwargs)
+        logger.info(f"[WebSocket] Status update sent successfully")
+        
     except Exception as e:
-        logger.debug(f"WebSocket update skipped (no event loop): {message}")
+        logger.warning(f"WebSocket update failed: {e}", exc_info=True)
 
 
-def safe_ws_log(ticket_id: str, log_type: str, message: str, **kwargs):
+async def safe_ws_log(ticket_id: str, log_type: str, message: str, **kwargs):
     """
-    Safely send WebSocket log - skip if no event loop (LangGraph sync nodes)
+    Safely send WebSocket log
     
     Args:
         ticket_id: Ticket ID
@@ -42,13 +49,19 @@ def safe_ws_log(ticket_id: str, log_type: str, message: str, **kwargs):
         **kwargs: Additional parameters
     """
     try:
-        import asyncio
-        from ....websocket.connection_manager import manager
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            asyncio.create_task(manager.send_log(ticket_id, log_type, message, **kwargs))
+        # Use absolute import to avoid issues
+        try:
+            from src.websocket.connection_manager import manager
+        except ImportError:
+            logger.debug(f"WebSocket manager not available: {message}")
+            return
+        
+        # Send log
+        logger.debug(f"[WebSocket] Sending log: {log_type} - {message}")
+        await manager.send_log(ticket_id, log_type, message, **kwargs)
+        
     except Exception as e:
-        logger.debug(f"WebSocket log skipped (no event loop): {message}")
+        logger.warning(f"WebSocket log failed: {e}", exc_info=True)
 
 
 def log_workflow_step(step_name: str, ticket_id: str, details: str = ""):

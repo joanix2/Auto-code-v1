@@ -78,7 +78,7 @@ class TicketProcessingWorkflow:
             Dictionary with processing results
         """
         log_workflow_step("Starting Workflow", ticket_id)
-        safe_ws_update(ticket_id, "IN_PROGRESS", "Démarrage du traitement automatique...", progress=0)
+        await safe_ws_update(ticket_id, "in_progress", "Démarrage du traitement automatique...", progress=0)
         
         # Update ticket status to in_progress in database
         try:
@@ -97,29 +97,29 @@ class TicketProcessingWorkflow:
                 return await self._handle_max_iterations(state)
             
             # Step 2: Prepare repository
-            safe_ws_update(ticket_id, "IN_PROGRESS", "Préparation du dépôt...", progress=10)
+            await safe_ws_update(ticket_id, "in_progress", "Préparation du dépôt...", progress=10)
             state = await self._prepare_repository(state)
             if state.status == "failed":
                 return self._error_result(state, "Repository preparation failed")
             
             # Step 3: Load conversation
-            safe_ws_update(ticket_id, "IN_PROGRESS", "Chargement de l'historique...", progress=20)
+            await safe_ws_update(ticket_id, "in_progress", "Chargement de l'historique...", progress=20)
             state = await self._load_conversation(state)
             
             # Step 4: Call LLM for code generation
-            safe_ws_update(ticket_id, "IN_PROGRESS", "Génération du code avec IA...", progress=30)
+            await safe_ws_update(ticket_id, "in_progress", "Génération du code avec IA...", progress=30)
             state = await self._call_llm(state)
             if state.status == "failed":
                 return self._error_result(state, "Code generation failed")
             
             # Step 5: Commit changes
-            safe_ws_update(ticket_id, "IN_PROGRESS", "Commit des modifications...", progress=60)
+            await safe_ws_update(ticket_id, "in_progress", "Commit des modifications...", progress=60)
             state = await self._commit_changes(state)
             if state.status == "failed":
                 return self._error_result(state, "Commit failed")
             
             # Step 6: Run CI tests
-            safe_ws_update(ticket_id, "IN_PROGRESS", "Exécution des tests...", progress=75)
+            await safe_ws_update(ticket_id, "in_progress", "Exécution des tests...", progress=75)
             state = await self._run_ci(state)
             
             # Step 7: Handle CI result
@@ -127,7 +127,7 @@ class TicketProcessingWorkflow:
             
             # Step 8: Create Pull Request (if CI passed)
             if state.ci_result and state.ci_result.get("passed"):
-                safe_ws_update(ticket_id, "IN_PROGRESS", "Création de la Pull Request...", progress=90)
+                await safe_ws_update(ticket_id, "in_progress", "Création de la Pull Request...", progress=90)
                 state = await self._create_pull_request(state)
                 
                 # Update ticket status to pending_validation in database
@@ -137,7 +137,7 @@ class TicketProcessingWorkflow:
                 except Exception as e:
                     logger.warning(f"Failed to update ticket status to pending_validation: {e}")
                 
-                safe_ws_update(ticket_id, "PENDING_VALIDATION", "En attente de validation humaine", progress=100)
+                await safe_ws_update(ticket_id, "pending_validation", "En attente de validation humaine", progress=100)
                 return {
                     "success": True,
                     "ticket_id": ticket_id,
@@ -149,7 +149,7 @@ class TicketProcessingWorkflow:
             else:
                 # CI failed - check if should retry
                 if state.iteration_count < MAX_ITERATIONS:
-                    safe_ws_update(ticket_id, "IN_PROGRESS", "Tests échoués - nouvelle tentative...", progress=25)
+                    await safe_ws_update(ticket_id, "in_progress", "Tests échoués - nouvelle tentative...", progress=25)
                     # Recursive retry (simplified - in production use queue/background task)
                     return await self.execute(ticket_id)
                 else:
@@ -157,7 +157,7 @@ class TicketProcessingWorkflow:
         
         except Exception as e:
             logger.error(f"Workflow execution failed: {e}", exc_info=True)
-            safe_ws_update(ticket_id, "FAILED", f"Erreur: {str(e)}", error=str(e))
+            await safe_ws_update(ticket_id, "cancelled", f"Erreur: {str(e)}", error=str(e))
             
             # Update ticket status to cancelled in database (no "failed" status)
             try:
@@ -528,7 +528,7 @@ Branch: {state.branch_name}
     async def _handle_max_iterations(self, state: TicketProcessingState) -> Dict[str, Any]:
         """Handle max iterations exceeded"""
         log_workflow_step("Max Iterations Exceeded", state.ticket_id)
-        safe_ws_update(state.ticket_id, "CANCELLED", f"Limite d'itérations atteinte ({MAX_ITERATIONS})")
+        await safe_ws_update(state.ticket_id, "cancelled", f"Limite d'itérations atteinte ({MAX_ITERATIONS})")
         
         # Update ticket status to cancelled in database
         try:

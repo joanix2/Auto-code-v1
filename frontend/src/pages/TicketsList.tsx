@@ -12,9 +12,9 @@ import { AppBar } from "@/components/AppBar";
 import { Input } from "@/components/ui/input";
 import { SortableTicketCard } from "@/components/SortableTicketCard";
 import { DeleteTicketDialog } from "@/components/DeleteTicketDialog";
-import { DevelopmentLaunchedDialog } from "@/components/DevelopmentLaunchedDialog";
 import { DevelopmentBanner } from "@/components/DevelopmentBanner";
 import { TicketStatusFilter } from "@/components/TicketStatusFilter";
+import { useTicketProcessing } from "@/hooks/useTicketProcessing";
 import type { Ticket, Repository } from "@/types";
 import { TicketStatus } from "@/types";
 
@@ -60,10 +60,10 @@ function TicketsList() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [developing, setDeveloping] = useState(false);
-  const [claudeResponse, setClaudeResponse] = useState<string | null>(null);
-  const [developmentDialogOpen, setDevelopmentDialogOpen] = useState(false);
-  const [developmentStatus, setDevelopmentStatus] = useState("");
+  const [processingTicketId, setProcessingTicketId] = useState<string | null>(null);
+
+  // WebSocket connection for real-time updates
+  const { status: wsStatus, message: wsMessage, progress: wsProgress, isConnected } = useTicketProcessing(processingTicketId);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -164,6 +164,20 @@ function TicketsList() {
     fetchTickets();
   }, [fetchTickets]);
 
+  // Refresh tickets when WebSocket status changes
+  useEffect(() => {
+    if (wsStatus === "in_progress") {
+      // Workflow started - refresh to show new status
+      console.log("[TicketsList] Workflow started, refreshing tickets...");
+      fetchTickets();
+    } else if (wsStatus === "pending_validation" || wsStatus === "cancelled" || wsStatus === "closed") {
+      // Workflow completed - refresh and disconnect
+      console.log("[TicketsList] Workflow completed, refreshing tickets...");
+      fetchTickets();
+      setProcessingTicketId(null); // Disconnect WebSocket
+    }
+  }, [wsStatus, fetchTickets]);
+
   const handleEdit = (ticketId: string) => {
     navigate(`/ticket/${ticketId}/edit`);
   };
@@ -205,11 +219,16 @@ function TicketsList() {
 
   const handleDevelop = async (ticketId: string) => {
     try {
-      setDeveloping(true);
       setError("");
-      setClaudeResponse(null);
 
-      const response = await fetch(`${API_BASE_URL}/tickets/processing/start`, {
+      // Connect WebSocket FIRST for real-time updates
+      setProcessingTicketId(ticketId);
+
+      // Wait a bit for WebSocket to connect
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Launch API call (don't await - it runs in background)
+      fetch(`${API_BASE_URL}/tickets/processing/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -218,25 +237,14 @@ function TicketsList() {
         body: JSON.stringify({
           ticket_id: ticketId,
         }),
+      }).catch((err) => {
+        setError(err instanceof Error ? err.message : "Erreur lors du développement automatique");
+        setProcessingTicketId(null);
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Erreur lors du développement automatique");
-      }
-
-      const result = await response.json();
-
-      // Rafraîchir la liste des tickets
-      fetchTickets();
-
-      // Ouvrir la modale de succès
-      setDevelopmentStatus(result.status);
-      setDevelopmentDialogOpen(true);
+      // Don't show dialog, don't wait - WebSocket will handle updates
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors du développement automatique");
-    } finally {
-      setDeveloping(false);
     }
   };
 
@@ -305,7 +313,7 @@ function TicketsList() {
           </div>
 
           {/* Development Banner - Au dessus de la barre de recherche */}
-          <DevelopmentBanner tickets={tickets} developing={developing} onDevelop={handleDevelop} />
+          <DevelopmentBanner tickets={tickets} onDevelop={handleDevelop} />
 
           {/* Search Bar with Add Button */}
           <div className="flex gap-3 items-center">
@@ -397,19 +405,6 @@ function TicketsList() {
           </Card>
         ) : (
           <>
-            {/* Développement en cours indicator */}
-            {developing && (
-              <Alert className="mb-6 bg-purple-50 border-purple-200 dark:bg-purple-950/20 dark:border-purple-800">
-                <AlertDescription className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span className="font-medium text-purple-900 dark:text-purple-100">Claude est en train de développer le ticket...</span>
-                </AlertDescription>
-              </Alert>
-            )}
-
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={filteredTickets.map((ticket) => ticket.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-3">
@@ -425,9 +420,6 @@ function TicketsList() {
 
       {/* Delete Confirmation Dialog */}
       <DeleteTicketDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} ticket={ticketToDelete} onConfirm={confirmDelete} loading={deleting} />
-
-      {/* Development Launched Dialog */}
-      <DevelopmentLaunchedDialog open={developmentDialogOpen} onOpenChange={setDevelopmentDialogOpen} status={developmentStatus} />
     </div>
   );
 }

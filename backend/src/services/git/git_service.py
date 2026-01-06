@@ -125,6 +125,27 @@ class GitService:
         logger.info(f"Pulling latest changes for {repo_url}")
         
         try:
+            # First, checkout main branch to avoid issues with old branches
+            logger.info(f"Checking out main branch at {repo_path}")
+            subprocess.run(
+                ['git', 'checkout', 'main'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Reset any local changes
+            logger.info(f"Resetting local changes at {repo_path}")
+            subprocess.run(
+                ['git', 'reset', '--hard', 'origin/main'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Pull latest changes
             subprocess.run(
                 ['git', 'pull'],
                 cwd=repo_path,
@@ -182,6 +203,27 @@ class GitService:
         logger.info(f"Pulling latest changes at {repo_path}")
         
         try:
+            # First, checkout main branch to avoid issues with old branches
+            logger.info(f"Checking out main branch at {repo_path}")
+            subprocess.run(
+                ['git', 'checkout', 'main'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Reset any local changes
+            logger.info(f"Resetting local changes at {repo_path}")
+            subprocess.run(
+                ['git', 'reset', '--hard', 'origin/main'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Pull latest changes
             subprocess.run(
                 ['git', 'pull'],
                 cwd=repo_path,

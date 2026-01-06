@@ -3,10 +3,12 @@ Ticket Processing Controller
 API endpoints for triggering and managing ticket processing workflow
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import logging
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 from ..services import TicketProcessingService
 from ..utils.auth import get_current_user
@@ -18,6 +20,9 @@ from ..websocket.connection_manager import manager
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/tickets/processing", tags=["ticket-processing"])
+
+# Thread pool for background tasks
+executor = ThreadPoolExecutor(max_workers=5)
 
 
 class ProcessTicketRequest(BaseModel):
@@ -41,7 +46,6 @@ def get_ticket_repo():
 @router.post("/start")
 async def start_ticket_processing(
     request: ProcessTicketRequest,
-    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     ticket_repo: TicketRepository = Depends(get_ticket_repo)
 ) -> Dict[str, Any]:
@@ -49,21 +53,19 @@ async def start_ticket_processing(
     Start automated processing for a ticket (ASYNCHRONOUS)
     
     This endpoint:
-    1. Immediately sets ticket status to PENDING
-    2. Returns success response to client
-    3. Launches background task for the complete workflow
-    4. Sends real-time updates via WebSocket
+    1. Returns success response immediately
+    2. Launches background task for the complete workflow
+    3. Sends real-time updates via WebSocket
     
     The client should connect to WebSocket endpoint:
     ws://localhost:8000/ws/tickets/{ticket_id}
     
     Args:
         request: Processing request with ticket ID
-        background_tasks: FastAPI background tasks
         current_user: Authenticated user
         
     Returns:
-        Immediate response with ticket status PENDING
+        Immediate response
     """
     logger.info(f"User {current_user.username} starting processing for ticket {request.ticket_id}")
     
@@ -77,23 +79,18 @@ async def start_ticket_processing(
                 detail=f"Ticket {request.ticket_id} not found"
             )
         
-        # NOTE: Status update to IN_PROGRESS will be handled by the workflow itself
-        
         # Get GitHub token from user (if available)
         github_token = getattr(current_user, 'github_token', None)
         
-        # Launch background task
-        background_tasks.add_task(
-            _process_ticket_background,
-            request.ticket_id,
-            github_token
-        )
+        # Launch background task in separate thread (true fire-and-forget)
+        logger.info(f"Submitting ticket {request.ticket_id} to thread pool executor")
+        executor.submit(_run_async_workflow, request.ticket_id, github_token)
         
+        # Return immediately
         return {
             "success": True,
             "ticket_id": request.ticket_id,
-            "status": "IN_PROGRESS",
-            "message": "Traitement automatique lancé en arrière-plan. Connectez-vous au WebSocket pour les mises à jour en temps réel.",
+            "message": "Traitement automatique lancé en arrière-plan.",
             "websocket_url": f"/ws/tickets/{request.ticket_id}"
         }
         
@@ -128,7 +125,7 @@ async def _process_ticket_background(ticket_id: str, github_token: Optional[str]
         if result.get("success"):
             await manager.send_status_update(
                 ticket_id,
-                "COMPLETED",
+                "pending_validation",
                 "Traitement automatique terminé avec succès",
                 progress=100,
                 data=result
@@ -136,7 +133,7 @@ async def _process_ticket_background(ticket_id: str, github_token: Optional[str]
         else:
             await manager.send_status_update(
                 ticket_id,
-                "FAILED",
+                "cancelled",
                 "Traitement automatique échoué",
                 error=result.get("error", "Unknown error"),
                 data=result
@@ -148,10 +145,34 @@ async def _process_ticket_background(ticket_id: str, github_token: Optional[str]
         logger.error(f"Background processing failed for ticket {ticket_id}: {e}", exc_info=True)
         await manager.send_status_update(
             ticket_id,
-            "FAILED",
+            "cancelled",
             "Erreur lors du traitement automatique",
             error=str(e)
         )
+
+
+def _run_async_workflow(ticket_id: str, github_token: Optional[str] = None):
+    """
+    Run async workflow in a new event loop (for thread execution).
+    This creates a new event loop for the thread.
+    
+    Args:
+        ticket_id: Ticket ID to process
+        github_token: Optional GitHub token
+    """
+    try:
+        logger.info(f"Thread started for ticket {ticket_id}")
+        # Create a new event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        try:
+            loop.run_until_complete(_process_ticket_background(ticket_id, github_token))
+        finally:
+            loop.close()
+            logger.info(f"Thread completed for ticket {ticket_id}")
+    except Exception as e:
+        logger.error(f"Thread execution error for ticket {ticket_id}: {e}", exc_info=True)
 
 
 @router.post("/validation")
