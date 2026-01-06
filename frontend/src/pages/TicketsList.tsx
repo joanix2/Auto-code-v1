@@ -173,8 +173,12 @@ function TicketsList() {
     } else if (wsStatus === "pending_validation" || wsStatus === "cancelled" || wsStatus === "closed") {
       // Workflow completed - refresh and disconnect
       console.log("[TicketsList] Workflow completed, refreshing tickets...");
-      fetchTickets();
-      setProcessingTicketId(null); // Disconnect WebSocket
+
+      // Small delay to ensure backend has updated the database
+      setTimeout(() => {
+        fetchTickets();
+        setProcessingTicketId(null); // Disconnect WebSocket after refresh
+      }, 500);
     }
   }, [wsStatus, fetchTickets]);
 

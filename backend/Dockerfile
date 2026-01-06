@@ -8,6 +8,11 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
+# Configure Git for container usage
+RUN git config --global user.email "autocode@bot.local" && \
+    git config --global user.name "AutoCode Bot" && \
+    git config --global init.defaultBranch main
+
 # Copy requirements first for better caching
 COPY requirements.txt .
 

@@ -23,11 +23,11 @@
 
 ✅ merge de la branche / envoie d'une PR
 
-relier à l'api
+✅ relier à l'api
+
+✅ mettre pending dans le workflow
 
 tester dans le containner
-
-mettre pending dans le workflow
 
 créer un agent avec langgraph (agent Claude Opus 4 créé avec 3 workflows)
 
