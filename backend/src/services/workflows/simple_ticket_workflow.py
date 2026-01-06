@@ -80,6 +80,13 @@ class TicketProcessingWorkflow:
         log_workflow_step("Starting Workflow", ticket_id)
         safe_ws_update(ticket_id, "IN_PROGRESS", "Démarrage du traitement automatique...", progress=0)
         
+        # Update ticket status to in_progress in database
+        try:
+            await self.ticket_repo.update_ticket_status(ticket_id, "in_progress")
+            logger.info(f"Ticket {ticket_id} status updated to in_progress in database")
+        except Exception as e:
+            logger.warning(f"Failed to update ticket status to in_progress: {e}")
+        
         # Initialize state
         state = TicketProcessingState(ticket_id=ticket_id)
         
@@ -123,6 +130,13 @@ class TicketProcessingWorkflow:
                 safe_ws_update(ticket_id, "IN_PROGRESS", "Création de la Pull Request...", progress=90)
                 state = await self._create_pull_request(state)
                 
+                # Update ticket status to pending_validation in database
+                try:
+                    await self.ticket_repo.update_ticket_status(ticket_id, "pending_validation")
+                    logger.info(f"Ticket {ticket_id} status updated to pending_validation in database")
+                except Exception as e:
+                    logger.warning(f"Failed to update ticket status to pending_validation: {e}")
+                
                 safe_ws_update(ticket_id, "PENDING_VALIDATION", "En attente de validation humaine", progress=100)
                 return {
                     "success": True,
@@ -144,6 +158,14 @@ class TicketProcessingWorkflow:
         except Exception as e:
             logger.error(f"Workflow execution failed: {e}", exc_info=True)
             safe_ws_update(ticket_id, "FAILED", f"Erreur: {str(e)}", error=str(e))
+            
+            # Update ticket status to cancelled in database (no "failed" status)
+            try:
+                await self.ticket_repo.update_ticket_status(ticket_id, "cancelled")
+                logger.info(f"Ticket {ticket_id} status updated to cancelled in database (workflow failed)")
+            except Exception as update_error:
+                logger.warning(f"Failed to update ticket status to cancelled: {update_error}")
+            
             return {
                 "success": False,
                 "ticket_id": ticket_id,
@@ -507,6 +529,13 @@ Branch: {state.branch_name}
         """Handle max iterations exceeded"""
         log_workflow_step("Max Iterations Exceeded", state.ticket_id)
         safe_ws_update(state.ticket_id, "CANCELLED", f"Limite d'itérations atteinte ({MAX_ITERATIONS})")
+        
+        # Update ticket status to cancelled in database
+        try:
+            await self.ticket_repo.update_ticket_status(state.ticket_id, "cancelled")
+            logger.info(f"Ticket {state.ticket_id} status updated to cancelled in database")
+        except Exception as e:
+            logger.warning(f"Failed to update ticket status to cancelled: {e}")
         
         # TODO: Create bug ticket
         
