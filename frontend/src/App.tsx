@@ -1,13 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import Login from "./pages/Login";
-import ProjectsList from "./pages/ProjectsList";
-import TicketsList from "./pages/TicketsList";
-import { TicketChat } from "./pages/TicketChat";
-import NewRepository from "./pages/NewRepository";
-import CreateTicket from "./pages/CreateTicket";
-import Profile from "./pages/Profile";
-import AuthCallback from "./pages/AuthCallback";
+import { Layout } from "./components/layout/Layout";
+import { Repositories } from "./pages/Repositories";
+import { Issues } from "./pages/Issues";
+import { IssueDetails } from "./pages/IssueDetails";
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -24,19 +20,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
-// Public Route Component (redirect to projects if already logged in)
-function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, loading } = useAuth();
+// Authenticated Layout Wrapper
+function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
+  const { user, signOut } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
-
-  return isAuthenticated ? <Navigate to="/projects" replace /> : children;
+  return (
+    <Layout user={user} onSignOut={signOut}>
+      {children}
+    </Layout>
+  );
 }
 
 function App() {
@@ -44,95 +36,63 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          {/* Public Routes */}
+          {/* Protected Routes with Layout */}
           <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
-
-          {/* Protected Routes */}
-          <Route
-            path="/projects"
+            path="/repositories"
             element={
               <ProtectedRoute>
-                <ProjectsList />
+                <AuthenticatedLayout>
+                  <Repositories />
+                </AuthenticatedLayout>
               </ProtectedRoute>
             }
           />
 
           <Route
-            path="/repository/:repositoryId/tickets"
+            path="/repositories/:repositoryId/issues"
             element={
               <ProtectedRoute>
-                <TicketsList />
+                <AuthenticatedLayout>
+                  <Issues />
+                </AuthenticatedLayout>
               </ProtectedRoute>
             }
           />
 
           <Route
-            path="/ticket/:ticketId/chat"
+            path="/issues"
             element={
               <ProtectedRoute>
-                <TicketChat />
+                <AuthenticatedLayout>
+                  <Issues />
+                </AuthenticatedLayout>
               </ProtectedRoute>
             }
           />
 
           <Route
-            path="/new-repository"
+            path="/issues/:issueId"
             element={
               <ProtectedRoute>
-                <NewRepository />
+                <AuthenticatedLayout>
+                  <IssueDetails />
+                </AuthenticatedLayout>
               </ProtectedRoute>
             }
           />
 
-          <Route
-            path="/create-ticket"
-            element={
-              <ProtectedRoute>
-                <CreateTicket />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/ticket/:ticketId/edit"
-            element={
-              <ProtectedRoute>
-                <CreateTicket />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* OAuth Callback Route */}
-          <Route path="/auth/callback" element={<AuthCallback />} />
-
-          {/* Default route - redirect to projects if authenticated, login otherwise */}
+          {/* Default route - redirect to repositories */}
           <Route
             path="/"
             element={
               <ProtectedRoute>
-                <Navigate to="/projects" replace />
+                <Navigate to="/repositories" replace />
               </ProtectedRoute>
             }
           />
 
-          {/* 404 - Redirect to login */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          {/* 404 - Redirect to repositories */}
+          <Route path="*" element={<Navigate to="/repositories" replace />} />
         </Routes>
       </AuthProvider>
     </Router>

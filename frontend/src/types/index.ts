@@ -1,138 +1,16 @@
 /**
- * Type definitions for the application
+ * Central export for all types
  */
 
-export interface User {
-  id: string;
-  username: string;
-  email?: string;
-  full_name?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at?: string;
-  github_token?: string;
-  profile_picture?: string;
-}
+export * from './user';
+export * from './repository';
+export * from './issue';
+export * from './message';
 
-export interface UserCreate {
-  username: string;
-  password: string;
-  email?: string;
-  name?: string;
-  full_name?: string;
-}
-
-export interface UserLogin {
-  username: string;
-  password: string;
-}
-
-export interface TokenResponse {
-  access_token: string;
-  token_type: string;
-  user: User;
-}
-
-export interface Repository {
-  id: string;
-  name: string;
-  full_name?: string;
-  description?: string;
-  github_id?: number;
-  url?: string;
-  private: boolean;
-  owner_username: string;
-  created_at: string; // Date de création dans notre base
-  updated_at?: string; // Date de modification dans notre base
-  github_created_at?: string; // Date de création du repo sur GitHub
-  github_updated_at?: string; // Date de dernière modification sur GitHub
-  github_pushed_at?: string; // Date du dernier push sur GitHub
-  // Champs optionnels de GitHub
-  language?: string;
-  stargazers_count?: number;
-  forks_count?: number;
-  html_url?: string;
-}
-
-export interface RepositoryCreate {
-  name: string;
-  full_name: string;
-  description?: string;
-  github_id: number;
-  url: string;
-  private?: boolean;
-}
-
-export interface RepositoryUpdate {
-  name?: string;
-  description?: string;
-  url?: string;
-  is_active?: boolean;
-}
-
-export interface Ticket {
-  id: string;
-  title: string;
-  description: string;
-  repository_id: string;
-  status: TicketStatus;
-  priority: TicketPriority;
-  ticket_type: TicketType;
-  order: number;
-  assignee_id?: string;
-  created_by_id: string;
-  created_at: string;
-  updated_at?: string;
-  github_issue_number?: number;
-  github_issue_url?: string;
-}
-
-export interface TicketCreate {
-  title: string;
-  description: string;
-  repository_id: string;
-  priority?: TicketPriority;
-  ticket_type?: TicketType;
-  status?: TicketStatus;
-}
-
-export interface TicketUpdate {
-  title?: string;
-  description?: string;
-  status?: TicketStatus;
-  priority?: TicketPriority;
-  ticket_type?: TicketType;
-  order?: number;
-  assignee_id?: string;
-}
-
-export enum TicketStatus {
-  OPEN = "open",
-  IN_PROGRESS = "in_progress",
-  PENDING_VALIDATION = "pending_validation",
-  CLOSED = "closed",
-  CANCELLED = "cancelled",
-}
-
-export enum TicketPriority {
-  LOW = "low",
-  MEDIUM = "medium",
-  HIGH = "high",
-  CRITICAL = "critical",
-}
-
-export enum TicketType {
-  FEATURE = "feature",
-  BUG = "bug",
-  ENHANCEMENT = "enhancement",
-  DOCUMENTATION = "documentation",
-}
-
-export interface HealthCheck {
-  status: string;
-  database: {
-    neo4j: string;
-  };
+// API Response types
+export interface ApiResponse<T> {
+  data: T;
+  message?: string;
 }
 
 export interface ApiError {
@@ -140,25 +18,9 @@ export interface ApiError {
   status?: number;
 }
 
-// Message types
-export interface Message {
-  id: string;
-  ticket_id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  timestamp: string;
-  metadata?: Record<string, unknown>;
-  model?: string;
-  tokens_used?: number;
-  step?: string;
-}
-
-export interface MessageCreate {
-  ticket_id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  metadata?: Record<string, unknown>;
-  model?: string;
-  tokens_used?: number;
-  step?: string;
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  per_page: number;
 }
