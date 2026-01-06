@@ -1,6 +1,7 @@
 """
 GitHub OAuth Service
-Gère l'authentification OAuth2 avec GitHub
+Handles ONLY OAuth2 authentication flow with GitHub
+Does NOT handle user creation/management (that's UserService's job)
 """
 import httpx
 from typing import Dict, Optional
@@ -10,25 +11,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-async def get_github_token_from_user(username: str) -> Optional[str]:
-    """
-    Get GitHub token for a user from the database
-    
-    Args:
-        username: Username
-        
-    Returns:
-        GitHub token or None if not found
-    """
-    from ...repositories.user_repository import UserRepository
-    
-    user = UserRepository.get_by_username(username)
-    if user and user.github_token:
-        return user.github_token
-    return None
-
-
 class GitHubOAuthService:
+    """Service for GitHub OAuth2 authentication flow"""
+    
     def __init__(self, redirect_uri: Optional[str] = None):
         self.client_id = os.getenv("GITHUB_CLIENT_ID")
         self.client_secret = os.getenv("GITHUB_CLIENT_SECRET")
@@ -39,7 +24,15 @@ class GitHubOAuthService:
             raise ValueError("GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET must be set in environment variables")
     
     def get_authorization_url(self, state: str) -> str:
-        """Génère l'URL d'autorisation GitHub"""
+        """
+        Generate GitHub OAuth authorization URL
+        
+        Args:
+            state: Random state for CSRF protection
+            
+        Returns:
+            Authorization URL to redirect user to
+        """
         params = {
             "client_id": self.client_id,
             "redirect_uri": self.redirect_uri,
@@ -50,7 +43,15 @@ class GitHubOAuthService:
         return f"https://github.com/login/oauth/authorize?{query_string}"
     
     async def exchange_code_for_token(self, code: str) -> Dict:
-        """Échange le code d'autorisation contre un access token"""
+        """
+        Exchange authorization code for access token
+        
+        Args:
+            code: Authorization code from GitHub callback
+            
+        Returns:
+            Token response with access_token, token_type, scope
+        """
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 "https://github.com/login/oauth/access_token",
@@ -60,19 +61,6 @@ class GitHubOAuthService:
                     "client_secret": self.client_secret,
                     "code": code,
                     "redirect_uri": self.redirect_uri,
-                }
-            )
-            response.raise_for_status()
-            return response.json()
-    
-    async def get_user_info(self, access_token: str) -> Dict:
-        """Récupère les informations de l'utilisateur GitHub"""
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                "https://api.github.com/user",
-                headers={
-                    "Authorization": f"Bearer {access_token}",
-                    "Accept": "application/vnd.github.v3+json"
                 }
             )
             response.raise_for_status()

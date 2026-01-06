@@ -9,7 +9,7 @@ from src.repositories.ticket_repository import TicketRepository
 from src.repositories.repository_repository import RepositoryRepository
 from src.services.github.github_issue_service import GitHubIssueService
 from src.services.github.github_issue_sync_service import GitHubIssueSyncService
-from src.services.auth.github_oauth_service import get_github_token_from_user
+from backend.src.services.github_oauth_service import get_github_token_from_user
 from src.controllers.user_controller import get_current_user
 
 logger = logging.getLogger(__name__)

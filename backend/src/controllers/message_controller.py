@@ -1,383 +1,153 @@
 """
-Message Controller
-API endpoints for managing messages in ticket conversations
+Message Controller - Manage PR comments and conversations
 """
-
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List, Optional
+from typing import List
 import logging
+import uuid
 
-from ..models.message import Message, MessageCreate, MessageUpdate
-from ..repositories.message_repository import MessageRepository
-from ..repositories.ticket_repository import TicketRepository
-from ..services.messaging.message_service import MessageService
-from ..database import db
-from ..utils.auth import get_current_user
 from ..models.user import User
+from ..models.message import Message, MessageCreate
+from ..repositories.message_repository import MessageRepository
+from ..repositories.issue_repository import IssueRepository
+from ..utils.auth import get_current_user
+from ..database import get_db
 
+router = APIRouter(prefix="/api/messages", tags=["messages"])
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/messages", tags=["messages"])
 
-
-@router.post("/", response_model=Message, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=Message)
 async def create_message(
     message_data: MessageCreate,
-    current_user: User = Depends(get_current_user)
-) -> Message:
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db)
+):
     """
-    Create a new message in a ticket conversation
+    Create a new message (PR comment)
     
     Args:
         message_data: Message creation data
-        current_user: Authenticated user
         
     Returns:
         Created message
     """
-    logger.info(f"User {current_user.username} creating message for ticket {message_data.ticket_id}")
+    message_repository = MessageRepository(db)
+    issue_repository = IssueRepository(db)
     
-    # Verify ticket exists
-    db.connect()
-    ticket_repo = TicketRepository(db)
-    ticket = await ticket_repo.get_ticket_by_id(message_data.ticket_id)
-    
-    if not ticket:
+    # Verify issue exists
+    issue = await issue_repository.get_by_id(message_data.issue_id)
+    if not issue:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Ticket {message_data.ticket_id} not found"
+            detail="Issue not found"
         )
     
     # Create message
-    message = Message(
-        id="",  # Will be generated in repository
-        ticket_id=message_data.ticket_id,
-        role=message_data.role,
-        content=message_data.content,
-        metadata=message_data.metadata,
-        model=message_data.model,
-        tokens_used=message_data.tokens_used,
-        step=message_data.step
-    )
+    data = message_data.dict()
+    data["id"] = f"message-{uuid.uuid4()}"
+    data["author_username"] = current_user.username
     
-    message_repo = MessageRepository()
-    created_message = message_repo.create(message)
-    
-    logger.info(f"Created message {created_message.id} for ticket {message_data.ticket_id}")
-    return created_message
-
-
-@router.get("/ticket/{ticket_id}", response_model=List[Message])
-async def get_ticket_messages(
-    ticket_id: str,
-    limit: Optional[int] = None,
-    current_user: User = Depends(get_current_user)
-) -> List[Message]:
-    """
-    Get all messages for a ticket
-    
-    Args:
-        ticket_id: Ticket ID
-        limit: Optional limit on number of messages
-        current_user: Authenticated user
-        
-    Returns:
-        List of messages ordered by timestamp
-    """
-    logger.info(f"User {current_user.username} fetching messages for ticket {ticket_id}")
-    
-    # Verify ticket exists
-    db.connect()
-    ticket_repo = TicketRepository(db)
-    ticket = await ticket_repo.get_ticket_by_id(ticket_id)
-    
-    if not ticket:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Ticket {ticket_id} not found"
-        )
-    
-    message_repo = MessageRepository()
-    messages = message_repo.get_by_ticket_id(ticket_id, limit)
-    
-    logger.info(f"Retrieved {len(messages)} messages for ticket {ticket_id}")
-    return messages
-
-
-@router.get("/ticket/{ticket_id}/latest", response_model=Message)
-async def get_latest_message(
-    ticket_id: str,
-    current_user: User = Depends(get_current_user)
-) -> Message:
-    """
-    Get the most recent message for a ticket
-    
-    Args:
-        ticket_id: Ticket ID
-        current_user: Authenticated user
-        
-    Returns:
-        Latest message
-    """
-    logger.info(f"User {current_user.username} fetching latest message for ticket {ticket_id}")
-    
-    message_repo = MessageRepository()
-    message = message_repo.get_latest_by_ticket_id(ticket_id)
-    
-    if not message:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No messages found for ticket {ticket_id}"
-        )
+    message = await message_repository.create(data)
+    logger.info(f"Created message {message.id} for issue {issue.id}")
     
     return message
 
 
-@router.get("/ticket/{ticket_id}/step/{step}", response_model=List[Message])
-async def get_messages_by_step(
-    ticket_id: str,
-    step: str,
-    current_user: User = Depends(get_current_user)
-) -> List[Message]:
+@router.get("/issue/{issue_id}", response_model=List[Message])
+async def list_messages_by_issue(
+    issue_id: str,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db)
+):
     """
-    Get messages for a specific workflow step
+    List all messages for an issue
     
     Args:
-        ticket_id: Ticket ID
-        step: Workflow step (e.g., "analysis", "code_generation")
-        current_user: Authenticated user
+        issue_id: Issue ID
         
     Returns:
-        List of messages for that step
+        List of messages ordered by creation date
     """
-    logger.info(f"User {current_user.username} fetching {step} messages for ticket {ticket_id}")
+    message_repository = MessageRepository(db)
+    issue_repository = IssueRepository(db)
     
-    message_repo = MessageRepository()
-    messages = message_repo.get_by_step(ticket_id, step)
-    
-    return messages
-
-
-@router.get("/ticket/{ticket_id}/summary")
-async def get_conversation_summary(
-    ticket_id: str,
-    current_user: User = Depends(get_current_user)
-) -> dict:
-    """
-    Get summary statistics for a ticket's conversation
-    
-    Args:
-        ticket_id: Ticket ID
-        current_user: Authenticated user
-        
-    Returns:
-        Conversation statistics
-    """
-    logger.info(f"User {current_user.username} fetching conversation summary for ticket {ticket_id}")
-    
-    # Verify ticket exists
-    ticket_repo = TicketRepository()
-    ticket = ticket_repo.get_by_id(ticket_id)
-    
-    if not ticket:
+    # Verify issue exists
+    issue = await issue_repository.get_by_id(issue_id)
+    if not issue:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Ticket {ticket_id} not found"
+            detail="Issue not found"
         )
     
-    message_repo = MessageRepository()
-    summary = message_repo.get_conversation_summary(ticket_id)
-    
-    return summary
+    messages = await message_repository.get_by_issue(issue_id)
+    return messages
 
 
 @router.get("/{message_id}", response_model=Message)
 async def get_message(
     message_id: str,
-    current_user: User = Depends(get_current_user)
-) -> Message:
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db)
+):
     """
-    Get a specific message by ID
+    Get message by ID
     
     Args:
         message_id: Message ID
-        current_user: Authenticated user
         
     Returns:
-        Message
+        Message details
     """
-    message_repo = MessageRepository()
-    message = message_repo.get_by_id(message_id)
+    message_repository = MessageRepository(db)
+    message = await message_repository.get_by_id(message_id)
     
     if not message:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Message {message_id} not found"
+            detail="Message not found"
         )
     
     return message
 
 
-@router.patch("/{message_id}", response_model=Message)
-async def update_message(
-    message_id: str,
-    update_data: MessageUpdate,
-    current_user: User = Depends(get_current_user)
-) -> Message:
-    """
-    Update a message
-    
-    Args:
-        message_id: Message ID
-        update_data: Fields to update
-        current_user: Authenticated user
-        
-    Returns:
-        Updated message
-    """
-    logger.info(f"User {current_user.username} updating message {message_id}")
-    
-    message_repo = MessageRepository()
-    updated_message = message_repo.update(
-        message_id=message_id,
-        content=update_data.content,
-        metadata=update_data.metadata,
-        tokens_used=update_data.tokens_used
-    )
-    
-    if not updated_message:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Message {message_id} not found"
-        )
-    
-    logger.info(f"Updated message {message_id}")
-    return updated_message
-
-
-@router.delete("/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{message_id}")
 async def delete_message(
     message_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db)
 ):
     """
     Delete a message
     
     Args:
         message_id: Message ID
-        current_user: Authenticated user
+        
+    Returns:
+        Success message
     """
-    logger.info(f"User {current_user.username} deleting message {message_id}")
+    message_repository = MessageRepository(db)
     
-    message_repo = MessageRepository()
-    deleted = message_repo.delete(message_id)
-    
-    if not deleted:
+    message = await message_repository.get_by_id(message_id)
+    if not message:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Message {message_id} not found"
+            detail="Message not found"
         )
     
-    logger.info(f"Deleted message {message_id}")
-
-
-@router.delete("/ticket/{ticket_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_ticket_messages(
-    ticket_id: str,
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Delete all messages for a ticket
-    
-    Args:
-        ticket_id: Ticket ID
-        current_user: Authenticated user
-    """
-    logger.info(f"User {current_user.username} deleting all messages for ticket {ticket_id}")
-    
-    # Verify ticket exists
-    ticket_repo = TicketRepository()
-    ticket = ticket_repo.get_by_id(ticket_id)
-    
-    if not ticket:
+    # Check authorization (only author can delete)
+    if message.author_username != current_user.username:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Ticket {ticket_id} not found"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to delete this message"
         )
     
-    message_repo = MessageRepository()
-    deleted_count = message_repo.delete_by_ticket_id(ticket_id)
+    deleted = await message_repository.delete(message_id)
     
-    logger.info(f"Deleted {deleted_count} messages for ticket {ticket_id}")
-
-
-@router.get("/ticket/{ticket_id}/count", response_model=dict)
-async def get_message_count(
-    ticket_id: str,
-    current_user: User = Depends(get_current_user)
-) -> dict:
-    """
-    Get the count of messages for a ticket
-    
-    Args:
-        ticket_id: Ticket ID
-        current_user: Authenticated user
-        
-    Returns:
-        Dictionary with message count
-    """
-    logger.info(f"User {current_user.username} getting message count for ticket {ticket_id}")
-    
-    message_service = MessageService()
-    count = message_service.get_message_count(ticket_id)
-    
-    return {"ticket_id": ticket_id, "count": count}
-
-
-@router.get("/ticket/{ticket_id}/check-limit/{limit}", response_model=dict)
-async def check_message_limit(
-    ticket_id: str,
-    limit: int,
-    current_user: User = Depends(get_current_user)
-) -> dict:
-    """
-    Check if message count exceeds a limit
-    
-    Args:
-        ticket_id: Ticket ID
-        limit: Message limit to check
-        current_user: Authenticated user
-        
-    Returns:
-        Dictionary with limit check result
-    """
-    logger.info(f"User {current_user.username} checking message limit for ticket {ticket_id}")
-    
-    message_service = MessageService()
-    result = message_service.check_limit_and_get_stats(ticket_id, limit)
-    
-    return result
-
-
-@router.get("/ticket/{ticket_id}/stats", response_model=dict)
-async def get_message_stats(
-    ticket_id: str,
-    current_user: User = Depends(get_current_user)
-) -> dict:
-    """
-    Get statistics about messages for a ticket
-    
-    Args:
-        ticket_id: Ticket ID
-        current_user: Authenticated user
-        
-    Returns:
-        Dictionary with message statistics
-    """
-    logger.info(f"User {current_user.username} getting message stats for ticket {ticket_id}")
-    
-    message_service = MessageService()
-    stats = message_service.get_message_stats(ticket_id)
-    
-    return stats
-
+    if deleted:
+        return {"message": "Message deleted successfully"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete message"
+        )

@@ -1,3 +1,0 @@
-"""
-AutoCode CLI Commands Package
-"""

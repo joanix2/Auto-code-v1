@@ -1,22 +1,41 @@
-"""
-Services - Business Logic Layer
-"""
+""""""
 
-# Auth services
-from .auth import GitHubOAuthService
+Services - Business Logic LayerServices - Business Logic Layer
 
-# GitHub services
-from .github import GitHubCopilotAgentService, GitHubSyncService
+""""""
 
-# Messaging services
-from .messaging import MessageService
+from .base_service import BaseService, SyncableService
 
-__all__ = [
-    # Auth
-    "GitHubOAuthService",
-    # GitHub
-    "GitHubCopilotAgentService",
-    "GitHubSyncService",
+from .user_service import UserService# Auth services
+
+from .repository_service import RepositoryServicefrom .auth import GitHubOAuthService
+
+from .issue_service import IssueService
+
+from .message_service import MessageService# GitHub services
+
+from .copilot_agent_service import CopilotAgentServicefrom .github import GitHubCopilotAgentService, GitHubSyncService
+
+
+
+__all__ = [# Messaging services
+
+    "BaseService",from .messaging import MessageService
+
+    "SyncableService",
+
+    "UserService",__all__ = [
+
+    "RepositoryService",    # Auth
+
+    "IssueService",    "GitHubOAuthService",
+
+    "MessageService",    # GitHub
+
+    "CopilotAgentService",    "GitHubCopilotAgentService",
+
+]    "GitHubSyncService",
+
     # Messaging
     "MessageService",
 ]

@@ -1,178 +1,265 @@
-"""Repository controller - API endpoints for repositories"""
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+"""
+Repository Controller - Manage GitHub repositories
+"""
+from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List, Optional
-from src.models.repository import Repository, RepositoryCreate
-from src.models.user import User
-from src.repositories.repository_repository import RepositoryRepository
-from src.database import Neo4jConnection
-from src.utils.auth import get_current_user
-from src.services import GitHubService
+import logging
 
-router = APIRouter()
+from ..models.user import User
+from ..models.repository import Repository, RepositoryCreate, RepositoryUpdate
+from ..repositories.repository_repository import RepositoryRepository
+from ..services.github import GitHubSyncService
+from ..repositories.issue_repository import IssueRepository
+from ..utils.auth import get_current_user
+from ..database import get_db
 
-
-def get_repository_repo():
-    """Dependency to get repository repository"""
-    db = Neo4jConnection()
-    return RepositoryRepository(db)
+router = APIRouter(prefix="/api/repositories", tags=["repositories"])
+logger = logging.getLogger(__name__)
 
 
-@router.post("/repositories", response_model=Repository, status_code=status.HTTP_201_CREATED)
-async def create_repository(
-    repo_data: RepositoryCreate,
-    github_token: Optional[str] = Header(None, alias="X-GitHub-Token"),
+@router.post("/sync")
+async def sync_repositories(
     current_user: User = Depends(get_current_user),
-    repo_repo: RepositoryRepository = Depends(get_repository_repo)
+    db = Depends(get_db)
 ):
     """
-    Create a new repository on GitHub and save it to the database.
-    Requires X-GitHub-Token header with personal access token.
+    Sync all repositories from GitHub for current user
+    
+    Returns:
+        List of synced repositories
     """
-    if not github_token:
+    try:
+        if not current_user.github_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="GitHub not connected"
+            )
+        
+        repo_repository = RepositoryRepository(db)
+        issue_repository = IssueRepository(db)
+        
+        sync_service = GitHubSyncService(
+            current_user.github_token,
+            repo_repository,
+            issue_repository
+        )
+        
+        repositories = await sync_service.sync_user_repositories(current_user.username)
+        
+        logger.info(f"Synced {len(repositories)} repositories for {current_user.username}")
+        return {
+            "count": len(repositories),
+            "repositories": repositories
+        }
+    except Exception as e:
+        logger.error(f"Repository sync error: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="GitHub token required in X-GitHub-Token header to create repository"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to sync repositories: {str(e)}"
+        )
+
+
+@router.get("/", response_model=List[Repository])
+async def list_repositories(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db)
+):
+    """
+    List all repositories for current user
+    
+    Args:
+        skip: Number to skip (pagination)
+        limit: Maximum number to return
+        
+    Returns:
+        List of repositories
+    """
+    repo_repository = RepositoryRepository(db)
+    repositories = await repo_repository.get_by_owner(current_user.username)
+    
+    # Apply pagination
+    return repositories[skip:skip + limit]
+
+
+@router.get("/{repository_id}", response_model=Repository)
+async def get_repository(
+    repository_id: str,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db)
+):
+    """
+    Get repository by ID
+    
+    Args:
+        repository_id: Repository ID
+        
+    Returns:
+        Repository details
+    """
+    repo_repository = RepositoryRepository(db)
+    repository = await repo_repository.get_by_id(repository_id)
+    
+    if not repository:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Repository not found"
         )
     
-    try:
-        # Create repository on GitHub first
-        github_service = GitHubService(github_token)
-        gh_repo = github_service.create_repository(
-            name=repo_data.name,
-            description=repo_data.description,
-            private=repo_data.private
+    # Check ownership
+    if repository.owner_username != current_user.username:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this repository"
         )
+    
+    return repository
+
+
+@router.patch("/{repository_id}", response_model=Repository)
+async def update_repository(
+    repository_id: str,
+    updates: RepositoryUpdate,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db)
+):
+    """
+    Update repository
+    
+    Args:
+        repository_id: Repository ID
+        updates: Fields to update
         
-        if not gh_repo:
+    Returns:
+        Updated repository
+    """
+    repo_repository = RepositoryRepository(db)
+    
+    # Check existence and ownership
+    repository = await repo_repository.get_by_id(repository_id)
+    if not repository:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Repository not found"
+        )
+    
+    if repository.owner_username != current_user.username:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this repository"
+        )
+    
+    updated_repository = await repo_repository.update(
+        repository_id,
+        updates.dict(exclude_unset=True)
+    )
+    
+    return updated_repository
+
+
+@router.delete("/{repository_id}")
+async def delete_repository(
+    repository_id: str,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db)
+):
+    """
+    Delete repository
+    
+    Args:
+        repository_id: Repository ID
+        
+    Returns:
+        Success message
+    """
+    repo_repository = RepositoryRepository(db)
+    
+    # Check existence and ownership
+    repository = await repo_repository.get_by_id(repository_id)
+    if not repository:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Repository not found"
+        )
+    
+    if repository.owner_username != current_user.username:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to delete this repository"
+        )
+    
+    deleted = await repo_repository.delete(repository_id)
+    
+    if deleted:
+        return {"message": "Repository deleted successfully"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete repository"
+        )
+
+
+@router.post("/{repository_id}/sync-issues")
+async def sync_repository_issues(
+    repository_id: str,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db)
+):
+    """
+    Sync all issues for a repository from GitHub
+    
+    Args:
+        repository_id: Repository ID
+        
+    Returns:
+        List of synced issues
+    """
+    try:
+        if not current_user.github_token:
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to create repository on GitHub"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="GitHub not connected"
             )
         
-        # Update repo_data with GitHub information
-        repo_data.github_id = gh_repo["id"]
-        repo_data.url = gh_repo["html_url"]
-        repo_data.full_name = gh_repo["full_name"]
+        repo_repository = RepositoryRepository(db)
+        issue_repository = IssueRepository(db)
         
-        # Save to database
-        repository = await repo_repo.create_repository(repo_data, current_user.username)
+        # Check repository exists and user owns it
+        repository = await repo_repository.get_by_id(repository_id)
         if not repository:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to save repository to database"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Repository not found"
             )
         
-        return repository
+        if repository.owner_username != current_user.username:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to sync this repository"
+            )
         
+        sync_service = GitHubSyncService(
+            current_user.github_token,
+            repo_repository,
+            issue_repository
+        )
+        
+        issues = await sync_service.sync_repository_issues(
+            repository_id,
+            current_user.username
+        )
+        
+        logger.info(f"Synced {len(issues)} issues for repository {repository_id}")
+        return {
+            "count": len(issues),
+            "issues": issues
+        }
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Issue sync error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create repository: {str(e)}"
-        )
-
-
-@router.get("/repositories", response_model=List[Repository])
-async def get_repositories(
-    current_user: User = Depends(get_current_user),
-    repo_repo: RepositoryRepository = Depends(get_repository_repo)
-):
-    """Get all repositories for current user"""
-    return await repo_repo.get_repositories_by_owner(current_user.username)
-
-
-@router.get("/repositories/sync-github")
-async def sync_github_repositories(
-    github_token: Optional[str] = Header(None, alias="X-GitHub-Token"),
-    current_user: User = Depends(get_current_user),
-    repo_repo: RepositoryRepository = Depends(get_repository_repo)
-):
-    """
-    Synchronize repositories from GitHub
-    Requires X-GitHub-Token header with personal access token
-    """
-    if not github_token:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="GitHub token required in X-GitHub-Token header"
-        )
-    
-    try:
-        github_service = GitHubService(github_token)
-        github_repos = await github_service.get_user_repositories()
-        
-        # Récupérer tous les repos locaux de l'utilisateur
-        local_repos = await repo_repo.get_repositories_by_owner(current_user.username)
-        
-        # Créer un set des github_ids existants sur GitHub
-        github_ids = {gh_repo["id"] for gh_repo in github_repos}
-        
-        # Supprimer les repos qui n'existent plus sur GitHub
-        deleted_count = 0
-        for local_repo in local_repos:
-            if local_repo.github_id and local_repo.github_id not in github_ids:
-                await repo_repo.delete_repository(local_repo.id)
-                deleted_count += 1
-        
-        synced_repos = []
-        for gh_repo in github_repos:
-            # Parser les dates de GitHub
-            from dateutil import parser as date_parser
-            
-            github_created_at = None
-            if gh_repo.get("created_at"):
-                try:
-                    github_created_at = date_parser.parse(gh_repo["created_at"])
-                except:
-                    pass
-            
-            github_updated_at = None
-            if gh_repo.get("updated_at"):
-                try:
-                    github_updated_at = date_parser.parse(gh_repo["updated_at"])
-                except:
-                    pass
-            
-            github_pushed_at = None
-            if gh_repo.get("pushed_at"):
-                try:
-                    github_pushed_at = date_parser.parse(gh_repo["pushed_at"])
-                except:
-                    pass
-            
-            # Créer ou mettre à jour le repository
-            repo_data = RepositoryCreate(
-                name=gh_repo["name"],
-                full_name=gh_repo["full_name"],
-                description=gh_repo.get("description"),
-                github_id=gh_repo["id"],
-                url=gh_repo["html_url"],
-                private=gh_repo["private"],
-                github_created_at=github_created_at,
-                github_updated_at=github_updated_at,
-                github_pushed_at=github_pushed_at
-            )
-            
-            # Vérifier si le repo existe déjà
-            existing_repo = await repo_repo.get_by_github_id(gh_repo["id"])
-            if existing_repo:
-                # Mettre à jour
-                repository = await repo_repo.update_repository(existing_repo.id, repo_data)
-            else:
-                # Créer
-                repository = await repo_repo.create_repository(repo_data, current_user.username)
-            
-            if repository:
-                synced_repos.append(repository)
-        
-        return {
-            "synced": len(synced_repos),
-            "deleted": deleted_count,
-            "repositories": synced_repos
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to sync GitHub repositories: {str(e)}"
+            detail=f"Failed to sync issues: {str(e)}"
         )

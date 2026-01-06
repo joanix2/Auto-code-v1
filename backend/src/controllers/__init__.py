@@ -1,18 +1,15 @@
-"""Package des contrôleurs FastAPI"""
-from . import (
-    user_controller,
-    repository_controller,
-    ticket_controller,
-    branch_controller,
-    github_issue_controller,
-    copilot_development_controller
-)
+"""
+Controllers - API Endpoints (Clean Architecture)
+"""
+from .auth_controller import router as auth_router
+from .repository_controller import router as repository_router
+from .issue_controller import router as issue_router
+from .message_controller import router as message_router
 
 __all__ = [
-    "user_controller",
-    "repository_controller",
-    "ticket_controller",
-    "branch_controller",
-    "github_issue_controller",
-    "copilot_development_controller"
+    "auth_router",
+    "repository_router",
+    "issue_router",
+    "message_router",
 ]
+
