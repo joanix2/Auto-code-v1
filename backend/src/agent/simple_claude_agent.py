@@ -210,20 +210,40 @@ Be specific about which files to modify and what changes to make.
         # Get repository structure for context
         repo_structure = self._get_repository_structure(repository_path)
         
+        # Extract file mentions from analysis and read existing files
+        existing_files_content = self._read_existing_files(repository_path, analysis)
+        
+        # Build existing files context
+        files_context = ""
+        if existing_files_content:
+            files_context = "\n**Existing Files Content:**\n"
+            for file_path, content in existing_files_content.items():
+                files_context += f"\n--- {file_path} ---\n{content}\n"
+        
         code_prompt = f"""Based on the following analysis, generate the necessary code changes.
 
 **Analysis:**
 {analysis}
+{files_context}
 
 **Repository Structure:**
 {repo_structure}
 
 **Instructions:**
-1. Generate complete, production-ready code
-2. Follow best practices and coding standards
-3. Include proper error handling
-4. Add comments for complex logic
-5. Ensure code is clean and maintainable
+1. PRESERVE existing code - only add, modify, or remove specific parts as needed
+2. For existing files, keep all current functionality unless explicitly asked to change it
+3. Add new functions/classes/features while maintaining existing ones
+4. Follow best practices and coding standards
+5. Include proper error handling
+6. Add comments for complex logic
+7. Ensure code is clean and maintainable
+
+**CRITICAL:** When modifying existing files, you MUST:
+- Read the existing file content provided above
+- Keep all existing code that is not mentioned in the requirements
+- Only add new features or modify specific parts as requested
+- Preserve existing imports, functions, classes, and logic
+- Do NOT regenerate or rewrite existing code unless specifically asked to refactor it
 
 **IMPORTANT:** You MUST respond with ONLY valid JSON. No explanations before or after.
 
@@ -239,7 +259,7 @@ Format your response as JSON with this EXACT structure:
     {{
       "path": "relative/path/to/existing_file.py",
       "action": "modify",
-      "content": "complete new file content here",
+      "content": "complete file content with existing code PRESERVED and new additions",
       "explanation": "explanation of changes made"
     }}
   ],
@@ -248,6 +268,8 @@ Format your response as JSON with this EXACT structure:
 
 Remember: 
 - Use "create" for new files, "modify" for existing files, "delete" to remove files
+- For modified files: Include COMPLETE file content (existing + new changes)
+- PRESERVE all existing code unless explicitly asked to change it
 - Provide COMPLETE file content, not diffs
 - Use relative paths from repository root
 - Respond with ONLY the JSON, nothing else
@@ -274,6 +296,63 @@ Remember:
         except Exception as e:
             logger.error(f"Error generating code changes: {e}", exc_info=True)
             raise
+    
+    def _read_existing_files(self, repository_path: Path, analysis: str) -> Dict[str, str]:
+        """
+        Read existing files that might be modified based on the analysis.
+        
+        Args:
+            repository_path: Path to the repository
+            analysis: Analysis text that may mention files
+            
+        Returns:
+            Dictionary mapping file paths to their contents
+        """
+        import re
+        
+        existing_files = {}
+        
+        # Find potential file paths in the analysis (e.g., calculator.py, src/main.py, etc.)
+        # Match patterns like: filename.ext, path/to/file.ext
+        file_patterns = re.findall(r'\b([a-zA-Z0-9_/-]+\.[a-zA-Z0-9]+)\b', analysis)
+        
+        # Also scan for common Python files in the repository
+        common_files_to_check = []
+        try:
+            for item in repository_path.rglob('*.py'):
+                if any(ignore in str(item) for ignore in ['.git', '__pycache__', 'venv', '.venv', 'node_modules']):
+                    continue
+                # Get relative path
+                rel_path = item.relative_to(repository_path)
+                common_files_to_check.append(str(rel_path))
+        except Exception as e:
+            logger.warning(f"Error scanning repository: {e}")
+        
+        # Combine both sources
+        files_to_check = set(file_patterns + common_files_to_check)
+        
+        for file_path_str in files_to_check:
+            file_path = repository_path / file_path_str
+            
+            # Check if file exists and is readable
+            if file_path.exists() and file_path.is_file():
+                try:
+                    # Read file content with size limit (max 50KB per file)
+                    file_size = file_path.stat().st_size
+                    if file_size > 50000:
+                        logger.warning(f"Skipping large file: {file_path_str} ({file_size} bytes)")
+                        continue
+                    
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        existing_files[file_path_str] = content
+                        logger.info(f"Read existing file: {file_path_str} ({len(content)} chars)")
+                        
+                except Exception as e:
+                    logger.warning(f"Could not read {file_path_str}: {e}")
+        
+        logger.info(f"Found {len(existing_files)} existing files to provide as context")
+        return existing_files
     
     def _get_repository_structure(self, repository_path: Path, max_depth: int = 3) -> str:
         """
