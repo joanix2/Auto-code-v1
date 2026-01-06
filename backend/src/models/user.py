@@ -1,66 +1,40 @@
 """
-Modèle Pydantic pour les Users
+User model - OAuth2 Authentication
 """
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
-from datetime import datetime
+from .base import BaseEntity
 
 
-class UserBase(BaseModel):
-    """Schéma de base pour un User"""
-    username: str = Field(..., min_length=3, max_length=50, description="Nom d'utilisateur")
-    email: Optional[EmailStr] = Field(None, description="Adresse email")
-    full_name: Optional[str] = Field(None, max_length=100, description="Nom complet")
-    github_token: Optional[str] = Field(None, description="Token GitHub personnel")
-    profile_picture: Optional[str] = Field(None, description="Chemin de la photo de profil")
+class User(BaseEntity):
+    """User model for OAuth2 authentication"""
+    username: str = Field(..., min_length=3, max_length=50, description="GitHub username")
+    email: Optional[EmailStr] = Field(None, description="Email address")
+    avatar_url: Optional[str] = Field(None, description="Avatar URL")
+    github_id: Optional[int] = Field(None, description="GitHub user ID")
+    github_token: Optional[str] = Field(None, exclude=True, description="GitHub access token (never exposed)")
+    is_active: bool = Field(default=True, description="User is active")
+
+
+class UserPublic(BaseModel):
+    """Public user representation (without sensitive data)"""
+    id: str
+    username: str
+    email: Optional[EmailStr]
+    avatar_url: Optional[str]
+    is_active: bool
 
 
 class UserCreate(BaseModel):
-    """Schéma pour la création d'un User"""
-    username: str = Field(..., min_length=3, max_length=50, description="Nom d'utilisateur")
-    password: str = Field(..., min_length=6, description="Mot de passe")
-    email: Optional[EmailStr] = Field(None, description="Adresse email")
-    full_name: Optional[str] = Field(None, max_length=100, description="Nom complet")
-    name: Optional[str] = Field(None, max_length=100, description="Alias pour full_name")
+    """Data needed to create a user"""
+    username: str = Field(..., min_length=3, max_length=50)
+    email: Optional[EmailStr] = None
+    github_id: Optional[int] = None
 
 
 class UserUpdate(BaseModel):
-    """Schéma pour la mise à jour d'un User"""
-    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    """Data for updating a user"""
     email: Optional[EmailStr] = None
-    full_name: Optional[str] = Field(None, max_length=100)
-    password: Optional[str] = Field(None, min_length=8)
+    avatar_url: Optional[str] = None
+    is_active: Optional[bool] = None
 
-
-class User(UserBase):
-    """Schéma complet d'un User (usage interne)"""
-    id: str = Field(..., description="ID unique de l'utilisateur")
-    password: str = Field(..., description="Mot de passe haché")
-    is_active: bool = Field(default=True, description="Utilisateur actif")
-    created_at: datetime = Field(..., description="Date de création")
-    updated_at: Optional[datetime] = Field(None, description="Date de dernière modification")
-    
-    class Config:
-        from_attributes = True
-
-
-class UserResponse(UserBase):
-    """Schéma de réponse pour un User (sans password)"""
-    id: str = Field(..., description="ID unique de l'utilisateur")
-    is_active: bool = Field(default=True, description="Utilisateur actif")
-    created_at: datetime = Field(..., description="Date de création")
-    updated_at: Optional[datetime] = Field(None, description="Date de dernière modification")
-    
-    class Config:
-        from_attributes = True
-        json_schema_extra = {
-            "example": {
-                "id": "user-123",
-                "username": "johndoe",
-                "email": "john@example.com",
-                "full_name": "John Doe",
-                "is_active": True,
-                "created_at": "2024-01-01T12:00:00",
-                "updated_at": "2024-01-02T12:00:00"
-            }
-        }

@@ -1,53 +1,39 @@
 """
-Message Model
-Represents a message in a conversation with LLM for a ticket
+Message model - PR comments and conversations
 """
-
-from typing import Optional
-from datetime import datetime
 from pydantic import BaseModel, Field
+from typing import Optional, Literal
+from .base import BaseEntity
 
 
-class Message(BaseModel):
-    """
-    Message in a ticket conversation
-    Stores LLM interactions and responses
-    """
-    id: str
-    ticket_id: str
-    role: str  # "user", "assistant", "system"
-    content: str
-    timestamp: datetime = Field(default_factory=datetime.now)
-    metadata: Optional[dict] = None  # For storing additional context
+MessageAuthorType = Literal["user", "copilot", "system"]
+
+
+class Message(BaseEntity):
+    """Message model (PR comment)"""
+    content: str = Field(..., description="Message content")
     
-    # LLM-specific fields
-    model: Optional[str] = None  # e.g., "claude-opus-4-20250514"
-    tokens_used: Optional[int] = None
-    step: Optional[str] = None  # e.g., "analysis", "code_generation", "review"
+    # Relations
+    issue_id: str = Field(..., description="Issue ID")
+    author_username: Optional[str] = Field(None, description="Author username")
+    author_type: MessageAuthorType = Field(default="user", description="Author type")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "id": "msg_abc123",
-                "ticket_id": "ticket_xyz789",
-                "role": "assistant",
-                "content": "I've analyzed the requirements and created a development plan...",
-                "timestamp": "2026-01-02T10:30:00",
-                "metadata": {
-                    "iteration": 1,
-                    "workflow_type": "standard"
-                },
-                "model": "claude-opus-4-20250514",
-                "tokens_used": 1250,
-                "step": "analysis"
-            }
-        }
+    # GitHub integration
+    github_comment_id: Optional[int] = Field(None, description="GitHub comment ID")
+    github_comment_url: Optional[str] = Field(None, description="GitHub comment URL")
 
 
 class MessageCreate(BaseModel):
-    """Schema for creating a new message"""
-    ticket_id: str
-    role: str
+    """Data needed to create a message"""
+    content: str
+    issue_id: str
+    author_type: MessageAuthorType = "user"
+
+
+class MessageUpdate(BaseModel):
+    """Data for updating a message"""
+    content: Optional[str] = None
+
     content: str
     metadata: Optional[dict] = None
     model: Optional[str] = None

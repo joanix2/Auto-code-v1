@@ -1,10 +1,16 @@
-"""Package des repositories"""
+"""
+Repositories - Data Access Layer
+"""
+from .base import BaseRepository
 from .user_repository import UserRepository
 from .repository_repository import RepositoryRepository
-from .ticket_repository import TicketRepository
+from .issue_repository import IssueRepository
+from .message_repository import MessageRepository
 
 __all__ = [
+    "BaseRepository",
     "UserRepository",
     "RepositoryRepository",
-    "TicketRepository"
+    "IssueRepository",
+    "MessageRepository",
 ]

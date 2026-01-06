@@ -105,3 +105,13 @@ class Neo4jConnection:
 
 # Instance globale
 db = Neo4jConnection()
+
+
+def get_db():
+    """
+    Dependency function for FastAPI to get database connection
+    
+    Returns:
+        Neo4jConnection instance
+    """
+    return db

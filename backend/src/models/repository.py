@@ -1,48 +1,40 @@
-"""Repository model"""
+"""
+Repository model - GitHub repositories
+"""
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
+from .base import BaseEntity
 
 
-class RepositoryBase(BaseModel):
-    """Base repository model"""
+class Repository(BaseEntity):
+    """GitHub repository model"""
     name: str = Field(..., description="Repository name")
-    full_name: Optional[str] = Field(None, description="Full repository name (owner/repo)")
+    full_name: str = Field(..., description="owner/repo")
+    owner_username: str = Field(..., description="Owner username")
     description: Optional[str] = Field(None, description="Repository description")
     github_id: Optional[int] = Field(None, description="GitHub repository ID")
-    url: Optional[str] = Field(None, description="Repository URL")
-    private: bool = Field(default=False, description="Is private repository")
-    # Dates GitHub
-    github_created_at: Optional[datetime] = Field(None, description="Repository creation date on GitHub")
-    github_updated_at: Optional[datetime] = Field(None, description="Last update date on GitHub")
-    github_pushed_at: Optional[datetime] = Field(None, description="Last push date on GitHub")
+    default_branch: str = Field(default="main", description="Default branch")
+    is_private: bool = Field(default=False, description="Is private repository")
+    
+    # Stats
+    open_issues_count: int = Field(default=0, description="Number of open issues")
 
 
-class RepositoryCreate(RepositoryBase):
-    """Model for creating a repository"""
-    pass
+class RepositoryCreate(BaseModel):
+    """Data needed to create a repository"""
+    name: str
+    full_name: str
+    owner_username: str
+    description: Optional[str] = None
+    github_id: Optional[int] = None
+    default_branch: str = "main"
+    is_private: bool = False
 
 
 class RepositoryUpdate(BaseModel):
-    """Model for updating a repository"""
+    """Data for updating a repository"""
     name: Optional[str] = None
     description: Optional[str] = None
+    default_branch: Optional[str] = None
+    open_issues_count: Optional[int] = None
 
-
-class Repository(RepositoryBase):
-    """Complete repository model"""
-    id: str = Field(..., description="Internal repository ID")
-    owner_username: str = Field(..., description="Owner username")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Created in our database")
-    updated_at: Optional[datetime] = Field(None, description="Last updated in our database")
-    
-    # Override to make these fields optional in responses
-    full_name: Optional[str] = Field(None, description="Full repository name (owner/repo)")
-    github_id: Optional[int] = Field(None, description="GitHub repository ID")
-    url: Optional[str] = Field(None, description="Repository URL")
-    github_created_at: Optional[datetime] = Field(None, description="Repository creation date on GitHub")
-    github_updated_at: Optional[datetime] = Field(None, description="Last update date on GitHub")
-    github_pushed_at: Optional[datetime] = Field(None, description="Last push date on GitHub")
-    
-    class Config:
-        from_attributes = True
