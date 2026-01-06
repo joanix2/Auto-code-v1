@@ -10,6 +10,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+async def get_github_token_from_user(username: str) -> Optional[str]:
+    """
+    Get GitHub token for a user from the database
+    
+    Args:
+        username: Username
+        
+    Returns:
+        GitHub token or None if not found
+    """
+    from ...repositories.user_repository import UserRepository
+    
+    user = UserRepository.get_by_username(username)
+    if user and user.github_token:
+        return user.github_token
+    return None
+
+
 class GitHubOAuthService:
     def __init__(self, redirect_uri: Optional[str] = None):
         self.client_id = os.getenv("GITHUB_CLIENT_ID")

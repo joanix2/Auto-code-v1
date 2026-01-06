@@ -18,7 +18,9 @@ from src.controllers import (
     message_controller,
     ticket_processing_controller,
     websocket_controller,
-    branch_controller
+    branch_controller,
+    github_issue_controller,
+    copilot_development_controller
 )
 
 logging.basicConfig(
@@ -74,6 +76,8 @@ app.include_router(message_controller.router, prefix="/api", tags=["messages"])
 app.include_router(branch_controller.router, prefix="/api", tags=["branches"])
 app.include_router(agent_controller.router, prefix="/api", tags=["agent"])
 app.include_router(ticket_processing_controller.router, prefix="/api", tags=["ticket-processing"])
+app.include_router(github_issue_controller.router, prefix="/api/github-issues", tags=["github-issues"])
+app.include_router(copilot_development_controller.router, prefix="/api/copilot", tags=["copilot-development"])
 app.include_router(websocket_controller.router)  # WebSocket routes
 app.include_router(github_oauth_controller.router)  # OAuth routes have their own prefix
 

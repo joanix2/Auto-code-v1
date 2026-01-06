@@ -7,9 +7,10 @@ interface SortableTicketCardProps {
   ticket: Ticket;
   onEdit?: (ticketId: string) => void;
   onDelete?: (ticketId: string) => void;
+  onDevelopmentStarted?: () => void;
 }
 
-export function SortableTicketCard({ ticket, onEdit, onDelete }: SortableTicketCardProps) {
+export function SortableTicketCard({ ticket, onEdit, onDelete, onDevelopmentStarted }: SortableTicketCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: ticket.id,
   });
@@ -30,7 +31,7 @@ export function SortableTicketCard({ ticket, onEdit, onDelete }: SortableTicketC
           <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z" />
         </svg>
       </div>
-      <TicketCard ticket={ticket} onEdit={onEdit} onDelete={onDelete} />
+      <TicketCard ticket={ticket} onEdit={onEdit} onDelete={onDelete} onDevelopmentStarted={onDevelopmentStarted} />
     </div>
   );
 }

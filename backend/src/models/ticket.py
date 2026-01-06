@@ -71,3 +71,5 @@ class Ticket(TicketBase):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
     iteration_count: int = Field(default=0, description="Number of processing iterations")
+    github_issue_number: Optional[int] = Field(None, description="GitHub issue number")
+    github_issue_url: Optional[str] = Field(None, description="GitHub issue URL")

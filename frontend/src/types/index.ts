@@ -83,6 +83,8 @@ export interface Ticket {
   created_by_id: string;
   created_at: string;
   updated_at?: string;
+  github_issue_number?: number;
+  github_issue_url?: string;
 }
 
 export interface TicketCreate {

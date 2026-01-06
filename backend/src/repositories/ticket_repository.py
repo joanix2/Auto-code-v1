@@ -53,7 +53,7 @@ class TicketRepository:
         })
         CREATE (u)-[:CREATED]->(t)
         CREATE (t)-[:FOR_REPO]->(r)
-        RETURN t, r.name as repository_name
+        RETURN t, r.name as repository_name, r.full_name as repository_full_name
         """
         
         params = {
@@ -109,7 +109,9 @@ class TicketRepository:
                 status=TicketStatus(ticket_node["status"]),
                 order=ticket_node.get("order", 0),
                 created_by=record["created_by"],
-                created_at=neo4j_datetime_to_python(ticket_node.get("created_at"))
+                created_at=neo4j_datetime_to_python(ticket_node.get("created_at")),
+                github_issue_number=ticket_node.get("github_issue_number"),
+                github_issue_url=ticket_node.get("github_issue_url")
             ))
         
         return tickets
@@ -152,7 +154,9 @@ class TicketRepository:
             order=ticket_node.get("order", 0),
             created_by=record["created_by"],
             created_at=neo4j_datetime_to_python(ticket_node.get("created_at")),
-            updated_at=neo4j_datetime_to_python(ticket_node.get("updated_at")) if ticket_node.get("updated_at") else None
+            updated_at=neo4j_datetime_to_python(ticket_node.get("updated_at")) if ticket_node.get("updated_at") else None,
+            github_issue_number=ticket_node.get("github_issue_number"),
+            github_issue_url=ticket_node.get("github_issue_url")
         )
     
     async def update_ticket(self, ticket_id: str, ticket_data: TicketUpdate) -> Optional[Ticket]:
@@ -214,7 +218,9 @@ class TicketRepository:
             order=ticket_node.get("order", 0),
             created_by=record["created_by"],
             created_at=neo4j_datetime_to_python(ticket_node.get("created_at")),
-            updated_at=neo4j_datetime_to_python(ticket_node.get("updated_at")) if ticket_node.get("updated_at") else None
+            updated_at=neo4j_datetime_to_python(ticket_node.get("updated_at")) if ticket_node.get("updated_at") else None,
+            github_issue_number=ticket_node.get("github_issue_number"),
+            github_issue_url=ticket_node.get("github_issue_url")
         )
     
     async def delete_ticket(self, ticket_id: str) -> bool:
@@ -227,4 +233,38 @@ class TicketRepository:
         
         result = self.db.execute_query(query, {"ticket_id": ticket_id})
         return bool(result and result[0]["deleted"] > 0)
+    
+    async def link_github_issue(
+        self, 
+        ticket_id: str, 
+        issue_number: int, 
+        issue_url: str
+    ) -> bool:
+        """
+        Link a GitHub issue to a ticket
+        
+        Args:
+            ticket_id: Ticket ID
+            issue_number: GitHub issue number
+            issue_url: GitHub issue URL
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        query = """
+        MATCH (t:Ticket {id: $ticket_id})
+        SET t.github_issue_number = $issue_number,
+            t.github_issue_url = $issue_url,
+            t.updated_at = datetime()
+        RETURN t
+        """
+        
+        params = {
+            "ticket_id": ticket_id,
+            "issue_number": issue_number,
+            "issue_url": issue_url
+        }
+        
+        result = self.db.execute_query(query, params)
+        return bool(result)
 

@@ -65,11 +65,15 @@ corriger les tickets avec claude (review des tickets par LLMs)
 
 modifier les messages
 
-relier les tickets à un projet github
+✅ relier les tickets à un projet github
 
 ajout d'un queue rabbit mq pour multi utilisateur
 
 deployement d'un blueprint (avec auth et profile)
+
+créer une iterface pour les card
+
+créer un composant générique pour la liste de card
 
 # Future
 
