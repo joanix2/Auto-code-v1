@@ -19,11 +19,15 @@
 
 ✅ créer une interface/calsse abstraite agent avec une classe dummy agent qui modifi un fichier "toto"
 
-commit
+✅ commit
 
-merge de la branche / envoie d'une PR
+✅ merge de la branche / envoie d'une PR
 
----
+relier à l'api
+
+tester dans le containner
+
+mettre pending dans le workflow
 
 créer un agent avec langgraph (agent Claude Opus 4 créé avec 3 workflows)
 
@@ -31,9 +35,13 @@ reasoning, création d'un plan
 
 modification des fichiers
 
+tester dans le containner
+
 récupérer la sortie de la CI -> nouveau message
 
-créer un nouveau ticket de bug si limite atteinte
+✅ créer un nouveau ticket de bug si limite atteinte (utilise le nombre de messages via MessageService au lieu de iteration_count)
+
+mettre en place le workflow complet
 
 # TODO
 
@@ -53,23 +61,15 @@ modifier le logo et index.html
 
 la modification de l'odre des tickets intefert avec le scroll
 
-corriger les tickets avec claude
+corriger les tickets avec claude (review des tickets par LLMs)
 
-améliorer l'agent
-
-deployement d'un blueprint (avec auth et profile)
+modifier les messages
 
 relier les tickets à un projet github
 
 ajout d'un queue rabbit mq pour multi utilisateur
 
-# Options
-
-utilisation de spec kit
-
-review des tickets par LLMs
-
-chatbot pour créer des tickets
+deployement d'un blueprint (avec auth et profile)
 
 # Future
 
@@ -84,3 +84,17 @@ ajout des KG
 ajout des ontologies
 
 règles sur le graphe
+
+ajouter la commande vocal
+
+liée des fichiers
+
+liée des images
+
+workflow multi agent
+
+gestion des tags liée aux tickets
+
+utilisation de spec kit
+
+chatbot pour créer des tickets

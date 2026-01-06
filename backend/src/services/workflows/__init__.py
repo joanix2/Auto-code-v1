@@ -1,6 +1,7 @@
 """Workflow services package"""
-from .ticket_workflow import TicketProcessingWorkflow
+from .simple_ticket_workflow import TicketProcessingWorkflow
 
 __all__ = [
     "TicketProcessingWorkflow",
 ]
+

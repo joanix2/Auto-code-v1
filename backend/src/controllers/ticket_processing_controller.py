@@ -77,18 +77,7 @@ async def start_ticket_processing(
                 detail=f"Ticket {request.ticket_id} not found"
             )
         
-        # Set ticket status to IN_PROGRESS immediately
-        from ..models.ticket import TicketUpdate, TicketStatus
-        update_data = TicketUpdate(status=TicketStatus.in_progress)
-        await ticket_repo.update_ticket(request.ticket_id, update_data)
-        
-        # Send WebSocket update
-        await manager.send_status_update(
-            request.ticket_id,
-            "IN_PROGRESS",
-            "Traitement automatique en cours de démarrage...",
-            progress=0
-        )
+        # NOTE: Status update to IN_PROGRESS will be handled by the workflow itself
         
         # Get GitHub token from user (if available)
         github_token = getattr(current_user, 'github_token', None)

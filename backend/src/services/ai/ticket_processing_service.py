@@ -17,8 +17,8 @@ from ...repositories.user_repository import UserRepository
 from ..git.git_service import GitService
 from ..git.github_service import GitHubService
 from ..ci.ci_service import CIService, CIResult
-from ..workflows.ticket_workflow import TicketProcessingWorkflow
-from ...agent.claude_agent import ClaudeAgent, AgentState
+from ..workflows.simple_ticket_workflow import TicketProcessingWorkflow  # Use simplified workflow
+# from ...agent.claude_agent import ClaudeAgent, AgentState  # TODO: Fix LangGraph compatibility
 
 logger = logging.getLogger(__name__)
 
@@ -40,14 +40,18 @@ class TicketProcessingService:
         Args:
             github_token: GitHub token for API access
         """
+        from ...database import Neo4jConnection
+        
         self.workflow = TicketProcessingWorkflow(github_token)
         self.git_service = GitService()
         self.ci_service = CIService(github_token)
         self.github_service = GitHubService(github_token) if github_token else None
         
-        self.ticket_repo = TicketRepository()
-        self.message_repo = MessageRepository()
-        self.repository_repo = RepositoryRepository()
+        # Initialize database connection for repositories
+        db = Neo4jConnection()
+        self.ticket_repo = TicketRepository(db)
+        self.message_repo = MessageRepository()  # Static methods, no db needed
+        self.repository_repo = RepositoryRepository(db)
     
     async def process_ticket(self, ticket_id: str) -> Dict[str, Any]:
         """
