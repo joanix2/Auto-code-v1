@@ -2,9 +2,11 @@
 from .git_service import GitService
 from .branch_service import BranchService
 from .github_service import GitHubService
+from .pull_request_service import PullRequestService
 
 __all__ = [
     "GitService",
     "BranchService",
     "GitHubService",
+    "PullRequestService",
 ]

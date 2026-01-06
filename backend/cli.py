@@ -14,6 +14,7 @@ from cli.commands.ticket import ticket_app
 from cli.commands.message import message_app
 from cli.commands.branch import branch_app
 from cli.commands.agent import agent_app
+from cli.commands.git import app as git_app
 from cli.commands.quickstart import quickstart_app
 
 # Initialize main Typer app
@@ -34,6 +35,7 @@ app.add_typer(ticket_app, name="ticket")
 app.add_typer(message_app, name="message")
 app.add_typer(branch_app, name="branch")
 app.add_typer(agent_app, name="agent")
+app.add_typer(git_app, name="git")
 app.add_typer(quickstart_app, name="quickstart")
 
 

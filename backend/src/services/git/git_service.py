@@ -6,7 +6,7 @@ Manages Git operations for repositories
 import os
 import subprocess
 import logging
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -492,3 +492,254 @@ class GitService:
             return bool(result.stdout.strip())
         except subprocess.CalledProcessError:
             return False
+    
+    def merge_branch(
+        self,
+        repo_url: str,
+        source_branch: str,
+        target_branch: str = "main",
+        fast_forward: bool = False
+    ) -> dict:
+        """
+        Merge a branch into another branch
+        
+        Args:
+            repo_url: Repository URL
+            source_branch: Branch to merge from
+            target_branch: Branch to merge into (default: main)
+            fast_forward: If True, only do fast-forward merge
+            
+        Returns:
+            dict with merge result:
+            {
+                "success": bool,
+                "message": str,
+                "conflicts": List[str]  # List of conflicting files if any
+            }
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repository not cloned: {repo_url}")
+        
+        try:
+            # Checkout target branch
+            logger.info(f"Checking out {target_branch}")
+            subprocess.run(
+                ['git', 'checkout', target_branch],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Pull latest changes on target branch
+            logger.info(f"Pulling latest changes on {target_branch}")
+            subprocess.run(
+                ['git', 'pull', 'origin', target_branch],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Perform merge
+            merge_args = ['git', 'merge']
+            if fast_forward:
+                merge_args.append('--ff-only')
+            else:
+                merge_args.append('--no-ff')
+            
+            merge_args.append(source_branch)
+            
+            logger.info(f"Merging {source_branch} into {target_branch}")
+            result = subprocess.run(
+                merge_args,
+                cwd=repo_path,
+                capture_output=True,
+                text=True
+            )
+            
+            if result.returncode == 0:
+                logger.info(f"Successfully merged {source_branch} into {target_branch}")
+                return {
+                    "success": True,
+                    "message": f"Successfully merged {source_branch} into {target_branch}",
+                    "conflicts": []
+                }
+            else:
+                # Check for conflicts
+                conflicts_result = subprocess.run(
+                    ['git', 'diff', '--name-only', '--diff-filter=U'],
+                    cwd=repo_path,
+                    capture_output=True,
+                    text=True
+                )
+                conflicts = conflicts_result.stdout.strip().split('\n') if conflicts_result.stdout.strip() else []
+                
+                logger.error(f"Merge conflicts detected: {conflicts}")
+                return {
+                    "success": False,
+                    "message": f"Merge conflicts detected",
+                    "conflicts": conflicts
+                }
+                
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Git merge failed: {e.stderr}")
+            raise RuntimeError(f"Git merge failed: {e.stderr}")
+    
+    def abort_merge(self, repo_url: str) -> None:
+        """
+        Abort an ongoing merge
+        
+        Args:
+            repo_url: Repository URL
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repository not cloned: {repo_url}")
+        
+        try:
+            logger.info("Aborting merge")
+            subprocess.run(
+                ['git', 'merge', '--abort'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            logger.info("Merge aborted successfully")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to abort merge: {e.stderr}")
+            raise RuntimeError(f"Failed to abort merge: {e.stderr}")
+    
+    def add_commit_and_push(
+        self,
+        repo_url: str,
+        commit_message: str,
+        branch_name: Optional[str] = None,
+        author_name: str = "AutoCode Bot",
+        author_email: str = "bot@autocode.dev",
+        files: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
+        """
+        Add, commit and push changes in one operation
+        
+        Args:
+            repo_url: Repository URL
+            commit_message: Commit message
+            branch_name: Branch to push to (uses current branch if None)
+            author_name: Author name for commit
+            author_email: Author email for commit
+            files: Specific files to add (None = add all changes)
+            
+        Returns:
+            dict with operation results:
+            {
+                "success": bool,
+                "commit_hash": str,
+                "branch": str,
+                "message": str
+            }
+        """
+        repo_path = self.get_repo_path(repo_url)
+        
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repository not cloned: {repo_url}")
+        
+        try:
+            # Check if there are changes to commit
+            if not self.has_uncommitted_changes(repo_url):
+                logger.warning("No uncommitted changes found")
+                return {
+                    "success": False,
+                    "commit_hash": None,
+                    "branch": None,
+                    "message": "No uncommitted changes to commit"
+                }
+            
+            # Stage files
+            if files:
+                # Add specific files
+                logger.info(f"Staging specific files: {files}")
+                subprocess.run(
+                    ['git', 'add'] + files,
+                    cwd=repo_path,
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+            else:
+                # Add all changes
+                logger.info("Staging all changes")
+                subprocess.run(
+                    ['git', 'add', '.'],
+                    cwd=repo_path,
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+            
+            # Commit changes
+            logger.info(f"Committing: {commit_message}")
+            subprocess.run(
+                ['git', 'commit', '-m', commit_message,
+                 f'--author={author_name} <{author_email}>'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Get commit hash
+            result = subprocess.run(
+                ['git', 'rev-parse', 'HEAD'],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            commit_hash = result.stdout.strip()
+            
+            # Get current branch if not specified
+            if not branch_name:
+                branch_name = self.get_current_branch(repo_url)
+            
+            # Push to remote
+            logger.info(f"Pushing to {branch_name}")
+            push_result = self.push_branch(repo_url, branch_name)
+            
+            if not push_result.get("success"):
+                return {
+                    "success": False,
+                    "commit_hash": commit_hash,
+                    "branch": branch_name,
+                    "message": f"Committed but push failed: {push_result.get('message')}"
+                }
+            
+            logger.info(f"Successfully added, committed ({commit_hash[:7]}) and pushed to {branch_name}")
+            
+            return {
+                "success": True,
+                "commit_hash": commit_hash,
+                "branch": branch_name,
+                "message": f"Successfully committed and pushed to {branch_name}"
+            }
+            
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Git operation failed: {e.stderr}")
+            return {
+                "success": False,
+                "commit_hash": None,
+                "branch": None,
+                "message": f"Git operation failed: {e.stderr}"
+            }
+        except Exception as e:
+            logger.error(f"Unexpected error: {e}")
+            return {
+                "success": False,
+                "commit_hash": None,
+                "branch": None,
+                "message": f"Unexpected error: {str(e)}"
+            }
