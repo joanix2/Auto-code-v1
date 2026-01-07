@@ -165,30 +165,34 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
     
     async def delete(self, resource_id: str, current_user: User, db) -> Dict[str, str]:
         """Delete issue with GitHub sync (closes issue on GitHub)"""
+        logger.info(f"🔍 IssueController.delete called for issue_id={resource_id}")
         try:
             # Validate delete and get data with GitHub context
             validated_data = await self.validate_delete(resource_id, current_user, db)
+            logger.info(f"✅ Validation passed. validated_data={validated_data}")
             
             # Extract access_token and entity_id (already passed as resource_id)
             access_token = validated_data.pop("access_token", None)
             validated_data.pop("entity_id", None)  # Remove to avoid duplication with resource_id
             
+            logger.info(f"🚀 Calling service.delete with: resource_id={resource_id}, has_token={bool(access_token)}, kwargs={validated_data}")
+            
             # Delete using service (orchestrates GitHub + DB)
             await self.service.delete(resource_id, access_token, **validated_data)
             
-            logger.info(f"Deleted issue {resource_id}")
+            logger.info(f"✅ Deleted issue {resource_id}")
             return {"message": "Issue deleted successfully"}
             
         except HTTPException:
             raise
         except httpx.HTTPStatusError as e:
-            logger.error(f"GitHub API error: {e.response.status_code} - {e.response.text}")
+            logger.error(f"❌ GitHub API error: {e.response.status_code} - {e.response.text}")
             raise HTTPException(
                 status_code=e.response.status_code,
                 detail=f"GitHub API error: {e.response.text}"
             )
         except Exception as e:
-            logger.error(f"Issue deletion error: {str(e)}")
+            logger.error(f"❌ Issue deletion error: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to delete issue: {str(e)}"

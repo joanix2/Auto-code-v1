@@ -4,6 +4,9 @@ Base Service - Abstract interfaces for all services
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, List, Optional, Dict, Any
 import httpx
+import logging
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar('T')
 
@@ -172,6 +175,7 @@ class GitHubSyncService(BaseService[T], SyncableService[T], ABC, Generic[T]):
     async def delete_on_github(
         self,
         access_token: str,
+        entity: T,
         **kwargs
     ) -> bool:
         """
@@ -179,6 +183,7 @@ class GitHubSyncService(BaseService[T], SyncableService[T], ABC, Generic[T]):
         
         Args:
             access_token: GitHub access token
+            entity: The entity object to delete
             **kwargs: Entity-specific delete parameters
             
         Returns:
@@ -269,22 +274,37 @@ class GitHubSyncService(BaseService[T], SyncableService[T], ABC, Generic[T]):
             access_token: GitHub access token
             **kwargs: Additional parameters to pass to delete_on_github (e.g., repository_full_name)
         """
+        logger.info(f"🔍 GitHubSyncService.delete called: entity_id={entity_id}, has_token={bool(access_token)}, kwargs={kwargs}")
+        
         # 1. Get current entity
         entity = await self.get_by_id(entity_id)
         if not entity:
+            logger.warning(f"⚠️ Entity not found: {entity_id}")
             return False
+        
+        logger.info(f"✅ Entity found: {entity_id}")
         
         # 2. Delete from GitHub first if token provided
         if access_token:
+            logger.info(f"🚀 Calling delete_on_github for {entity_id}")
             try:
-                await self.delete_on_github(access_token=access_token, entity_id=entity_id, **kwargs)
+                # Pass the entity itself to delete_on_github
+                await self.delete_on_github(access_token=access_token, entity=entity, **kwargs)
+                logger.info(f"✅ delete_on_github completed for {entity_id}")
             except httpx.HTTPStatusError as e:
                 # If it's a 404, the entity is already gone on GitHub, which is fine
                 if not (e.response and e.response.status_code == 404):
+                    logger.error(f"❌ GitHub API error during delete: {e.response.status_code}")
                     raise
+                logger.info(f"ℹ️ GitHub returned 404, entity already gone")
+        else:
+            logger.warning(f"⚠️ No access_token provided, skipping GitHub delete")
         
         # 3. Delete from database
-        return await self._delete_from_db(entity_id)
+        logger.info(f"🗑️ Deleting from database: {entity_id}")
+        result = await self._delete_from_db(entity_id)
+        logger.info(f"✅ Database delete completed: {entity_id}, result={result}")
+        return result
     
     # Helper methods to be implemented by child classes
     

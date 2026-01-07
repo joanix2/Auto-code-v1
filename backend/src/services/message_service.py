@@ -148,6 +148,7 @@ class MessageService(GitHubSyncService[Message]):
     async def delete_on_github(
         self,
         access_token: str,
+        entity: Any,  # Message type
         **kwargs
     ) -> bool:
         """
@@ -155,25 +156,22 @@ class MessageService(GitHubSyncService[Message]):
         
         Args:
             access_token: GitHub access token
-            **kwargs: entity_id, repository_full_name
+            entity: The message to delete
+            **kwargs: repository_full_name
         """
-        # Get message to find comment ID
-        entity_id = kwargs.get("entity_id")
-        message = await self.message_repo.get_by_id(entity_id) if entity_id else None
-        
-        if not message or not message.github_comment_id:
-            logger.warning(f"Cannot delete message {entity_id} on GitHub: no comment ID")
+        if not entity or not entity.github_comment_id:
+            logger.warning(f"Cannot delete message on GitHub: no comment ID")
             return True  # Allow DB deletion anyway
         
         repository_full_name = kwargs.get("repository_full_name")
         if not repository_full_name:
-            logger.warning(f"Cannot delete message {entity_id} on GitHub: no repository_full_name")
+            logger.warning(f"Cannot delete message on GitHub: no repository_full_name")
             return True
         
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.delete(
-                    f"https://api.github.com/repos/{repository_full_name}/issues/comments/{message.github_comment_id}",
+                    f"https://api.github.com/repos/{repository_full_name}/issues/comments/{entity.github_comment_id}",
                     headers={
                         "Authorization": f"Bearer {access_token}",
                         "Accept": "application/vnd.github.v3+json"

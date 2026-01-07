@@ -227,6 +227,7 @@ class IssueService(GitHubSyncService[Issue]):
     async def delete_on_github(
         self,
         access_token: str,
+        entity: Issue,
         **kwargs
     ) -> bool:
         """
@@ -234,32 +235,32 @@ class IssueService(GitHubSyncService[Issue]):
         
         Args:
             access_token: GitHub access token
-            **kwargs: entity_id
+            entity: The issue to delete/close
+            **kwargs: repository_full_name required
         """
         # GitHub doesn't support deleting issues, only closing them
         # We'll close the issue instead
-        entity_id = kwargs.get("entity_id")
-        issue = await self.issue_repo.get_by_id(entity_id) if entity_id else None
-        
-        if not issue:
-            return False
+        logger.info(f"🔍 delete_on_github called for issue {entity.id}")
         
         # Get repository full name
         repository_full_name = kwargs.get("repository_full_name")
         if not repository_full_name:
             # Can't close without repository info
-            logger.warning(f"Cannot close issue {entity_id} on GitHub: repository_full_name not provided")
+            logger.warning(f"⚠️ Cannot close issue {entity.id} on GitHub: repository_full_name not provided")
             return True  # Return true anyway to allow DB deletion
         
         # Check if issue has a GitHub issue number
-        if not issue.github_issue_number:
-            logger.warning(f"Cannot close issue {entity_id} on GitHub: no github_issue_number")
+        if not entity.github_issue_number:
+            logger.warning(f"⚠️ Cannot close issue {entity.id} on GitHub: no github_issue_number")
             return True  # Return true anyway to allow DB deletion
         
         try:
+            url = f"https://api.github.com/repos/{repository_full_name}/issues/{entity.github_issue_number}"
+            logger.info(f"🚀 Calling GitHub API: PATCH {url}")
+            
             async with httpx.AsyncClient() as client:
                 response = await client.patch(
-                    f"https://api.github.com/repos/{repository_full_name}/issues/{issue.github_issue_number}",
+                    url,
                     headers={
                         "Authorization": f"Bearer {access_token}",
                         "Accept": "application/vnd.github.v3+json"
@@ -267,11 +268,17 @@ class IssueService(GitHubSyncService[Issue]):
                     json={"state": "closed"}
                 )
                 response.raise_for_status()
+                logger.info(f"✅ GitHub API call successful: {response.status_code}")
                 return True
         except httpx.HTTPStatusError as e:
+            logger.error(f"❌ GitHub API error: {e.response.status_code} - {e.response.text}")
             # If it's a 404, the issue is already gone on GitHub
             if e.response and e.response.status_code == 404:
+                logger.info(f"ℹ️ Issue already gone on GitHub (404), continuing with DB deletion")
                 return True
+            raise
+        except Exception as e:
+            logger.error(f"❌ Unexpected error in delete_on_github: {str(e)}")
             raise
     
     # Implementation of SyncableService interface
