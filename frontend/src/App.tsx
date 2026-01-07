@@ -121,6 +121,17 @@ function App() {
           />
 
           <Route
+            path="/issues/:issueId/edit"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <IssueDetails />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/issues/:issueId/messages"
             element={
               <ProtectedRoute>
