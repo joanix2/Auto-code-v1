@@ -111,7 +111,8 @@ export class IssueCard extends BaseCard<Issue> {
             Voir sur GitHub
           </Button>
         )}
-        {data.assigned_to_copilot ? (
+        {/* Show Messages button if assigned to copilot, otherwise show Copilot Dev button if issue is open */}
+        {data.assigned_to_copilot && (
           <Button
             variant="default"
             size="sm"
@@ -124,7 +125,8 @@ export class IssueCard extends BaseCard<Issue> {
             <MessageSquare className="h-4 w-4 mr-2" />
             Messages
           </Button>
-        ) : data.status === "open" && (
+        )}
+        {!data.assigned_to_copilot && data.status === "open" && (
           <Button
             variant="default"
             size="sm"
