@@ -186,8 +186,10 @@ export interface BaseDetailPageLayoutProps {
 /**
  * Abstract base component for detail page layout
  * Provides common UI structure for detail pages
+ * 
+ * @template TProps - Extended props type that includes form-specific properties
  */
-export abstract class BaseDetailPageLayout extends React.Component<BaseDetailPageLayoutProps> {
+export abstract class BaseDetailPageLayout<TProps extends BaseDetailPageLayoutProps = BaseDetailPageLayoutProps> extends React.Component<TProps> {
   /**
    * Render form fields - must be implemented by derived class
    */

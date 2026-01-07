@@ -20,7 +20,7 @@ interface ExampleFormData {
 /**
  * Props interface for ExampleDetailPageLayout
  */
-interface ExampleDetailPageLayoutProps extends Omit<React.ComponentProps<typeof BaseDetailPageLayout>, 'children'> {
+interface ExampleDetailPageLayoutProps extends BaseDetailPageLayoutProps {
   formData: ExampleFormData;
   updateFormData: (updates: Partial<ExampleFormData>) => void;
 }
@@ -28,10 +28,7 @@ interface ExampleDetailPageLayoutProps extends Omit<React.ComponentProps<typeof 
 /**
  * Example concrete implementation of BaseDetailPageLayout
  */
-class ExampleDetailPageLayout extends BaseDetailPageLayout {
-  // Override props type to include our custom props
-  declare props: ExampleDetailPageLayoutProps;
-
+class ExampleDetailPageLayout extends BaseDetailPageLayout<ExampleDetailPageLayoutProps> {
   protected renderFormFields(): React.ReactNode {
     // Now we can access formData and updateFormData with proper typing
     const { formData, updateFormData } = this.props;

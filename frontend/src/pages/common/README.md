@@ -136,16 +136,22 @@ export function MyDetailsPage() {
 ### Exemple avec la Classe Abstraite (Pour une structure plus rigide)
 
 ```typescript
-import { BaseDetailPageLayout, useDetailPage, DetailPageConfig } from "@/pages/common/BaseDetailsPage";
+import { BaseDetailPageLayout, BaseDetailPageLayoutProps, useDetailPage, DetailPageConfig } from "@/pages/common/BaseDetailsPage";
 
 interface MyFormData {
   name: string;
   description: string;
 }
 
-class MyDetailPageLayout extends BaseDetailPageLayout {
+// Define custom props interface extending the base
+interface MyDetailPageLayoutProps extends BaseDetailPageLayoutProps {
+  formData: MyFormData;
+  updateFormData: (updates: Partial<MyFormData>) => void;
+}
+
+class MyDetailPageLayout extends BaseDetailPageLayout<MyDetailPageLayoutProps> {
   protected renderFormFields(): React.ReactNode {
-    const { formData, updateFormData } = this.props as any; // Type selon vos besoins
+    const { formData, updateFormData } = this.props;
     
     return (
       <>
