@@ -68,14 +68,29 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
             "issue_type": data.issue_type
         }
     
-    async def validate_update(self, resource_id: str, updates: IssueUpdate, current_user: User, db) -> None:
+    async def validate_update(self, resource_id: str, updates: IssueUpdate, current_user: User, db) -> Dict[str, Any]:
+        """Validate and prepare update data for service to update on GitHub and DB"""
         issue = await self.service.issue_repo.get_by_id(resource_id)
         if not issue:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Issue not found"
             )
-        return None  # No modified data to return
+        
+        # Get repository for full name (needed for GitHub API)
+        repository = await self.repo_repository.get_by_id(issue.repository_id)
+        if not repository:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Repository not found"
+            )
+        
+        # Prepare update data with access token and repository full name
+        update_data = updates.dict(exclude_unset=True)
+        update_data["access_token"] = current_user.github_token
+        update_data["repository_full_name"] = repository.full_name
+        
+        return update_data
     
     async def validate_delete(self, resource_id: str, current_user: User, db) -> Issue:
         issue = await self.service.issue_repo.get_by_id(resource_id)
@@ -97,6 +112,39 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
             raise HTTPException(
                 status_code=e.response.status_code,
                 detail=f"GitHub API error: {e.response.text}"
+            )
+    
+    async def update(self, resource_id: str, updates: IssueUpdate, current_user: User, db) -> Issue:
+        """Update issue using service (orchestrates GitHub + DB)"""
+        try:
+            # Validate update (returns data with access_token and repository_full_name)
+            validated_updates = await self.validate_update(resource_id, updates, current_user, db)
+            
+            # Update using service (orchestrates GitHub + DB)
+            updated_resource = await self.service.update(resource_id, validated_updates)
+            
+            if not updated_resource:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Issue not found"
+                )
+            
+            logger.info(f"Updated issue {resource_id}")
+            return updated_resource
+            
+        except HTTPException:
+            raise
+        except httpx.HTTPStatusError as e:
+            logger.error(f"GitHub API error: {e.response.status_code} - {e.response.text}")
+            raise HTTPException(
+                status_code=e.response.status_code,
+                detail=f"GitHub API error: {e.response.text}"
+            )
+        except Exception as e:
+            logger.error(f"Issue update error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to update issue: {str(e)}"
             )
     
     async def sync_from_github(self, github_token: str, current_user: User, **kwargs) -> List[Issue]:
@@ -121,8 +169,8 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
 def get_issue_controller(db = Depends(get_db)) -> IssueController:
     """FastAPI dependency to get IssueController instance"""
     issue_repository = IssueRepository(db)
-    issue_service = IssueService(issue_repository)
     repo_repository = RepositoryRepository(db)
+    issue_service = IssueService(issue_repository, repo_repository)
     return IssueController(issue_service, repo_repository)
 
 
