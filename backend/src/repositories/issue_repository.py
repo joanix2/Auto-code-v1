@@ -2,7 +2,7 @@
 Issue repository - Data access layer for GitHub issues
 """
 from typing import Optional, List
-from .base import BaseRepository
+from .base import BaseRepository, convert_neo4j_types
 from ..models.issue import Issue
 import logging
 
@@ -41,7 +41,26 @@ class IssueRepository(BaseRepository[Issue]):
         """
         
         result = self.db.execute_query(query, params)
-        return [self.model(**row["n"]) for row in result]
+        return [self.model(**convert_neo4j_types(row["n"])) for row in result]
+
+    async def get_by_github_id(self, github_id: int) -> Optional[Issue]:
+        """
+        Get issue by GitHub ID
+        
+        Args:
+            github_id: GitHub issue ID
+            
+        Returns:
+            Issue or None if not found
+        """
+        query = """
+        MATCH (n:Issue {github_id: $github_id})
+        RETURN n
+        """
+        result = self.db.execute_query(query, {"github_id": github_id})
+        if not result:
+            return None
+        return self.model(**convert_neo4j_types(result[0]["n"]))
 
     async def get_by_github_issue_number(self, repository_id: str, issue_number: int) -> Optional[Issue]:
         """
@@ -58,13 +77,13 @@ class IssueRepository(BaseRepository[Issue]):
         MATCH (n:Issue {repository_id: $repository_id, github_issue_number: $issue_number})
         RETURN n
         """
-        result = await self.db.execute_query(query, {
+        result = self.db.execute_query(query, {
             "repository_id": repository_id,
             "issue_number": issue_number
         })
         if not result:
             return None
-        return self.model(**result[0]["n"])
+        return self.model(**convert_neo4j_types(result[0]["n"]))
 
     async def link_to_github(self, issue_id: str, github_data: dict) -> Optional[Issue]:
         """
@@ -120,5 +139,5 @@ class IssueRepository(BaseRepository[Issue]):
         ORDER BY n.copilot_started_at DESC
         """
         
-        result = await self.db.execute_query(query, params)
-        return [self.model(**row["n"]) for row in result]
+        result = self.db.execute_query(query, params)
+        return [self.model(**convert_neo4j_types(row["n"])) for row in result]

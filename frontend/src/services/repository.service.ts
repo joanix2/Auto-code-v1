@@ -2,31 +2,31 @@
  * Repository Service - API calls for repositories
  */
 import { Repository, RepositoryCreate, RepositoryUpdate } from "../types";
+import { SyncableService, SyncResponse } from "./base.service";
 import { apiService } from "./api.service";
 
-class RepositoryService {
-  private basePath = "/api/repositories";
+class RepositoryService extends SyncableService<Repository, RepositoryCreate, RepositoryUpdate> {
+  protected basePath = "/api/repositories";
+
+  /**
+   * Sync repositories from GitHub to database
+   */
+  async sync(params?: { username?: string }): Promise<SyncResponse<Repository>> {
+    const response = await apiService.post<{ count: number; repositories: Repository[] }>(`${this.basePath}/sync`, { username: params?.username });
+    return {
+      success: true,
+      synced_count: response.count,
+      data: response.repositories,
+    };
+  }
 
   /**
    * Fetch all repositories from GitHub and sync to database
+   * @deprecated Use sync() instead
    */
   async syncRepositories(username?: string): Promise<Repository[]> {
-    const response = await apiService.post<{ count: number; repositories: Repository[] }>(`${this.basePath}/sync`, { username });
-    return response.repositories;
-  }
-
-  /**
-   * Get all repositories
-   */
-  async getAll(): Promise<Repository[]> {
-    return apiService.get<Repository[]>(this.basePath);
-  }
-
-  /**
-   * Get repository by ID
-   */
-  async getById(id: string): Promise<Repository> {
-    return apiService.get<Repository>(`${this.basePath}/${id}`);
+    const response = await this.sync({ username });
+    return response.data || [];
   }
 
   /**
@@ -44,28 +44,8 @@ class RepositoryService {
   }
 
   /**
-   * Create a new repository
-   */
-  async create(data: RepositoryCreate): Promise<Repository> {
-    return apiService.post<Repository>(this.basePath, data);
-  }
-
-  /**
-   * Update a repository
-   */
-  async update(id: string, data: RepositoryUpdate): Promise<Repository> {
-    return apiService.patch<Repository>(`${this.basePath}/${id}`, data);
-  }
-
-  /**
-   * Delete a repository
-   */
-  async delete(id: string): Promise<void> {
-    return apiService.delete<void>(`${this.basePath}/${id}`);
-  }
-
-  /**
    * Sync issues for a specific repository
+   * @deprecated This should be done through IssueService.sync()
    */
   async syncIssues(id: string): Promise<{ success: boolean; synced_count: number }> {
     return apiService.post(`${this.basePath}/${id}/sync-issues`);

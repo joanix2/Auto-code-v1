@@ -8,16 +8,18 @@ import { ArrowLeft } from "lucide-react";
 export function Issues() {
   const navigate = useNavigate();
   const { repositoryId } = useParams<{ repositoryId?: string }>();
-  const { issues, loading, loadIssues, assignToCopilot, deleteIssue } = useIssues(repositoryId);
+  const { issues, loading, loadIssues, assignToCopilot, deleteIssue, syncIssues } = useIssues(repositoryId);
 
   const handleAssignToCopilot = async (issueId: string) => {
     await assignToCopilot(issueId);
   };
 
   const handleDeleteIssue = async (issueId: string) => {
-    if (confirm("Are you sure you want to delete this issue?")) {
-      await deleteIssue(issueId);
-    }
+    await deleteIssue(issueId);
+  };
+
+  const handleEditIssue = (issueId: string) => {
+    navigate(`/issues/${issueId}/edit`);
   };
 
   const handleIssueClick = (issueId: string) => {
@@ -25,7 +27,9 @@ export function Issues() {
   };
 
   const handleSyncIssues = async () => {
-    await loadIssues();
+    if (syncIssues) {
+      await syncIssues();
+    }
   };
 
   return (
@@ -47,6 +51,7 @@ export function Issues() {
         onSync={repositoryId ? handleSyncIssues : undefined}
         onAssignToCopilot={handleAssignToCopilot}
         onClick={handleIssueClick}
+        onEdit={handleEditIssue}
         onDelete={handleDeleteIssue}
         createUrl={repositoryId ? `/issues/new?repository=${repositoryId}` : undefined}
       />

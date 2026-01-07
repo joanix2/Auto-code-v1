@@ -1,4 +1,4 @@
-import { AlertDialog } from "@/components/AlertDialog";
+import { AlertDialog } from "@/components/DeleteDialog";
 import { XCircle } from "lucide-react";
 
 interface ErrorDialogProps {

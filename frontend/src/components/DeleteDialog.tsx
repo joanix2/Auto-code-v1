@@ -8,7 +8,7 @@ import * as React from "react";
 
 export type AlertVariant = "success" | "error" | "warning" | "info";
 
-interface AlertDialogProps {
+interface DeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
@@ -61,7 +61,7 @@ const DialogContentWithoutClose = React.forwardRef<React.ElementRef<typeof Dialo
 );
 DialogContentWithoutClose.displayName = "DialogContentWithoutClose";
 
-export function AlertDialog({
+export function DeleteDialog({
   open,
   onOpenChange,
   title,
@@ -73,7 +73,7 @@ export function AlertDialog({
   confirmLabel = "Supprimer",
   onClose,
   onConfirm,
-}: AlertDialogProps) {
+}: DeleteDialogProps) {
   const styles = variantStyles[variant];
 
   const handleClose = () => {

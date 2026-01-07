@@ -6,6 +6,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 import logging
 import uuid
+import httpx
 
 from .base_controller import BaseController
 from ..models.user import User
@@ -24,8 +25,9 @@ logger = logging.getLogger(__name__)
 class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
     """Issue Controller with CRUD + Sync operations"""
     
-    def __init__(self, repository: IssueRepository, repo_repository: RepositoryRepository):
-        super().__init__(repository)
+    def __init__(self, service: IssueService, repo_repository: RepositoryRepository):
+        super().__init__(service.issue_repo)
+        self.service = service
         self.repo_repository = repo_repository
     
     def get_resource_name(self) -> str:
@@ -52,13 +54,22 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
                 detail="Not authorized to create issues in this repository"
             )
         
-        # Prepare data
-        validated_data = data.dict()
-        validated_data["author_username"] = current_user.username
-        return validated_data
+        # Prepare data with GitHub context for sync
+        return {
+            "access_token": current_user.github_token,
+            "repository_full_name": repository.full_name,
+            "title": data.title,
+            "description": data.description,
+            "labels": [],  # Labels can be added later
+            "repository_id": data.repository_id,
+            "author_username": current_user.username,
+            "status": "open",  # New issues are always open
+            "priority": data.priority,
+            "issue_type": data.issue_type
+        }
     
     async def validate_update(self, resource_id: str, updates: IssueUpdate, current_user: User, db) -> None:
-        issue = await self.repository.get_by_id(resource_id)
+        issue = await self.service.issue_repo.get_by_id(resource_id)
         if not issue:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -67,13 +78,26 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
         return None  # No modified data to return
     
     async def validate_delete(self, resource_id: str, current_user: User, db) -> Issue:
-        issue = await self.repository.get_by_id(resource_id)
+        issue = await self.service.issue_repo.get_by_id(resource_id)
         if not issue:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Issue not found"
             )
         return issue
+    
+    async def create(self, data: IssueCreate, current_user: User, db) -> Issue:
+        """Create issue with GitHub sync"""
+        try:
+            validated_data = await self.validate_create(data, current_user, db)
+            issue = await self.service.create(validated_data)
+            return issue
+        except httpx.HTTPStatusError as e:
+            logger.error(f"GitHub API error: {e.response.status_code} - {e.response.text}")
+            raise HTTPException(
+                status_code=e.response.status_code,
+                detail=f"GitHub API error: {e.response.text}"
+            )
     
     async def sync_from_github(self, github_token: str, current_user: User, **kwargs) -> List[Issue]:
         """Sync issues from GitHub for a specific repository"""
@@ -86,20 +110,20 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
                 detail="Owner and repo are required for issue sync"
             )
         
-        issue_service = IssueService(self.repository)
-        return await issue_service.sync_from_github(github_token, owner=owner, repo=repo)
+        return await self.service.sync_from_github(github_token, owner=owner, repo=repo)
     
     async def get_by_repository(self, repository_id: str, status_filter: Optional[str] = None) -> List[Issue]:
         """Get issues filtered by repository"""
-        return await self.repository.get_by_repository(repository_id, status_filter)
+        return await self.service.issue_repo.get_by_repository(repository_id, status_filter)
 
 
 # Dependency to get controller instance
 def get_issue_controller(db = Depends(get_db)) -> IssueController:
     """FastAPI dependency to get IssueController instance"""
     issue_repository = IssueRepository(db)
+    issue_service = IssueService(issue_repository)
     repo_repository = RepositoryRepository(db)
-    return IssueController(issue_repository, repo_repository)
+    return IssueController(issue_service, repo_repository)
 
 
 # Route handlers

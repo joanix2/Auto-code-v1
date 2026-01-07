@@ -44,18 +44,72 @@ class IssueService(GitHubSyncService[Issue]):
     
     async def map_github_to_db(self, github_data: Dict[str, Any]) -> Dict[str, Any]:
         """Map GitHub API response to database entity format"""
-        return {
+        # Extract data that might have been passed along
+        db_data = {
             "id": f"issue-{github_data['id']}",
             "github_id": github_data["id"],
-            "number": github_data["number"],
+            "github_issue_number": github_data["number"],
             "title": github_data["title"],
             "description": github_data.get("body", ""),
-            "status": github_data["state"],  # open, closed
-            "html_url": github_data["html_url"],
+            "status": "open" if github_data["state"] == "open" else "closed",
+            "github_issue_url": github_data["html_url"],
             "labels": [label["name"] for label in github_data.get("labels", [])]
         }
+        
+        # Get author from GitHub user data
+        if "user" in github_data and github_data["user"]:
+            db_data["author_username"] = github_data["user"].get("login", "")
+        
+        # These fields come from the original request data, not from GitHub
+        # They should be passed through the context
+        if "_context" in github_data:
+            context = github_data["_context"]
+            if "repository_id" in context:
+                db_data["repository_id"] = context["repository_id"]
+            if "author_username" in context:
+                db_data["author_username"] = context["author_username"]
+            if "priority" in context:
+                db_data["priority"] = context["priority"]
+            if "issue_type" in context:
+                db_data["issue_type"] = context["issue_type"]
+        
+        # Set defaults for fields not in GitHub
+        if "priority" not in db_data:
+            db_data["priority"] = "medium"
+        if "issue_type" not in db_data:
+            db_data["issue_type"] = "feature"
+        
+        return db_data
     
     # Implementation of BaseService interface
+    
+    async def create(self, data: Dict[str, Any]) -> Issue:
+        """
+        Create issue on GitHub AND in database (orchestration)
+        
+        Overrides base create to pass context through to map_github_to_db
+        """
+        access_token = data.pop("access_token")
+        
+        # Save context that GitHub won't return
+        context = {
+            "repository_id": data.get("repository_id"),
+            "author_username": data.get("author_username"),
+            "priority": data.get("priority", "medium"),
+            "issue_type": data.get("issue_type", "feature")
+        }
+        
+        # 1. Create on GitHub first
+        github_response = await self.create_on_github(access_token=access_token, **data)
+        
+        # 2. Add context to GitHub response
+        github_response["_context"] = context
+        
+        # 3. Map GitHub response to DB format
+        db_data = await self.map_github_to_db(github_response)
+        
+        # 4. Create in database
+        return await self._create_in_db(db_data)
     
     async def get_by_id(self, entity_id: str) -> Optional[Issue]:
         """Get issue by ID"""
@@ -211,7 +265,7 @@ class IssueService(GitHubSyncService[Issue]):
         self,
         access_token: str,
         owner: str,
-        repo_name: str,
+        repo: str,
         **kwargs
     ) -> List[Dict[str, Any]]:
         """
@@ -220,7 +274,7 @@ class IssueService(GitHubSyncService[Issue]):
         Args:
             access_token: GitHub access token
             owner: Repository owner
-            repo_name: Repository name
+            repo: Repository name
             
         Returns:
             List of issue data from GitHub API
@@ -232,7 +286,7 @@ class IssueService(GitHubSyncService[Issue]):
         
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"https://api.github.com/repos/{owner}/{repo_name}/issues",
+                f"https://api.github.com/repos/{owner}/{repo}/issues",
                 headers=headers,
                 params={"state": "all", "per_page": 100}
             )
@@ -250,7 +304,7 @@ class IssueService(GitHubSyncService[Issue]):
         access_token: str,
         repository_id: str = None,
         owner: str = None,
-        repo_name: str = None,
+        repo: str = None,
         **kwargs
     ) -> List[Issue]:
         """
@@ -260,18 +314,18 @@ class IssueService(GitHubSyncService[Issue]):
             access_token: GitHub access token
             repository_id: Repository ID in our database
             owner: Repository owner
-            repo_name: Repository name
+            repo: Repository name
             
         Returns:
             List of synchronized issues
         """
-        if not owner or not repo_name:
-            raise ValueError("owner and repo_name are required")
+        if not owner or not repo:
+            raise ValueError("owner and repo are required")
         
-        logger.info(f"Syncing issues for {owner}/{repo_name}")
+        logger.info(f"Syncing issues for {owner}/{repo}")
         
         # Fetch from GitHub API first
-        github_issues = await self.fetch_from_github_api(access_token, owner, repo_name)
+        github_issues = await self.fetch_from_github_api(access_token, owner, repo)
         
         synced_issues = []
         
@@ -297,7 +351,7 @@ class IssueService(GitHubSyncService[Issue]):
             
             synced_issues.append(issue)
         
-        logger.info(f"Synced {len(synced_issues)} issues for {owner}/{repo_name}")
+        logger.info(f"Synced {len(synced_issues)} issues for {owner}/{repo}")
         return synced_issues
     
     # Custom methods

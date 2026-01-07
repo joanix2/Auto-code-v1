@@ -41,7 +41,7 @@ class Issue(BaseEntity):
 class IssueCreate(BaseModel):
     """Data needed to create an issue"""
     title: str
-    description: str
+    description: str = ""
     repository_id: str
     priority: IssuePriority = "medium"
     issue_type: IssueType = "feature"

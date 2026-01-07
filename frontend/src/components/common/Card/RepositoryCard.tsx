@@ -4,8 +4,7 @@ import { Repository } from "@/types/repository";
 import { CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Github, Lock, Trash2, Edit, Calendar, GitCommit } from "lucide-react";
-import { AlertDialog } from "@/components/AlertDialog";
+import { Github, Lock, Calendar, GitCommit } from "lucide-react";
 import { formatRelativeTime, formatDate } from "@/utils/dateFormatter";
 
 interface RepositoryCardProps extends BaseCardProps<Repository> {
@@ -14,81 +13,37 @@ interface RepositoryCardProps extends BaseCardProps<Repository> {
 
 export class RepositoryCard extends BaseCard<Repository> {
   declare props: RepositoryCardProps;
-  state = {
-    showDeleteDialog: false,
-  };
 
   constructor(props: RepositoryCardProps) {
     super(props);
-    // Désactiver les boutons Edit et Delete par défaut
+    // Activer les boutons Edit et Delete du BaseCard
     this.config = {
-      showEdit: false,
-      showDelete: false,
+      showEdit: true,
+      showDelete: true,
       showFooter: true,
+      deleteEntityName: "le repository",
     };
   }
 
-  handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    this.setState({ showDeleteDialog: true });
-  };
-
-  handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    this.props.onEdit?.(this.props.data.id);
-  };
-
-  handleConfirmDelete = (e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-    this.setState({ showDeleteDialog: false });
-    // Use setTimeout to ensure dialog closes before triggering navigation
-    setTimeout(() => {
-      this.props.onDelete?.(this.props.data.id);
-    }, 0);
-  };
+  getEntityDisplayName(): string {
+    return `le repository "${this.props.data.name}"`;
+  }
 
   renderHeader() {
     const { data } = this.props;
     return (
-      <>
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1">
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              {data.name}
-              {data.is_private && (
-                <Badge variant="secondary" className="text-xs">
-                  <Lock className="w-3 h-3 mr-1" />
-                  Privé
-                </Badge>
-              )}
-            </CardTitle>
-            <CardDescription className="mt-1">{data.description || "Aucune description"}</CardDescription>
-          </div>
-          <div className="flex gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50" onClick={this.handleEditClick}>
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50" onClick={this.handleDeleteClick}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        <AlertDialog
-          open={this.state.showDeleteDialog}
-          onOpenChange={(open) => this.setState({ showDeleteDialog: open })}
-          title="Supprimer le repository"
-          description={`Êtes-vous sûr de vouloir supprimer le repository "${data.name}" ? Cette action est irréversible.`}
-          variant="error"
-          icon={Trash2}
-          closeLabel="Annuler"
-          confirmLabel="Supprimer"
-          onConfirm={this.handleConfirmDelete}
-        />
-      </>
+      <div className="flex-1">
+        <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          {data.name}
+          {data.is_private && (
+            <Badge variant="secondary" className="text-xs">
+              <Lock className="w-3 h-3 mr-1" />
+              Privé
+            </Badge>
+          )}
+        </CardTitle>
+        <CardDescription className="mt-1">{data.description || "Aucune description"}</CardDescription>
+      </div>
     );
   }
 

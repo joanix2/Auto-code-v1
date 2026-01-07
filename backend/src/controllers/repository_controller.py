@@ -319,6 +319,7 @@ async def sync_repository_issues(
     try:
         issues = await issue_service.sync_from_github(
             current_user.github_token,
+            repository_id=repository_id,
             owner=repository.owner_username,
             repo=repository.name
         )

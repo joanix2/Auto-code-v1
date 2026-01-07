@@ -230,9 +230,8 @@ export function IssueDetails() {
                   <SelectContent>
                     <SelectItem value="feature">Feature</SelectItem>
                     <SelectItem value="bug">Bug</SelectItem>
-                    <SelectItem value="enhancement">Enhancement</SelectItem>
                     <SelectItem value="documentation">Documentation</SelectItem>
-                    <SelectItem value="question">Question</SelectItem>
+                    <SelectItem value="refactor">Refactor</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -249,8 +248,8 @@ export function IssueDetails() {
                   <SelectContent>
                     <SelectItem value="open">Open</SelectItem>
                     <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="review">Review</SelectItem>
                     <SelectItem value="closed">Closed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -267,7 +266,7 @@ export function IssueDetails() {
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
                 </SelectContent>
               </Select>
             </div>

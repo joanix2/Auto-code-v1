@@ -38,7 +38,9 @@ export function useRepositories() {
     setLoading(true);
     setError(null);
     try {
-      const data = await repositoryService.syncRepositories(username);
+      // Use the new sync() method from SyncableService
+      const response = await repositoryService.sync({ username });
+      const data = response.data || [];
       setRepositories(data);
       return data;
     } catch (err) {
@@ -50,6 +52,9 @@ export function useRepositories() {
     }
   }, []);
 
+  /**
+   * @deprecated Use IssueService.sync() through useIssues hook instead
+   */
   const syncIssues = useCallback(async (repositoryId: string) => {
     setLoading(true);
     setError(null);

@@ -2,55 +2,41 @@
  * Issue Service - API calls for issues
  */
 import { Issue, IssueCreate, IssueUpdate } from "../types";
+import { SyncableService, SyncResponse } from "./base.service";
 import { apiService } from "./api.service";
 
-class IssueService {
-  private basePath = "/api/issues";
+class IssueService extends SyncableService<Issue, IssueCreate, IssueUpdate> {
+  protected basePath = "/api/issues";
+
+  /**
+   * Sync issues from GitHub for a specific repository
+   */
+  async sync(params?: { repositoryId: string }): Promise<SyncResponse<Issue>> {
+    if (!params?.repositoryId) {
+      throw new Error("Repository ID is required for syncing issues");
+    }
+
+    const response = await apiService.post<SyncResponse<Issue>>(`/api/repositories/${params.repositoryId}/sync-issues`);
+    return response;
+  }
 
   /**
    * Get all issues (optionally filter by repository and status)
+   * Override to provide custom filtering
    */
-  async getAll(repositoryId?: string, status?: string): Promise<Issue[]> {
+  async getAllIssues(repositoryId?: string, status?: string): Promise<Issue[]> {
     const params: Record<string, string> = {};
     if (repositoryId) params.repository_id = repositoryId;
     if (status) params.status = status;
 
-    return apiService.get<Issue[]>(this.basePath, { params });
-  }
-
-  /**
-   * Get issue by ID
-   */
-  async getById(id: string): Promise<Issue> {
-    return apiService.get<Issue>(`${this.basePath}/${id}`);
+    return super.getAll(params);
   }
 
   /**
    * Get issues by repository
    */
   async getByRepository(repositoryId: string, status?: string): Promise<Issue[]> {
-    return this.getAll(repositoryId, status);
-  }
-
-  /**
-   * Create a new issue
-   */
-  async create(data: IssueCreate): Promise<Issue> {
-    return apiService.post<Issue>(this.basePath, data);
-  }
-
-  /**
-   * Update an issue
-   */
-  async update(id: string, data: IssueUpdate): Promise<Issue> {
-    return apiService.patch<Issue>(`${this.basePath}/${id}`, data);
-  }
-
-  /**
-   * Delete an issue
-   */
-  async delete(id: string): Promise<void> {
-    return apiService.delete<void>(`${this.basePath}/${id}`);
+    return this.getAllIssues(repositoryId, status);
   }
 
   /**
@@ -70,7 +56,7 @@ class IssueService {
    * Get issues assigned to Copilot
    */
   async getCopilotIssues(repositoryId?: string): Promise<Issue[]> {
-    const issues = await this.getAll(repositoryId);
+    const issues = await this.getAllIssues(repositoryId);
     return issues.filter((issue) => issue.assigned_to_copilot);
   }
 }

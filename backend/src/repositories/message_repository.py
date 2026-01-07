@@ -2,7 +2,7 @@
 Message repository - Data access layer for PR comments
 """
 from typing import Optional, List
-from .base import BaseRepository
+from .base import BaseRepository, convert_neo4j_types
 from ..models.message import Message
 import logging
 
@@ -30,8 +30,8 @@ class MessageRepository(BaseRepository[Message]):
         RETURN n
         ORDER BY n.created_at ASC
         """
-        result = await self.db.execute_query(query, {"issue_id": issue_id})
-        return [self.model(**row["n"]) for row in result]
+        result = self.db.execute_query(query, {"issue_id": issue_id})
+        return [self.model(**convert_neo4j_types(row["n"])) for row in result]
 
     async def get_by_github_comment_id(self, github_comment_id: int) -> Optional[Message]:
         """
@@ -47,10 +47,10 @@ class MessageRepository(BaseRepository[Message]):
         MATCH (n:Message {github_comment_id: $github_comment_id})
         RETURN n
         """
-        result = await self.db.execute_query(query, {"github_comment_id": github_comment_id})
+        result = self.db.execute_query(query, {"github_comment_id": github_comment_id})
         if not result:
             return None
-        return self.model(**result[0]["n"])
+        return self.model(**convert_neo4j_types(result[0]["n"]))
 
     async def get_copilot_messages(self, issue_id: str) -> List[Message]:
         """
@@ -67,5 +67,5 @@ class MessageRepository(BaseRepository[Message]):
         RETURN n
         ORDER BY n.created_at ASC
         """
-        result = await self.db.execute_query(query, {"issue_id": issue_id})
-        return [self.model(**row["n"]) for row in result]
+        result = self.db.execute_query(query, {"issue_id": issue_id})
+        return [self.model(**convert_neo4j_types(row["n"])) for row in result]
