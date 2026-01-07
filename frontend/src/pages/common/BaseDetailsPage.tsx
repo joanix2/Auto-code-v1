@@ -6,9 +6,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 
 /**
- * Configuration for BaseDetailsPage
+ * Configuration for detail pages
  */
-export interface BaseDetailsPageConfig {
+export interface DetailPageConfig {
   /** Route parameter name for the entity ID (e.g., 'id', 'issueId') */
   idParamName: string;
   /** Path to navigate back to after cancel/success */
@@ -29,155 +29,183 @@ export interface BaseDetailsPageConfig {
   editButtonLabel: string;
   /** Label for cancel button */
   cancelButtonLabel: string;
+  /** Card title for edit mode */
+  editCardTitle?: string;
+  /** Card title for create mode */
+  createCardTitle?: string;
+  /** Card description for edit mode */
+  editCardDescription?: string;
+  /** Card description for create mode */
+  createCardDescription?: string;
 }
 
 /**
- * Props for BaseDetailsPage
+ * State for detail page logic
  */
-export interface BaseDetailsPageProps<TFormData> {
-  config: BaseDetailsPageConfig;
-  initialFormData: TFormData;
-  onLoadEntity?: (id: string) => Promise<TFormData>;
-  onCreateEntity: (data: TFormData) => Promise<void>;
-  onUpdateEntity: (id: string, data: TFormData) => Promise<void>;
-  validateForm?: (data: TFormData) => string | null;
-  getListPath?: (formData: TFormData) => string;
+export interface DetailPageState<TFormData> {
+  formData: TFormData;
+  loading: boolean;
+  loadingEntity: boolean;
+  error: string;
 }
 
 /**
- * Abstract base component for detail pages (create/edit)
- * Provides common functionality for form-based detail pages
+ * Handlers for detail page operations
  */
-export abstract class BaseDetailsPage<TFormData, TProps extends BaseDetailsPageProps<TFormData> = BaseDetailsPageProps<TFormData>> extends React.Component<
-  TProps,
-  {
-    formData: TFormData;
-    loading: boolean;
-    loadingEntity: boolean;
-    error: string;
+export interface DetailPageHandlers<TFormData> {
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  handleCancel: () => void;
+  updateFormData: (updates: Partial<TFormData>) => void;
+  setError: (error: string) => void;
+}
+
+/**
+ * Hook to manage detail page state and logic
+ * Provides common functionality for form-based detail pages (create/edit)
+ */
+export function useDetailPage<TFormData>(
+  config: DetailPageConfig,
+  initialFormData: TFormData,
+  options: {
+    onLoadEntity?: (id: string) => Promise<TFormData>;
+    onCreateEntity: (data: TFormData) => Promise<void>;
+    onUpdateEntity: (id: string, data: TFormData) => Promise<void>;
+    validateForm?: (data: TFormData) => string | null;
+    getListPath?: (formData: TFormData) => string;
   }
-> {
-  protected navigate: ReturnType<typeof useNavigate>;
-  protected params: ReturnType<typeof useParams>;
-  protected isEditMode: boolean;
-  protected entityId: string | undefined;
+): {
+  state: DetailPageState<TFormData>;
+  handlers: DetailPageHandlers<TFormData>;
+  isEditMode: boolean;
+  entityId: string | undefined;
+  navigate: ReturnType<typeof useNavigate>;
+} {
+  const navigate = useNavigate();
+  const params = useParams();
+  const entityId = params[config.idParamName] as string | undefined;
+  const isEditMode = !!entityId;
 
-  constructor(props: TProps) {
-    super(props);
+  const [formData, setFormData] = useState<TFormData>(initialFormData);
+  const [loading, setLoading] = useState(false);
+  const [loadingEntity, setLoadingEntity] = useState(isEditMode);
+  const [error, setError] = useState("");
 
-    // These will be set by withRouter HOC or in derived classes
-    this.navigate = (() => {}) as any;
-    this.params = {};
-    this.entityId = undefined;
-    this.isEditMode = false;
+  // Load entity data in edit mode
+  useEffect(() => {
+    const loadEntity = async () => {
+      if (!isEditMode || !entityId || !options.onLoadEntity) {
+        setLoadingEntity(false);
+        return;
+      }
 
-    this.state = {
-      formData: props.initialFormData,
-      loading: false,
-      loadingEntity: false,
-      error: "",
+      try {
+        setLoadingEntity(true);
+        setError("");
+        const data = await options.onLoadEntity(entityId);
+        setFormData(data);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : "Erreur lors du chargement";
+        setError(errorMsg);
+      } finally {
+        setLoadingEntity(false);
+      }
     };
-  }
 
-  /**
-   * Initialize navigation and params from hooks
-   * Must be called by derived class in render
-   */
-  protected initializeHooks(navigate: ReturnType<typeof useNavigate>, params: ReturnType<typeof useParams>) {
-    this.navigate = navigate;
-    this.params = params;
-    this.entityId = params[this.props.config.idParamName] as string | undefined;
-    this.isEditMode = !!this.entityId;
-  }
+    loadEntity();
+  }, [isEditMode, entityId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /**
-   * Load entity data in edit mode
-   */
-  protected async loadEntity() {
-    if (!this.isEditMode || !this.entityId || !this.props.onLoadEntity) {
-      return;
-    }
-
-    try {
-      this.setState({ loadingEntity: true, error: "" });
-      const data = await this.props.onLoadEntity(this.entityId);
-      this.setState({ formData: data });
-    } catch (err) {
-      const error = err instanceof Error ? err.message : "Erreur lors du chargement";
-      this.setState({ error });
-    } finally {
-      this.setState({ loadingEntity: false });
-    }
-  }
-
-  /**
-   * Handle form submission
-   */
-  protected handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate form
-    if (this.props.validateForm) {
-      const validationError = this.props.validateForm(this.state.formData);
+    if (options.validateForm) {
+      const validationError = options.validateForm(formData);
       if (validationError) {
-        this.setState({ error: validationError });
+        setError(validationError);
         return;
       }
     }
 
     try {
-      this.setState({ loading: true, error: "" });
+      setLoading(true);
+      setError("");
 
-      if (this.isEditMode && this.entityId) {
-        await this.props.onUpdateEntity(this.entityId, this.state.formData);
+      if (isEditMode && entityId) {
+        await options.onUpdateEntity(entityId, formData);
       } else {
-        await this.props.onCreateEntity(this.state.formData);
+        await options.onCreateEntity(formData);
       }
 
       // Navigate to list path
-      const listPath = this.props.getListPath ? this.props.getListPath(this.state.formData) : this.props.config.listPath;
-      this.navigate(listPath);
+      const listPath = options.getListPath ? options.getListPath(formData) : config.listPath;
+      navigate(listPath);
     } catch (err) {
-      const error = err instanceof Error ? err.message : `Erreur lors de ${this.isEditMode ? "la mise à jour" : "la création"}`;
-      this.setState({ error });
+      const errorMsg = err instanceof Error ? err.message : `Erreur lors de ${isEditMode ? "la mise à jour" : "la création"}`;
+      setError(errorMsg);
     } finally {
-      this.setState({ loading: false });
+      setLoading(false);
     }
   };
 
-  /**
-   * Handle cancel action
-   */
-  protected handleCancel = () => {
-    const listPath = this.props.getListPath ? this.props.getListPath(this.state.formData) : this.props.config.listPath;
-    this.navigate(listPath);
+  const handleCancel = () => {
+    const listPath = options.getListPath ? options.getListPath(formData) : config.listPath;
+    navigate(listPath);
   };
 
-  /**
-   * Update form data
-   */
-  protected updateFormData = (updates: Partial<TFormData>) => {
-    this.setState((prev) => ({
-      formData: { ...prev.formData, ...updates },
-    }));
+  const updateFormData = (updates: Partial<TFormData>) => {
+    setFormData((prev) => ({ ...prev, ...updates }));
   };
+
+  return {
+    state: { formData, loading, loadingEntity, error },
+    handlers: { handleSubmit, handleCancel, updateFormData, setError },
+    isEditMode,
+    entityId,
+    navigate,
+  };
+}
+
+/**
+ * Base component props for detail page layout
+ */
+export interface BaseDetailPageLayoutProps {
+  config: DetailPageConfig;
+  isEditMode: boolean;
+  loading: boolean;
+  loadingEntity: boolean;
+  error: string;
+  onCancel: () => void;
+  onSubmit: (e: React.FormEvent) => Promise<void>;
+  children?: React.ReactNode;
+  additionalContent?: React.ReactNode;
+}
+
+/**
+ * Abstract base component for detail page layout
+ * Provides common UI structure for detail pages
+ */
+export abstract class BaseDetailPageLayout extends React.Component<BaseDetailPageLayoutProps> {
+  /**
+   * Render form fields - must be implemented by derived class
+   */
+  protected abstract renderFormFields(): React.ReactNode;
 
   /**
    * Render the page header
    */
   protected renderHeader(): React.ReactNode {
-    const { config } = this.props;
+    const { config, isEditMode, onCancel } = this.props;
     return (
       <div className="mb-4 sm:mb-6">
-        <Button variant="ghost" size="sm" onClick={this.handleCancel} className="mb-3 sm:mb-4">
+        <Button variant="ghost" size="sm" onClick={onCancel} className="mb-3 sm:mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           {config.backButtonLabel}
         </Button>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          {this.isEditMode ? config.editTitle : config.createTitle}
+          {isEditMode ? config.editTitle : config.createTitle}
         </h1>
         <p className="mt-1 sm:mt-2 text-sm text-gray-600">
-          {this.isEditMode ? config.editDescription : config.createDescription}
+          {isEditMode ? config.editDescription : config.createDescription}
         </p>
       </div>
     );
@@ -187,12 +215,12 @@ export abstract class BaseDetailsPage<TFormData, TProps extends BaseDetailsPageP
    * Render error alert
    */
   protected renderError(): React.ReactNode {
-    if (!this.state.error) return null;
+    if (!this.props.error) return null;
 
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{this.state.error}</AlertDescription>
+        <AlertDescription>{this.props.error}</AlertDescription>
       </Alert>
     );
   }
@@ -211,49 +239,42 @@ export abstract class BaseDetailsPage<TFormData, TProps extends BaseDetailsPageP
   }
 
   /**
-   * Render form fields - must be implemented by derived class
-   */
-  protected abstract renderFormFields(): React.ReactNode;
-
-  /**
-   * Render additional content above the form (optional info cards, etc.)
-   */
-  protected renderAdditionalContent(): React.ReactNode {
-    return null;
-  }
-
-  /**
    * Render the form card
    */
   protected renderFormCard(): React.ReactNode {
-    const { config } = this.props;
-    const { loading } = this.state;
+    const { config, isEditMode, loading, onSubmit } = this.props;
 
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{this.isEditMode ? "Informations" : "Nouvelle entrée"}</CardTitle>
+          <CardTitle>
+            {isEditMode
+              ? config.editCardTitle || "Informations"
+              : config.createCardTitle || "Nouvelle entrée"}
+          </CardTitle>
           <CardDescription>
-            {this.isEditMode ? "Modifiez les champs que vous souhaitez mettre à jour" : "Fournissez les informations nécessaires"}
+            {isEditMode
+              ? config.editCardDescription || "Modifiez les champs que vous souhaitez mettre à jour"
+              : config.createCardDescription || "Fournissez les informations nécessaires"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={this.handleSubmit} className="space-y-6">
+          <form onSubmit={onSubmit} className="space-y-6">
             {this.renderFormFields()}
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={this.handleCancel} disabled={loading} className="flex-1">
+              <Button type="button" variant="outline" onClick={this.props.onCancel} disabled={loading} className="flex-1">
                 {config.cancelButtonLabel}
               </Button>
               <Button type="submit" disabled={loading} className="flex-1">
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {this.isEditMode ? "Mise à jour..." : "Création..."}
+                    {isEditMode ? "Mise à jour..." : "Création..."}
                   </>
                 ) : (
-                  <>{this.isEditMode ? config.editButtonLabel : config.createButtonLabel}</>
+                  <>{isEditMode ? config.editButtonLabel : config.createButtonLabel}</>
                 )}
               </Button>
             </div>
@@ -264,10 +285,10 @@ export abstract class BaseDetailsPage<TFormData, TProps extends BaseDetailsPageP
   }
 
   /**
-   * Main render method - can be overridden for custom layout
+   * Main render method
    */
   render(): React.ReactNode {
-    if (this.state.loadingEntity) {
+    if (this.props.loadingEntity) {
       return this.renderLoading();
     }
 
@@ -275,21 +296,10 @@ export abstract class BaseDetailsPage<TFormData, TProps extends BaseDetailsPageP
       <div className="container mx-auto max-w-2xl px-3 sm:px-4 py-4 sm:py-6">
         {this.renderHeader()}
         {this.renderError()}
-        {this.renderAdditionalContent()}
+        {this.props.additionalContent}
         {this.renderFormCard()}
+        {this.props.children}
       </div>
     );
   }
-}
-
-/**
- * Higher-order component to inject router hooks into class component
- */
-export function withRouter<P extends object>(Component: React.ComponentType<P>) {
-  return function WithRouterComponent(props: P) {
-    const navigate = useNavigate();
-    const params = useParams();
-
-    return <Component {...props} navigate={navigate} params={params} />;
-  };
 }
