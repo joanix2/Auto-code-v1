@@ -22,7 +22,7 @@ export function Layout({ children, user, onSignOut }: LayoutProps) {
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
-          <Header user={user} onSignOut={onSignOut} />
+          <Header user={user} />
 
           {/* Page Content */}
           <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>

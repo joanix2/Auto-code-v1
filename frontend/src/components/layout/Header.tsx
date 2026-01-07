@@ -9,10 +9,9 @@ interface HeaderProps {
     avatar_url?: string;
     profile_picture?: string;
   };
-  onSignOut?: () => void;
 }
 
-export function Header({ user, onSignOut }: HeaderProps) {
+export function Header({ user }: HeaderProps) {
   const getInitials = (username: string) => {
     return username.slice(0, 2).toUpperCase();
   };
