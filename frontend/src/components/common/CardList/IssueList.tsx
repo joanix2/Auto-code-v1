@@ -5,6 +5,7 @@ import { Issue } from "@/types/issue";
 
 interface IssueListProps extends BaseCardListProps<Issue> {
   onAssignToCopilot?: (issueId: string) => void;
+  onViewMessages?: (issueId: string) => void;
   onDelete?: (issueId: string) => void;
   onEdit?: (issueId: string) => void;
   onClick?: (issueId: string) => void;
@@ -14,7 +15,7 @@ export class IssueList extends BaseCardList<Issue> {
   declare props: IssueListProps;
 
   renderCard(issue: Issue) {
-    return <IssueCard data={issue} onAssignToCopilot={this.props.onAssignToCopilot} onDelete={this.props.onDelete} onEdit={this.props.onEdit} onClick={this.props.onClick} />;
+    return <IssueCard data={issue} onAssignToCopilot={this.props.onAssignToCopilot} onViewMessages={this.props.onViewMessages} onDelete={this.props.onDelete} onEdit={this.props.onEdit} onClick={this.props.onClick} />;
   }
 
   getEmptyMessage() {

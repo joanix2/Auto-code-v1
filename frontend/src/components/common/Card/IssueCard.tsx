@@ -4,10 +4,11 @@ import { Issue, IssueStatus } from "@/types/issue";
 import { CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle, Sparkles, Github } from "lucide-react";
+import { AlertCircle, CheckCircle, Sparkles, Github, MessageSquare } from "lucide-react";
 
 interface IssueCardProps extends BaseCardProps<Issue> {
   onAssignToCopilot?: (id: string) => void;
+  onViewMessages?: (id: string) => void;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 }
@@ -110,7 +111,20 @@ export class IssueCard extends BaseCard<Issue> {
             Voir sur GitHub
           </Button>
         )}
-        {data.status === "open" && !data.assigned_to_copilot && (
+        {data.assigned_to_copilot ? (
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              this.props.onViewMessages?.(data.id);
+            }}
+          >
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Messages
+          </Button>
+        ) : data.status === "open" && (
           <Button
             variant="default"
             size="sm"
