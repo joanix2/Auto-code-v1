@@ -30,9 +30,10 @@ export function Messages() {
     setSending(true);
     try {
       // Automatically prepend @copilote to the message if not already present
-      const messageToSend = newMessage.trim().startsWith('@copilote') 
-        ? newMessage 
-        : `@copilote ${newMessage}`;
+      const trimmedMessage = newMessage.trim();
+      const messageToSend = trimmedMessage.toLowerCase().startsWith('@copilote') 
+        ? trimmedMessage 
+        : `@copilote ${trimmedMessage}`;
       
       await sendMessage(messageToSend, user?.username || "anonymous");
       setNewMessage("");
