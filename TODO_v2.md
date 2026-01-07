@@ -22,19 +22,23 @@
 
 ✅ afficher le nom du repo en haut de la liste des issues
 
-filtrer les issues en fonction du status
+✅ filtrer les issues en fonction du status
 
-classe abstraite de la page détail
+✅ classe abstraite de la page détail
 
 helper pour la gestion des erreur dans le controller
 
-corriger le style de la popup de dev auto + enlever l'alerte
+✅ corriger le style de la popup de dev auto + enlever l'alerte
 
 liste des messages de la pr (utilisation automatique de @copilote)
 
 ajouter un message à la pr
 
 afficher le profile
+
+numéro de l'issue
+
+bug fix : les ticket en attente de validation passent en open
 
 deployement et url
 
