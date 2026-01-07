@@ -260,9 +260,14 @@ class GitHubSyncService(BaseService[T], SyncableService[T], ABC, Generic[T]):
         # No GitHub update needed, just update database
         return await self._update_in_db(entity_id, update_data)
     
-    async def delete(self, entity_id: str, access_token: Optional[str] = None) -> bool:
+    async def delete(self, entity_id: str, access_token: Optional[str] = None, **kwargs) -> bool:
         """
         Delete entity on GitHub AND in database (orchestration)
+        
+        Args:
+            entity_id: Entity ID
+            access_token: GitHub access token
+            **kwargs: Additional parameters to pass to delete_on_github (e.g., repository_full_name)
         """
         # 1. Get current entity
         entity = await self.get_by_id(entity_id)
@@ -272,7 +277,7 @@ class GitHubSyncService(BaseService[T], SyncableService[T], ABC, Generic[T]):
         # 2. Delete from GitHub first if token provided
         if access_token:
             try:
-                await self.delete_on_github(access_token=access_token, entity_id=entity_id)
+                await self.delete_on_github(access_token=access_token, entity_id=entity_id, **kwargs)
             except httpx.HTTPStatusError as e:
                 # If it's a 404, the entity is already gone on GitHub, which is fine
                 if not (e.response and e.response.status_code == 404):
