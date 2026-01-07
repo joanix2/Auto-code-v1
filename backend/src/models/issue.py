@@ -7,7 +7,7 @@ from datetime import datetime
 from .base import BaseEntity
 
 
-IssueStatus = Literal["open", "in_progress", "review", "closed"]
+IssueStatus = Literal["open", "in_progress", "review", "closed", "cancelled"]
 IssuePriority = Literal["low", "medium", "high", "urgent"]
 IssueType = Literal["bug", "feature", "documentation", "refactor"]
 

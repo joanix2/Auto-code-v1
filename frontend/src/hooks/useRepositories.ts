@@ -84,6 +84,21 @@ export function useRepositories() {
     }
   }, []);
 
+  const getRepository = useCallback(async (id: string): Promise<Repository> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const repository = await repositoryService.getById(id);
+      return repository;
+    } catch (err) {
+      const errorMessage = (err as ApiError)?.detail || (err as Error)?.message || "Failed to load repository";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     repositories,
     loading,
@@ -92,5 +107,6 @@ export function useRepositories() {
     syncRepositories,
     syncIssues,
     deleteRepository,
+    getRepository,
   };
 }

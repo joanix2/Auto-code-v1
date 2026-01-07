@@ -2,7 +2,7 @@
  * Issue Types
  */
 
-export type IssueStatus = "open" | "in_progress" | "review" | "closed";
+export type IssueStatus = "open" | "in_progress" | "review" | "closed" | "cancelled";
 export type IssuePriority = "low" | "medium" | "high" | "urgent";
 export type IssueType = "bug" | "feature" | "documentation" | "refactor";
 

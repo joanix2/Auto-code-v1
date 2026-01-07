@@ -12,15 +12,17 @@
 ✅ ajouter supprimer et modifier en haut à gauche
 ✅ popup de suppression
 ✅ créer une issus
-corriger la card des issues
-corriger l'édition
-supprimer une issue
-modifier une issue
-✅ syncro des issues
-filtrer les issues en fonction du status
-bouton pour lancer la codage automatique d'une issue
+✅ corriger la card des issues
+✅ corriger l'édition
+✅ supprimer une issue
 
-afficher le nom du repo en haut de la liste des issues
+✅ syncro des issues
+
+✅ bouton pour lancer la codage automatique d'une issue
+
+✅ afficher le nom du repo en haut de la liste des issues
+
+filtrer les issues en fonction du status
 
 classe abstraite de la page détail
 
@@ -28,10 +30,15 @@ helper pour la gestion des erreur dans le controller
 
 corriger le style de la popup de dev auto + enlever l'alerte
 
-liste des messages de la pr
+liste des messages de la pr (utilisation automatique de @copilote)
+
 ajouter un message à la pr
 
 afficher le profile
+
+deployement et url
+
+# Suite
 
 review des issues via IA (reformulation du ticker)
 
