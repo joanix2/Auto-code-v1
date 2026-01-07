@@ -92,14 +92,30 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
         
         return update_data
     
-    async def validate_delete(self, resource_id: str, current_user: User, db) -> Issue:
+    async def validate_delete(self, resource_id: str, current_user: User, db) -> Dict[str, Any]:
+        """Validate issue deletion and prepare data for GitHub sync"""
         issue = await self.service.issue_repo.get_by_id(resource_id)
         if not issue:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Issue not found"
             )
-        return issue
+        
+        # Get repository info for GitHub API
+        repository = await self.repo_repository.get_by_id(issue.repository_id)
+        if not repository or not repository.full_name:
+            logger.warning(f"Cannot sync issue {resource_id} deletion to GitHub: repository full_name missing")
+            # Return minimal data, will skip GitHub sync
+            return {
+                "access_token": current_user.github_token,
+                "entity_id": resource_id
+            }
+        
+        return {
+            "access_token": current_user.github_token,
+            "entity_id": resource_id,
+            "repository_full_name": repository.full_name
+        }
     
     async def create(self, data: IssueCreate, current_user: User, db) -> Issue:
         """Create issue with GitHub sync"""
@@ -145,6 +161,33 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to update issue: {str(e)}"
+            )
+    
+    async def delete(self, resource_id: str, current_user: User, db) -> Dict[str, str]:
+        """Delete issue with GitHub sync (closes issue on GitHub)"""
+        try:
+            # Validate delete and get data with GitHub context
+            validated_data = await self.validate_delete(resource_id, current_user, db)
+            
+            # Delete using service (orchestrates GitHub + DB)
+            await self.service.delete(resource_id, validated_data.get("access_token"), **validated_data)
+            
+            logger.info(f"Deleted issue {resource_id}")
+            return {"message": "Issue deleted successfully"}
+            
+        except HTTPException:
+            raise
+        except httpx.HTTPStatusError as e:
+            logger.error(f"GitHub API error: {e.response.status_code} - {e.response.text}")
+            raise HTTPException(
+                status_code=e.response.status_code,
+                detail=f"GitHub API error: {e.response.text}"
+            )
+        except Exception as e:
+            logger.error(f"Issue deletion error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to delete issue: {str(e)}"
             )
     
     async def sync_from_github(self, github_token: str, current_user: User, **kwargs) -> List[Issue]:
