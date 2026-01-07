@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams, useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRepositories } from "@/hooks/useRepositories";
 import { useIssues } from "@/hooks/useIssues";
@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import type { IssueCreate, IssueUpdate, IssuePriority, IssueType, IssueStatus } from "@/types";
+import { useBaseDetails } from "../common/BaseDetailsPage";
 
-interface IssueDetailsData {
+interface IssueFormData {
   title: string;
   description: string;
   priority: IssuePriority;
@@ -24,125 +25,84 @@ interface IssueDetailsData {
 
 export function IssueDetails() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { issueId } = useParams<{ issueId?: string }>();
   const repositoryIdParam = searchParams.get("repository");
-
-  const isEditMode = !!issueId;
 
   const { repositories, loading: loadingRepos } = useRepositories();
   const { getIssue, createIssue, updateIssue } = useIssues(repositoryIdParam || "");
 
-  const [formData, setFormData] = useState<IssueDetailsData>({
-    title: "",
-    description: "",
-    priority: "medium" as IssuePriority,
-    type: "feature" as IssueType,
-    status: "open" as IssueStatus,
-    repository_id: repositoryIdParam || "",
-  });
-
-  const [loading, setLoading] = useState(false);
-  const [loadingIssue, setLoadingIssue] = useState(isEditMode);
-  const [error, setError] = useState("");
-
-  // Load issue data for edit mode
-  useEffect(() => {
-    const loadIssue = async () => {
-      if (!isEditMode || !issueId) return;
-
-      try {
-        setLoadingIssue(true);
-        const issue = await getIssue(issueId);
-
-        setFormData({
+  const {
+    formData,
+    loading,
+    loadingEntity,
+    error,
+    isEditMode,
+    setFormData,
+    setError,
+    handleSubmit,
+    handleCancel,
+    updateFormData,
+  } = useBaseDetails<IssueFormData>(
+    "issueId",
+    {
+      title: "",
+      description: "",
+      priority: "medium" as IssuePriority,
+      type: "feature" as IssueType,
+      status: "open" as IssueStatus,
+      repository_id: repositoryIdParam || "",
+    },
+    {
+      onLoadEntity: async (id: string) => {
+        const issue = await getIssue(id);
+        return {
           title: issue.title,
           description: issue.description || "",
           priority: issue.priority,
           type: issue.issue_type,
           status: issue.status,
           repository_id: issue.repository_id,
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load issue");
-      } finally {
-        setLoadingIssue(false);
-      }
-    };
-
-    loadIssue();
-  }, [issueId, isEditMode, getIssue]);
+        };
+      },
+      onCreateEntity: async (data: IssueFormData) => {
+        const createData: IssueCreate = {
+          title: data.title.trim(),
+          description: data.description.trim() || undefined,
+          priority: data.priority,
+          issue_type: data.type,
+          repository_id: data.repository_id,
+        };
+        await createIssue(createData);
+      },
+      onUpdateEntity: async (id: string, data: IssueFormData) => {
+        const updateData: IssueUpdate = {
+          title: data.title.trim(),
+          description: data.description.trim() || undefined,
+          priority: data.priority,
+          status: data.status,
+        };
+        await updateIssue(id, updateData);
+      },
+      validateForm: (data: IssueFormData, isEdit: boolean) => {
+        if (!data.title.trim()) return "Title is required";
+        if (!isEdit && !data.repository_id) return "Please select a repository";
+        return null;
+      },
+      getSuccessPath: (data: IssueFormData) => {
+        return data.repository_id ? `/repositories/${data.repository_id}/issues` : "/repositories";
+      },
+      defaultSuccessPath: "/repositories",
+    }
+  );
 
   // Set repository from URL param
   useEffect(() => {
     if (repositoryIdParam && !isEditMode) {
       setFormData((prev) => ({ ...prev, repository_id: repositoryIdParam }));
     }
-  }, [repositoryIdParam, isEditMode]);
+  }, [repositoryIdParam, isEditMode, setFormData]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.title.trim()) {
-      setError("Title is required");
-      return;
-    }
-
-    if (!isEditMode && !formData.repository_id) {
-      setError("Please select a repository");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError("");
-
-      if (isEditMode && issueId) {
-        // Update existing issue
-        const updateData: IssueUpdate = {
-          title: formData.title.trim(),
-          description: formData.description.trim() || undefined,
-          priority: formData.priority,
-          status: formData.status,
-        };
-
-        await updateIssue(issueId, updateData);
-      } else {
-        // Create new issue
-        const createData: IssueCreate = {
-          title: formData.title.trim(),
-          description: formData.description.trim() || undefined,
-          priority: formData.priority,
-          issue_type: formData.type,
-          repository_id: formData.repository_id,
-        };
-
-        await createIssue(createData);
-      }
-
-      // Redirect to issues list
-      if (formData.repository_id) {
-        navigate(`/repositories/${formData.repository_id}/issues`);
-      } else {
-        navigate("/repositories");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : `Failed to ${isEditMode ? "update" : "create"} issue`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCancel = () => {
-    if (formData.repository_id) {
-      navigate(`/repositories/${formData.repository_id}/issues`);
-    } else {
-      navigate("/repositories");
-    }
-  };
-
-  if (loadingIssue) {
+  if (loadingEntity) {
     return (
       <div className="container mx-auto max-w-2xl px-3 sm:px-4 py-4 sm:py-6">
         <div className="flex items-center justify-center py-12">
@@ -184,7 +144,7 @@ export function IssueDetails() {
             {!isEditMode && (
               <div className="space-y-2">
                 <Label htmlFor="repository_id">Repository *</Label>
-                <Select value={formData.repository_id} onValueChange={(value) => setFormData((prev) => ({ ...prev, repository_id: value }))} disabled={loadingRepos}>
+                <Select value={formData.repository_id} onValueChange={(value) => updateFormData({ repository_id: value })} disabled={loadingRepos}>
                   <SelectTrigger id="repository_id">
                     <SelectValue placeholder="Select a repository" />
                   </SelectTrigger>
@@ -203,7 +163,7 @@ export function IssueDetails() {
             {/* Title */}
             <div className="space-y-2">
               <Label htmlFor="title">Title *</Label>
-              <Input id="title" name="title" value={formData.title} onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))} placeholder="Enter issue title" required />
+              <Input id="title" name="title" value={formData.title} onChange={(e) => updateFormData({ title: e.target.value })} placeholder="Enter issue title" required />
             </div>
 
             {/* Description */}
@@ -213,7 +173,7 @@ export function IssueDetails() {
                 id="description"
                 name="description"
                 value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => updateFormData({ description: e.target.value })}
                 placeholder="Describe the issue in detail..."
                 rows={6}
               />
@@ -223,7 +183,7 @@ export function IssueDetails() {
             {!isEditMode && (
               <div className="space-y-2">
                 <Label htmlFor="type">Type</Label>
-                <Select value={formData.type} onValueChange={(value) => setFormData((prev) => ({ ...prev, type: value as IssueType }))}>
+                <Select value={formData.type} onValueChange={(value) => updateFormData({ type: value as IssueType })}>
                   <SelectTrigger id="type">
                     <SelectValue />
                   </SelectTrigger>
@@ -241,7 +201,7 @@ export function IssueDetails() {
             {isEditMode && (
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value as IssueStatus }))}>
+                <Select value={formData.status} onValueChange={(value) => updateFormData({ status: value as IssueStatus })}>
                   <SelectTrigger id="status">
                     <SelectValue />
                   </SelectTrigger>
@@ -258,7 +218,7 @@ export function IssueDetails() {
             {/* Priority */}
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
-              <Select value={formData.priority} onValueChange={(value) => setFormData((prev) => ({ ...prev, priority: value as IssuePriority }))}>
+              <Select value={formData.priority} onValueChange={(value) => updateFormData({ priority: value as IssuePriority })}>
                 <SelectTrigger id="priority">
                   <SelectValue />
                 </SelectTrigger>
