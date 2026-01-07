@@ -1,6 +1,8 @@
-repos dans l'ordre des plus récent
+✅ repos dans l'ordre des plus récent
+bug à la connexion
 bug de redirection à la supression d'un repo
 editer un repo
+afficher la date de création et celle du dernier commit dans la card
 
 liste des issues
 corriger la carde des issues

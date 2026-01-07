@@ -33,10 +33,8 @@ export function Login() {
         title: "Successfully authenticated",
         description: "Redirecting to repositories...",
       });
-      // Reload to trigger auth context update
-      setTimeout(() => {
-        window.location.href = "/repositories";
-      }, 1000);
+      // Use replace to avoid double loading
+      window.location.replace("/repositories");
     }
   }, [searchParams, toast]);
 

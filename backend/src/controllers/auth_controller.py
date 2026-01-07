@@ -14,6 +14,7 @@ from ..services.user_service import UserService
 from ..repositories.user_repository import UserRepository
 from ..database import get_db
 from ..utils.auth import get_current_user, create_access_token
+from ..utils.config import config
 from neo4j import AsyncDriver
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
@@ -90,14 +91,12 @@ async def github_callback(
         jwt_token = create_access_token(data={"sub": user.username, "user_id": user.id})
         
         # Redirect to frontend with token as query parameter
-        frontend_url = "http://localhost:3000"  # Frontend port
-        return RedirectResponse(url=f"{frontend_url}/login?token={jwt_token}")
+        return RedirectResponse(url=f"{config.FRONTEND_URL}/login?token={jwt_token}")
         
     except Exception as e:
         logger.error(f"OAuth callback error: {str(e)}")
         # Redirect to frontend with error
-        frontend_url = "http://localhost:3001"
-        return RedirectResponse(url=f"{frontend_url}/login?error={str(e)}")
+        return RedirectResponse(url=f"{config.FRONTEND_URL}/login?error={str(e)}")
 
 
 @router.get("/me", response_model=UserPublic)

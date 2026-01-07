@@ -50,12 +50,6 @@ variable "neo4j_password" {
   default     = "autocode_neo4j_2026"
 }
 
-variable "anthropic_api_key" {
-  description = "Anthropic API Key for Claude"
-  type        = string
-  sensitive   = true
-}
-
 variable "github_client_id" {
   description = "GitHub OAuth Client ID"
   type        = string

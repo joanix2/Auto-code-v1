@@ -55,18 +55,18 @@ class RepositoryRepository(BaseRepository[Repository]):
 
     async def get_by_owner(self, owner_username: str) -> List[Repository]:
         """
-        Get all repositories for an owner
+        Get all repositories for an owner, ordered by most recent commit
         
         Args:
             owner_username: Owner username
             
         Returns:
-            List of repositories
+            List of repositories ordered by last commit date (most recent first)
         """
         query = """
         MATCH (n:Repository {owner_username: $owner_username})
         RETURN n
-        ORDER BY n.created_at DESC
+        ORDER BY n.github_pushed_at DESC
         """
         result = self.db.execute_query(query, {"owner_username": owner_username})
         return [self.model(**convert_neo4j_types(row["n"])) for row in result]

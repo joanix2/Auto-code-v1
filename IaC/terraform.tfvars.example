@@ -1,17 +1,14 @@
 # AWS Configuration
 aws_region = "eu-west-3"
 
-# GitHub Configuration
+# GitHub Configuration (for Terraform provider - manages GitHub secrets)
 github_token       = "ghp_your_github_token_here"  # Personal Access Token with repo and admin:repo_hook scopes
 github_repo_owner  = "joanix2"
 github_repo_name   = "Auto-code-v1"
 
-# GitHub OAuth App
+# GitHub OAuth App (for user authentication)
 github_client_id     = "your_github_oauth_client_id"
 github_client_secret = "your_github_oauth_client_secret"
-
-# Anthropic API
-anthropic_api_key = "sk-ant-your_anthropic_key_here"
 
 # Neo4j Database
 neo4j_password = "your_secure_neo4j_password"

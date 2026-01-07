@@ -11,11 +11,6 @@ load_dotenv(dotenv_path=env_path)
 class Config:
     """Application configuration"""
     
-    # GitHub Settings
-    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
-    GITHUB_OWNER = os.getenv("GITHUB_OWNER", "")
-    GITHUB_REPO = os.getenv("GITHUB_REPO", "")
-    
     # Neo4j Settings
     NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
     NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")

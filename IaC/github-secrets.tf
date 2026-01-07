@@ -19,18 +19,6 @@ resource "github_actions_secret" "neo4j_password" {
   plaintext_value = var.neo4j_password
 }
 
-resource "github_actions_secret" "gh_token" {
-  repository      = var.github_repo_name
-  secret_name     = "GH_TOKEN"
-  plaintext_value = var.github_token
-}
-
-resource "github_actions_secret" "anthropic_api_key" {
-  repository      = var.github_repo_name
-  secret_name     = "ANTHROPIC_API_KEY"
-  plaintext_value = var.anthropic_api_key
-}
-
 resource "github_actions_secret" "github_client_id" {
   repository      = var.github_repo_name
   secret_name     = "GH_CLIENT_ID"
@@ -46,12 +34,10 @@ resource "github_actions_secret" "github_client_secret" {
 # Output pour confirmation
 output "github_secrets_configured" {
   value = {
-    ssh_private_key_configured    = github_actions_secret.ssh_private_key.secret_name
-    ec2_public_ip_configured      = github_actions_secret.ec2_public_ip.secret_name
-    neo4j_password_configured     = github_actions_secret.neo4j_password.secret_name
-    gh_token_configured           = github_actions_secret.gh_token.secret_name
-    anthropic_api_key_configured  = github_actions_secret.anthropic_api_key.secret_name
-    github_client_id_configured   = github_actions_secret.github_client_id.secret_name
+    ssh_private_key_configured      = github_actions_secret.ssh_private_key.secret_name
+    ec2_public_ip_configured        = github_actions_secret.ec2_public_ip.secret_name
+    neo4j_password_configured       = github_actions_secret.neo4j_password.secret_name
+    github_client_id_configured     = github_actions_secret.github_client_id.secret_name
     github_client_secret_configured = github_actions_secret.github_client_secret.secret_name
   }
   description = "GitHub Actions secrets that have been configured"
