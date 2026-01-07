@@ -7,6 +7,7 @@ import { RepositoryDetails } from "./pages/repository/RepositoryDetails";
 import { Issues } from "./pages/issues/Issues";
 import IssueDetails from "./pages/issues/IssueDetails";
 import { Messages } from "./pages/messages/Messages";
+import Profile from "./pages/profile/Profile";
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -101,6 +102,18 @@ function App() {
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <IssueDetails />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Profile route */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <Profile />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }
