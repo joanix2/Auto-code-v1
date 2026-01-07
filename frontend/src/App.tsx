@@ -26,10 +26,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Authenticated Layout Wrapper
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
   return (
-    <Layout user={user} onSignOut={signOut}>
+    <Layout user={user}>
       {children}
     </Layout>
   );
