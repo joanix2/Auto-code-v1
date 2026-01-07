@@ -48,9 +48,9 @@ export abstract class BaseCard<T extends { id: string }> extends React.Component
 
   render() {
     return (
-      <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={this.handleClick}>
+      <Card className="cursor-pointer hover:shadow-lg transition-shadow flex flex-col h-full" onClick={this.handleClick}>
         <CardHeader>{this.renderHeader()}</CardHeader>
-        <CardContent>{this.renderContent()}</CardContent>
+        <CardContent className="flex-1">{this.renderContent()}</CardContent>
         {this.config.showFooter && (
           <CardFooter className="flex gap-2">
             {this.renderFooter()}

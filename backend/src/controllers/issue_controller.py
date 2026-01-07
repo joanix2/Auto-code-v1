@@ -2,15 +2,18 @@
 Issue Controller - Manage GitHub issues (1 Issue = 1 Branch = 1 PR)
 """
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 import logging
+import uuid
 
+from .base_controller import BaseController
 from ..models.user import User
 from ..models.issue import Issue, IssueCreate, IssueUpdate
 from ..repositories.issue_repository import IssueRepository
 from ..repositories.repository_repository import RepositoryRepository
 from ..services.copilot_agent_service import GitHubCopilotAgentService
+from ..services.issue_service import IssueService
 from ..utils.auth import get_current_user
 from ..database import get_db
 
@@ -18,49 +21,97 @@ router = APIRouter(prefix="/api/issues", tags=["issues"])
 logger = logging.getLogger(__name__)
 
 
+class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
+    """Issue Controller with CRUD + Sync operations"""
+    
+    def __init__(self, repository: IssueRepository, repo_repository: RepositoryRepository):
+        super().__init__(repository)
+        self.repo_repository = repo_repository
+    
+    def get_resource_name(self) -> str:
+        return "issue"
+    
+    def get_resource_name_plural(self) -> str:
+        return "issues"
+    
+    async def generate_id(self, data: Dict[str, Any]) -> str:
+        return f"issue-{uuid.uuid4()}"
+    
+    async def validate_create(self, data: IssueCreate, current_user: User, db) -> Dict[str, Any]:
+        # Verify repository exists and user has access
+        repository = await self.repo_repository.get_by_id(data.repository_id)
+        if not repository:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Repository not found"
+            )
+        
+        if repository.owner_username != current_user.username:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to create issues in this repository"
+            )
+        
+        # Prepare data
+        validated_data = data.dict()
+        validated_data["author_username"] = current_user.username
+        return validated_data
+    
+    async def validate_update(self, resource_id: str, updates: IssueUpdate, current_user: User, db) -> None:
+        issue = await self.repository.get_by_id(resource_id)
+        if not issue:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Issue not found"
+            )
+    
+    async def validate_delete(self, resource_id: str, current_user: User, db) -> Issue:
+        issue = await self.repository.get_by_id(resource_id)
+        if not issue:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Issue not found"
+            )
+        return issue
+    
+    async def sync_from_github(self, github_token: str, current_user: User, **kwargs) -> List[Issue]:
+        """Sync issues from GitHub for a specific repository"""
+        owner = kwargs.get("owner")
+        repo = kwargs.get("repo")
+        
+        if not owner or not repo:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Owner and repo are required for issue sync"
+            )
+        
+        issue_service = IssueService(self.repository)
+        return await issue_service.sync_from_github(github_token, owner=owner, repo=repo)
+    
+    async def get_by_repository(self, repository_id: str, status_filter: Optional[str] = None) -> List[Issue]:
+        """Get issues filtered by repository"""
+        return await self.repository.get_by_repository(repository_id, status_filter)
+
+
+# Dependency to get controller instance
+def get_issue_controller(db = Depends(get_db)) -> IssueController:
+    """FastAPI dependency to get IssueController instance"""
+    issue_repository = IssueRepository(db)
+    repo_repository = RepositoryRepository(db)
+    return IssueController(issue_repository, repo_repository)
+
+
+# Route handlers
+
 @router.post("/", response_model=Issue)
 async def create_issue(
     issue_data: IssueCreate,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db = Depends(get_db),
+    controller: IssueController = Depends(get_issue_controller)
 ):
-    """
-    Create a new issue
-    
-    Args:
-        issue_data: Issue creation data
-        
-    Returns:
-        Created issue
-    """
-    import uuid
-    
-    issue_repository = IssueRepository(db)
-    repo_repository = RepositoryRepository(db)
-    
-    # Verify repository exists and user has access
-    repository = await repo_repository.get_by_id(issue_data.repository_id)
-    if not repository:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Repository not found"
-        )
-    
-    if repository.owner_username != current_user.username:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to create issues in this repository"
-        )
-    
-    # Create issue
-    data = issue_data.dict()
-    data["id"] = f"issue-{uuid.uuid4()}"
-    data["author_username"] = current_user.username
-    
-    issue = await issue_repository.create(data)
-    logger.info(f"Created issue {issue.id} in repository {repository.name}")
-    
-    return issue
+    """Create a new issue"""
+    return await controller.create(issue_data, current_user, db)
 
 
 @router.get("/", response_model=List[Issue])
@@ -70,55 +121,25 @@ async def list_issues(
     skip: int = 0,
     limit: int = 100,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db = Depends(get_db),
+    controller: IssueController = Depends(get_issue_controller)
 ):
-    """
-    List all issues
-    
-    Args:
-        repository_id: Filter by repository ID
-        status: Filter by status
-        skip: Number to skip (pagination)
-        limit: Maximum number to return
-        
-    Returns:
-        List of issues
-    """
-    issue_repository = IssueRepository(db)
-    
+    """List all issues with optional filters"""
     if repository_id:
-        issues = await issue_repository.get_by_repository(repository_id, status)
+        return await controller.get_by_repository(repository_id, status)
     else:
-        issues = await issue_repository.get_all(skip, limit)
-    
-    return issues
+        return await controller.get_all(current_user, db, skip, limit)
 
 
 @router.get("/{issue_id}", response_model=Issue)
 async def get_issue(
     issue_id: str,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db = Depends(get_db),
+    controller: IssueController = Depends(get_issue_controller)
 ):
-    """
-    Get issue by ID
-    
-    Args:
-        issue_id: Issue ID
-        
-    Returns:
-        Issue details
-    """
-    issue_repository = IssueRepository(db)
-    issue = await issue_repository.get_by_id(issue_id)
-    
-    if not issue:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Issue not found"
-        )
-    
-    return issue
+    """Get issue by ID"""
+    return await controller.get_by_id(issue_id, current_user, db)
 
 
 @router.patch("/{issue_id}", response_model=Issue)
@@ -126,68 +147,22 @@ async def update_issue(
     issue_id: str,
     updates: IssueUpdate,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db = Depends(get_db),
+    controller: IssueController = Depends(get_issue_controller)
 ):
-    """
-    Update an issue
-    
-    Args:
-        issue_id: Issue ID
-        updates: Fields to update
-        
-    Returns:
-        Updated issue
-    """
-    issue_repository = IssueRepository(db)
-    
-    issue = await issue_repository.get_by_id(issue_id)
-    if not issue:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Issue not found"
-        )
-    
-    updated_issue = await issue_repository.update(
-        issue_id,
-        updates.dict(exclude_unset=True)
-    )
-    
-    return updated_issue
+    """Update an issue"""
+    return await controller.update(issue_id, updates, current_user, db)
 
 
 @router.delete("/{issue_id}")
 async def delete_issue(
     issue_id: str,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db = Depends(get_db),
+    controller: IssueController = Depends(get_issue_controller)
 ):
-    """
-    Delete an issue
-    
-    Args:
-        issue_id: Issue ID
-        
-    Returns:
-        Success message
-    """
-    issue_repository = IssueRepository(db)
-    
-    issue = await issue_repository.get_by_id(issue_id)
-    if not issue:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Issue not found"
-        )
-    
-    deleted = await issue_repository.delete(issue_id)
-    
-    if deleted:
-        return {"message": "Issue deleted successfully"}
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete issue"
-        )
+    """Delete an issue"""
+    return await controller.delete(issue_id, current_user, db)
 
 
 @router.post("/{issue_id}/assign-to-copilot")

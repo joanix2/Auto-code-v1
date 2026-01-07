@@ -36,7 +36,7 @@ class GitHubOAuthService:
         params = {
             "client_id": self.client_id,
             "redirect_uri": self.redirect_uri,
-            "scope": "repo user:email",
+            "scope": "repo delete_repo user:email",
             "state": state,
         }
         query_string = "&".join([f"{k}={v}" for k, v in params.items()])

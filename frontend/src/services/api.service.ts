@@ -1,10 +1,10 @@
 /**
  * API Service - Base Axios client configuration
  */
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ApiError } from '../types';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { ApiError } from "../types";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 class ApiService {
   private client: AxiosInstance;
@@ -13,14 +13,14 @@ class ApiService {
     this.client = axios.create({
       baseURL: API_BASE_URL,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     // Request interceptor to add auth token
     this.client.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('access_token');
+        const token = localStorage.getItem("token");
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -34,8 +34,8 @@ class ApiService {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          localStorage.removeItem('access_token');
-          window.location.href = '/login';
+          localStorage.removeItem("token");
+          window.location.href = "/login";
         }
         return Promise.reject(this.handleError(error));
       }
@@ -46,12 +46,12 @@ class ApiService {
     const err = error as { response?: { data?: { detail?: string }; status?: number }; message?: string };
     if (err.response) {
       return {
-        detail: err.response.data?.detail || err.message || 'Unknown error',
+        detail: err.response.data?.detail || err.message || "Unknown error",
         status: err.response.status,
       };
     }
     return {
-      detail: err.message || 'An unexpected error occurred',
+      detail: err.message || "An unexpected error occurred",
     };
   }
 

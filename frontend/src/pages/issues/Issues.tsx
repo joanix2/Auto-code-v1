@@ -29,16 +29,16 @@ export function Issues() {
   };
 
   return (
-    <div className="container mx-auto max-w-7xl">
-      <div className="mb-6">
+    <div className="container mx-auto max-w-7xl p-3 sm:p-6">
+      <div className="mb-4 sm:mb-6">
         {repositoryId && (
-          <Button variant="ghost" size="sm" onClick={() => navigate("/repositories")} className="mb-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/repositories")} className="mb-3 sm:mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Repositories
           </Button>
         )}
-        <h1 className="text-3xl font-bold text-gray-900">Issues</h1>
-        <p className="mt-2 text-sm text-gray-600">{repositoryId ? "View and manage issues for this repository" : "View and manage all issues"}</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Issues</h1>
+        <p className="mt-1 sm:mt-2 text-sm text-gray-600">{repositoryId ? "View and manage issues for this repository" : "View and manage all issues"}</p>
       </div>
 
       <IssueList
@@ -48,6 +48,7 @@ export function Issues() {
         onAssignToCopilot={handleAssignToCopilot}
         onClick={handleIssueClick}
         onDelete={handleDeleteIssue}
+        createUrl={repositoryId ? `/issues/new?repository=${repositoryId}` : undefined}
       />
     </div>
   );

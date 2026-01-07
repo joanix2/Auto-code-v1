@@ -92,15 +92,15 @@ export function Messages() {
   };
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-6">
+    <div className="container mx-auto max-w-4xl px-3 sm:px-4 py-4 sm:py-6">
       {/* Header */}
-      <div className="mb-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
+      <div className="mb-4 sm:mb-6">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-3 sm:mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Issues
         </Button>
-        <h1 className="text-3xl font-bold text-gray-900">Issue Conversation</h1>
-        <p className="mt-2 text-sm text-gray-600">Chat with Copilot about this issue</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Issue Conversation</h1>
+        <p className="mt-1 sm:mt-2 text-sm text-gray-600">Chat with Copilot about this issue</p>
       </div>
 
       {/* Error Alert */}
@@ -112,7 +112,7 @@ export function Messages() {
       )}
 
       {/* Messages Container */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {/* Messages List */}
         <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto pr-2">
           {loading && messages.length === 0 ? (

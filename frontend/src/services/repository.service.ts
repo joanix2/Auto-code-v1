@@ -11,7 +11,8 @@ class RepositoryService {
    * Fetch all repositories from GitHub and sync to database
    */
   async syncRepositories(username?: string): Promise<Repository[]> {
-    return apiService.post<Repository[]>(`${this.basePath}/sync`, { username });
+    const response = await apiService.post<{ count: number; repositories: Repository[] }>(`${this.basePath}/sync`, { username });
+    return response.repositories;
   }
 
   /**

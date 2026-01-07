@@ -24,4 +24,8 @@ export class RepositoryList extends BaseCardList<Repository> {
   getSyncButtonLabel() {
     return "Sync Repositories";
   }
+
+  getCreateButtonLabel() {
+    return "Créer un repository";
+  }
 }

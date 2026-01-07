@@ -118,14 +118,12 @@ class RepositoryService(BaseService[Repository], SyncableService[Repository]):
             
             repo_data = {
                 "github_id": gh_repo["id"],
-                "owner": gh_repo["owner"]["login"],
+                "owner_username": gh_repo["owner"]["login"],
                 "name": gh_repo["name"],
                 "full_name": gh_repo["full_name"],
                 "description": gh_repo.get("description"),
                 "is_private": gh_repo["private"],
                 "default_branch": gh_repo["default_branch"],
-                "html_url": gh_repo["html_url"],
-                "clone_url": gh_repo["clone_url"]
             }
             
             if existing_repo:

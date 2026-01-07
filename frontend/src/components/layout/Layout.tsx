@@ -25,7 +25,7 @@ export function Layout({ children, user, onSignOut }: LayoutProps) {
           <Header user={user} onSignOut={onSignOut} />
 
           {/* Page Content */}
-          <main className="flex-1 overflow-y-auto bg-gray-50 p-6">{children}</main>
+          <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>
         </div>
       </div>
     </div>

@@ -23,12 +23,8 @@ class Repository(BaseEntity):
 class RepositoryCreate(BaseModel):
     """Data needed to create a repository"""
     name: str
-    full_name: str
-    owner_username: str
     description: Optional[str] = None
-    github_id: Optional[int] = None
-    default_branch: str = "main"
-    is_private: bool = False
+    private: bool = False
 
 
 class RepositoryUpdate(BaseModel):

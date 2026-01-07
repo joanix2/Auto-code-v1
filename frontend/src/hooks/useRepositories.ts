@@ -1,19 +1,19 @@
 /**
  * useRepositories Hook - Manage repositories state and actions
  */
-import { useState, useEffect, useCallback } from 'react';
-import { Repository } from '../types';
-import { repositoryService } from '../services/repository.service';
+import { useState, useEffect, useCallback } from "react";
+import { Repository } from "../types";
+import { repositoryService } from "../services/repository.service";
+
+interface ApiError {
+  detail?: string;
+  message?: string;
+}
 
 export function useRepositories() {
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Load repositories on mount
-  useEffect(() => {
-    loadRepositories();
-  }, []);
 
   const loadRepositories = useCallback(async () => {
     setLoading(true);
@@ -22,11 +22,17 @@ export function useRepositories() {
       const data = await repositoryService.getAll();
       setRepositories(data);
     } catch (err) {
-      setError((err as Error).message);
+      const errorMessage = (err as ApiError)?.detail || (err as Error)?.message || "Failed to load repositories";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  // Load repositories on mount
+  useEffect(() => {
+    loadRepositories();
+  }, [loadRepositories]);
 
   const syncRepositories = useCallback(async (username?: string) => {
     setLoading(true);
@@ -36,7 +42,8 @@ export function useRepositories() {
       setRepositories(data);
       return data;
     } catch (err) {
-      setError((err as Error).message);
+      const errorMessage = (err as ApiError)?.detail || (err as Error)?.message || "Failed to sync repositories";
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -49,7 +56,8 @@ export function useRepositories() {
     try {
       await repositoryService.syncIssues(repositoryId);
     } catch (err) {
-      setError((err as Error).message);
+      const errorMessage = (err as ApiError)?.detail || (err as Error)?.message || "Failed to sync issues";
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -63,7 +71,8 @@ export function useRepositories() {
       await repositoryService.delete(id);
       setRepositories((prev) => prev.filter((repo) => repo.id !== id));
     } catch (err) {
-      setError((err as Error).message);
+      const errorMessage = (err as ApiError)?.detail || (err as Error)?.message || "Failed to delete repository";
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);

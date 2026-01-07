@@ -40,7 +40,7 @@ class IssueRepository(BaseRepository[Issue]):
         ORDER BY n.created_at DESC
         """
         
-        result = await self.db.execute_query(query, params)
+        result = self.db.execute_query(query, params)
         return [self.model(**row["n"]) for row in result]
 
     async def get_by_github_issue_number(self, repository_id: str, issue_number: int) -> Optional[Issue]:

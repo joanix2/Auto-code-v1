@@ -108,7 +108,7 @@ class UserService(BaseService[User], SyncableService[User]):
             "username": gh_user["login"],
             "email": gh_user.get("email"),
             "avatar_url": gh_user.get("avatar_url"),
-            "github_access_token": access_token
+            "github_token": access_token  # Save the GitHub token
         }
         
         if existing_user:

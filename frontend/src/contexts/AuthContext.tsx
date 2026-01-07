@@ -7,8 +7,8 @@ export type User = {
   username: string;
   email?: string;
   is_active: boolean;
-  profile_picture?: string;
-  github_token?: string;
+  avatar_url?: string;
+  github_token?: boolean; // Boolean indicating if token is set, not the actual token
 };
 
 type AuthContextType = {

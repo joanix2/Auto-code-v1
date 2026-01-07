@@ -1,11 +1,12 @@
 """
 Auth Controller - Authentication and OAuth endpoints
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.responses import RedirectResponse
 import logging
 import secrets
 from typing import Optional
+from pydantic import BaseModel
 
 from ..models.user import User, UserPublic
 from ..services.github_oauth_service import GitHubOAuthService
@@ -17,6 +18,11 @@ from neo4j import AsyncDriver
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 logger = logging.getLogger(__name__)
+
+
+class UserUpdate(BaseModel):
+    """User update model"""
+    github_token: Optional[str] = None
 
 
 # Dependency to get UserService with database
@@ -105,7 +111,47 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
     Returns:
         Current user public information
     """
-    return UserPublic(**current_user.dict())
+    return UserPublic.from_user(current_user)
+
+
+@router.patch("/me", response_model=UserPublic)
+async def update_current_user(
+    update_data: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    user_service: UserService = Depends(get_user_service)
+):
+    """
+    Update current authenticated user
+    
+    Args:
+        update_data: Fields to update (github_token)
+        current_user: Current authenticated user (from JWT)
+        
+    Returns:
+        Updated user public information
+    """
+    update_dict = {}
+    
+    # Handle github_token update (including None to disconnect)
+    if update_data.github_token is not None:
+        update_dict["github_token"] = update_data.github_token if update_data.github_token else None
+    
+    if not update_dict:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No fields to update"
+        )
+    
+    updated_user = await user_service.update(current_user.id, update_dict)
+    
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    logger.info(f"User {current_user.username} updated their profile")
+    return UserPublic.from_user(updated_user)
 
 
 @router.post("/logout")

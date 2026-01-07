@@ -23,6 +23,19 @@ class UserPublic(BaseModel):
     email: Optional[EmailStr]
     avatar_url: Optional[str]
     is_active: bool
+    github_token: Optional[bool] = Field(None, description="Indicates if GitHub token is set (without exposing it)")
+    
+    @staticmethod
+    def from_user(user: 'User') -> 'UserPublic':
+        """Create UserPublic from User, hiding the actual token value"""
+        return UserPublic(
+            id=user.id,
+            username=user.username,
+            email=user.email,
+            avatar_url=user.avatar_url,
+            is_active=user.is_active,
+            github_token=bool(user.github_token) if hasattr(user, 'github_token') else False
+        )
 
 
 class UserCreate(BaseModel):

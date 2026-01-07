@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components/layout/Layout";
 import { Login } from "./pages/auth/Login";
 import { Repositories } from "./pages/repository/Repositories";
+import { RepositoryDetails } from "./pages/repository/RepositoryDetails";
 import { Issues } from "./pages/issues/Issues";
 import IssueDetails from "./pages/issues/IssueDetails";
 import { Messages } from "./pages/messages/Messages";
@@ -51,6 +52,17 @@ function App() {
           />
 
           <Route
+            path="/repositories/new"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <RepositoryDetails />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/repositories/:repositoryId/issues"
             element={
               <ProtectedRoute>
@@ -67,6 +79,17 @@ function App() {
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <Issues />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/issues/new"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <IssueDetails />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }

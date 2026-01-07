@@ -24,4 +24,8 @@ export class IssueList extends BaseCardList<Issue> {
   getSyncButtonLabel() {
     return "Sync Issues";
   }
+
+  getCreateButtonLabel() {
+    return "Créer un ticket";
+  }
 }

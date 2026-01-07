@@ -20,13 +20,13 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   // Get profile picture URL
   const getProfilePictureUrl = () => {
-    if (user?.profile_picture) {
+    if (user?.avatar_url) {
       // If it's already a full URL (from GitHub), use it directly
-      if (user.profile_picture.startsWith("http://") || user.profile_picture.startsWith("https://")) {
-        return user.profile_picture;
+      if (user.avatar_url.startsWith("http://") || user.avatar_url.startsWith("https://")) {
+        return user.avatar_url;
       }
       // Otherwise, it's a local asset - construct the URL
-      return `/assets/${user.profile_picture}?t=${Date.now()}`;
+      return `/assets/${user.avatar_url}?t=${Date.now()}`;
     }
     return undefined;
   };
@@ -37,7 +37,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Top Navigation Bar */}
           <header className="border-b bg-white shadow-sm z-10">
-            <div className="px-3 sm:px-6 py-3">
+            <div className="p-3 sm:p-6 py-3">
               <div className="flex items-center justify-between gap-2 sm:gap-4">
                 {/* Logo + Title */}
                 <Link to="/projects" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity group">

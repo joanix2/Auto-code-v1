@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import type { IssueCreate, IssueUpdate, IssuePriority, IssueType, IssueStatus } from "@/types";
 
-interface IssueFormData {
+interface IssueDetailsData {
   title: string;
   description: string;
   priority: IssuePriority;
@@ -22,7 +22,7 @@ interface IssueFormData {
   repository_id: string;
 }
 
-export function IssueForm() {
+export function IssueDetails() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -34,7 +34,7 @@ export function IssueForm() {
   const { repositories, loading: loadingRepos } = useRepositories();
   const { getIssue, createIssue, updateIssue } = useIssues(repositoryIdParam || "");
 
-  const [formData, setFormData] = useState<IssueFormData>({
+  const [formData, setFormData] = useState<IssueDetailsData>({
     title: "",
     description: "",
     priority: "medium" as IssuePriority,
@@ -144,7 +144,7 @@ export function IssueForm() {
 
   if (loadingIssue) {
     return (
-      <div className="container mx-auto max-w-2xl px-4 py-6">
+      <div className="container mx-auto max-w-2xl px-3 sm:px-4 py-4 sm:py-6">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
         </div>
@@ -153,15 +153,15 @@ export function IssueForm() {
   }
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-6">
+    <div className="container mx-auto max-w-2xl px-3 sm:px-4 py-4 sm:py-6">
       {/* Header */}
-      <div className="mb-6">
-        <Button variant="ghost" size="sm" onClick={handleCancel} className="mb-4">
+      <div className="mb-4 sm:mb-6">
+        <Button variant="ghost" size="sm" onClick={handleCancel} className="mb-3 sm:mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold text-gray-900">{isEditMode ? "Edit Issue" : "Create New Issue"}</h1>
-        <p className="mt-2 text-sm text-gray-600">{isEditMode ? "Update the issue information" : "Fill in the details to create a new issue"}</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{isEditMode ? "Edit Issue" : "Create New Issue"}</h1>
+        <p className="mt-1 sm:mt-2 text-sm text-gray-600">{isEditMode ? "Update the issue information" : "Fill in the details to create a new issue"}</p>
       </div>
 
       {/* Error Alert */}
@@ -294,3 +294,5 @@ export function IssueForm() {
     </div>
   );
 }
+
+export default IssueDetails;
