@@ -26,10 +26,9 @@ if [ ! -f .env ]; then
     echo "📝 Creating .env file from template..."
     cp .env.example .env
     echo "⚠️  Please edit .env file and add your credentials:"
-    echo "   - GITHUB_TOKEN"
-    echo "   - GITHUB_OWNER"
-    echo "   - GITHUB_REPO"
-    echo "   - ANTHROPIC_API_KEY"
+    echo "   - GITHUB_CLIENT_ID"
+    echo "   - GITHUB_CLIENT_SECRET"
+    echo "   - NEO4J_PASSWORD"
     echo ""
     echo "After editing .env, run this script again."
     exit 0
@@ -41,15 +40,9 @@ echo ""
 # Validate environment variables
 source .env
 
-if [ -z "$GITHUB_TOKEN" ] || [ "$GITHUB_TOKEN" = "your_github_token_here" ]; then
-    echo "⚠️  GITHUB_TOKEN not set in .env file"
-    echo "Please configure your GitHub token"
-    exit 1
-fi
-
-if [ -z "$ANTHROPIC_API_KEY" ] || [ "$ANTHROPIC_API_KEY" = "your_anthropic_api_key_here" ]; then
-    echo "⚠️  ANTHROPIC_API_KEY not set in .env file"
-    echo "Please configure your Anthropic API key"
+if [ -z "$GITHUB_CLIENT_ID" ] || [ "$GITHUB_CLIENT_ID" = "your_github_oauth_client_id" ]; then
+    echo "⚠️  GITHUB_CLIENT_ID not set in .env file"
+    echo "Please configure your GitHub OAuth credentials"
     exit 1
 fi
 
@@ -73,9 +66,9 @@ if docker-compose ps | grep -q "Up"; then
     echo "   Frontend:  http://localhost:3000"
     echo "   Backend:   http://localhost:8000/api"
     echo "   API Docs:  http://localhost:8000/api/docs"
-    echo "   RabbitMQ:  http://localhost:15672 (guest/guest)"
+    echo "   Neo4j:     http://localhost:7474"
     echo ""
-    echo "🎉 Setup complete! You can now create tasks from the PWA."
+    echo "🎉 Setup complete! You can now use the platform."
 else
     echo "❌ Some services failed to start. Check logs with:"
     echo "   docker-compose logs"

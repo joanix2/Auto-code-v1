@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Navigate, useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 
 export function Login() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, refreshUser } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -29,14 +30,17 @@ export function Login() {
     if (token) {
       setIsProcessing(true);
       localStorage.setItem("token", token);
-      toast({
-        title: "Successfully authenticated",
-        description: "Redirecting to repositories...",
+
+      // Refresh user data from token
+      refreshUser().then(() => {
+        toast({
+          title: "Successfully authenticated",
+          description: "Redirecting to repositories...",
+        });
+        navigate("/repositories", { replace: true });
       });
-      // Use replace to avoid double loading
-      window.location.replace("/repositories");
     }
-  }, [searchParams, toast]);
+  }, [searchParams, toast, navigate, refreshUser]);
 
   // Redirect if already authenticated
   if (isAuthenticated) {

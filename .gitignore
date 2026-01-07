@@ -58,9 +58,6 @@ logs/
 .DS_Store
 Thumbs.db
 
-# RabbitMQ data
-rabbitmq_data/
-
 # Database
 *.db
 *.sqlite

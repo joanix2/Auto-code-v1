@@ -7,8 +7,7 @@ A headless server platform that orchestrates AI development agents to automate c
 ## 🌟 Features
 
 - **📱 Mobile-First PWA**: Create development tickets from any mobile device
-- **🔄 Asynchronous Processing**: RabbitMQ-based task queue for scalable processing
-- **🤖 AI Agents**: Claude-powered agents that understand requirements and write code
+- **🤖 AI Agents**: GitHub Copilot integration for automated coding
 - **📝 GitHub Integration**: Automatic issue creation and pull request management
 - **☁️ Headless Operation**: Runs entirely on servers without IDE requirements
 - **🐳 Docker-Ready**: Complete containerized deployment setup
@@ -31,23 +30,18 @@ A headless server platform that orchestrates AI development agents to automate c
        │
        ▼
 ┌─────────────┐
-│  RabbitMQ   │  (Message Queue)
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│   Worker    │  (AI Agent Consumer)
-│   Agents    │  + Claude Code
+│   Neo4j     │  (Graph Database)
+│   Database  │
 └─────────────┘
 ```
 
 ## 📦 Tech Stack
 
-- **Frontend**: React 18, PWA, Axios
+- **Frontend**: React 18, TypeScript, Tailwind CSS
 - **Backend**: Python 3.11, FastAPI, Uvicorn
-- **Queue**: RabbitMQ
-- **AI**: Claude API (Anthropic)
-- **VCS**: GitHub API (PyGithub)
+- **Database**: Neo4j (Graph Database)
+- **AI**: GitHub Copilot Integration
+- **VCS**: GitHub OAuth & API
 - **Deployment**: Docker, Docker Compose
 
 ## 🚀 Quick Start
@@ -76,10 +70,9 @@ A headless server platform that orchestrates AI development agents to automate c
    Edit `.env` and add your credentials:
 
    ```env
-   GITHUB_TOKEN=your_github_token
-   GITHUB_OWNER=your_username
-   GITHUB_REPO=your_repo_name
-   ANTHROPIC_API_KEY=your_anthropic_key
+   GITHUB_CLIENT_ID=your_github_oauth_client_id
+   GITHUB_CLIENT_SECRET=your_github_oauth_client_secret
+   NEO4J_PASSWORD=your_secure_password
    ```
 
 3. **Start the platform**
@@ -92,7 +85,7 @@ A headless server platform that orchestrates AI development agents to automate c
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000/api
    - API Docs: http://localhost:8000/api/docs
-   - RabbitMQ Management: http://localhost:15672 (guest/guest)
+   - Neo4j Browser: http://localhost:7474
 
 ## 📱 Usage
 
@@ -106,9 +99,8 @@ A headless server platform that orchestrates AI development agents to automate c
 3. Click "Create Task"
 4. The system will:
    - Create a GitHub issue
-   - Queue the task in RabbitMQ
-   - Assign an AI agent to work on it
-   - Create a pull request when complete
+   - Assign to GitHub Copilot Agent
+   - Track progress and pull request
 
 ### Using the API
 
@@ -145,9 +137,6 @@ Auto-Code includes a powerful headless development system using Claude AI that c
 **Quick Start:**
 
 ```bash
-# Setup API key
-export ANTHROPIC_API_KEY=sk-ant-your-key-here
-
 # Develop next ticket in queue
 curl -X POST http://localhost:8000/api/tickets/repository/REPO_ID/develop-next \
   -H "Authorization: Bearer YOUR_TOKEN"
@@ -162,7 +151,6 @@ python claude_cli.py develop-next REPO_ID
 ```bash
 # Run continuous development
 export AUTOCODE_REPO_ID=your-repo-id
-export ANTHROPIC_API_KEY=sk-ant-your-key
 ./scripts/headless_dev.sh
 ```
 
@@ -231,21 +219,22 @@ npm test
 ```
 Auto-code-v1/
 ├── backend/
-│   ├── agent.py              # AI agent implementation
-│   ├── config.py             # Configuration management
-│   ├── github_client.py      # GitHub API integration
+│   ├── src/
+│   │   ├── controllers/      # API controllers
+│   │   ├── models/           # Data models
+│   │   ├── repositories/     # Database access
+│   │   ├── services/         # Business logic
+│   │   └── utils/            # Utilities
 │   ├── main.py               # FastAPI application
-│   ├── rabbitmq_client.py    # RabbitMQ integration
-│   ├── worker.py             # Task worker/consumer
 │   ├── requirements.txt      # Python dependencies
 │   └── Dockerfile            # Backend container
 ├── frontend/
 │   ├── public/               # Static assets
 │   ├── src/
-│   │   ├── App.js            # Main React component
-│   │   ├── index.js          # Entry point
-│   │   ├── index.css         # Global styles
-│   │   └── serviceWorkerRegistration.js  # PWA support
+│   │   ├── components/       # React components
+│   │   ├── pages/            # Page components
+│   │   ├── contexts/         # React contexts
+│   │   └── services/         # API services
 │   ├── package.json          # Node dependencies
 │   ├── Dockerfile            # Frontend container
 │   └── nginx.conf            # Nginx configuration
@@ -265,35 +254,34 @@ Auto-code-v1/
 
 ## 🐛 Troubleshooting
 
-### RabbitMQ Connection Issues
-
-```bash
-# Check RabbitMQ is running
-docker-compose ps
-
-# View RabbitMQ logs
-docker-compose logs rabbitmq
-```
-
 ### GitHub API Errors
 
-- Verify your GitHub token has `repo` scope
+- Verify your GitHub OAuth app is configured correctly
 - Check rate limits: https://api.github.com/rate_limit
-- Ensure repository name is correct in `.env`
+- Ensure callback URL matches your setup
 
-### Worker Not Processing Tasks
+### Database Connection Issues
 
 ```bash
-# Check worker logs
-docker-compose logs worker
+# Check Neo4j is running
+docker-compose ps
 
-# Restart worker
-docker-compose restart worker
+# View Neo4j logs
+docker-compose logs neo4j
+```
+
+### Authentication Issues
+
+```bash
+# Clear browser storage
+# Re-authenticate with GitHub
+# Check backend logs for OAuth errors
+docker-compose logs backend
 ```
 
 ## 🛣️ Roadmap
 
-- [ ] Enhanced Claude integration for code generation
+- [ ] Enhanced GitHub Copilot integration
 - [ ] Real-time progress updates via WebSockets
 - [ ] Multi-agent collaboration
 - [ ] Advanced testing and validation
@@ -320,8 +308,7 @@ Created with ❤️ for automating development tasks from anywhere
 
 ## 🙏 Acknowledgments
 
-- Claude AI by Anthropic
-- GitHub API
-- RabbitMQ
+- GitHub API & Copilot
+- Neo4j Graph Database
 - FastAPI Framework
 - React Team

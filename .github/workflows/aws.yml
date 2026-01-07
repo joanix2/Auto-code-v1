@@ -33,7 +33,6 @@ jobs:
           GITHUB_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}
           GITHUB_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}
           GITHUB_REDIRECT_URI=http://${{ secrets.EC2_PUBLIC_IP }}:8000/api/auth/github/callback
-          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
           SECRET_KEY=ypZPoOWYTBeO8tXQf9yFHNU49X8OjNVJ
           ALGORITHM=HS256
           ACCESS_TOKEN_EXPIRE_MINUTES=10080
