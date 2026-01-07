@@ -26,9 +26,17 @@ classe abstraite de la page détail
 
 helper pour la gestion des erreur dans le controller
 
+corriger le style de la popup de dev auto + enlever l'alerte
+
 liste des messages de la pr
 ajouter un message à la pr
 
 afficher le profile
 
-review des issues via IA
+review des issues via IA (reformulation du ticker)
+
+ajout d'une CI
+
+ecriture automatique du code de teste
+
+injection des erreurs de la CI dans le chat

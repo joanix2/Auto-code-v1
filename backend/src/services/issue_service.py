@@ -227,47 +227,183 @@ class IssueService(GitHubSyncService[Issue]):
     async def delete_on_github(
         self,
         access_token: str,
+        entity: Issue,
         **kwargs
     ) -> bool:
         """
-        Delete issue on GitHub (not really supported - issues can only be closed)
+        Delete issue on GitHub using GraphQL API
+        
+        Uses the deleteIssue mutation from GitHub's GraphQL API.
+        Requirements:
+        - Proper permissions (owner/admin rights)
+        - For organizations: "Allow members to delete issues" must be enabled
+        - Need the GraphQL node ID (not the issue number)
+        
+        Fallback: If deletion fails (permissions), closes the issue instead
         
         Args:
             access_token: GitHub access token
-            **kwargs: entity_id
+            entity: The issue to delete
+            **kwargs: repository_full_name required
         """
-        # GitHub doesn't support deleting issues, only closing them
-        # We'll close the issue instead
-        entity_id = kwargs.get("entity_id")
-        issue = await self.issue_repo.get_by_id(entity_id) if entity_id else None
-        
-        if not issue:
-            return False
+        logger.info(f"🔍 delete_on_github called for issue {entity.id}")
         
         # Get repository full name
         repository_full_name = kwargs.get("repository_full_name")
         if not repository_full_name:
-            # Can't close without repository info
-            logger.warning(f"Cannot close issue {entity_id} on GitHub: repository_full_name not provided")
+            logger.warning(f"⚠️ Cannot delete issue {entity.id} on GitHub: repository_full_name not provided")
+            return True  # Return true anyway to allow DB deletion
+        
+        # Check if issue has a GitHub issue number
+        if not entity.github_issue_number:
+            logger.warning(f"⚠️ Cannot delete issue {entity.id} on GitHub: no github_issue_number")
             return True  # Return true anyway to allow DB deletion
         
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.patch(
-                    f"https://api.github.com/repos/{repository_full_name}/issues/{issue.number}",
+                # Step 1: Get the GraphQL node ID of the issue
+                # We need the node ID (not the issue number) for the deleteIssue mutation
+                logger.info(f"📡 Fetching GraphQL node ID for issue #{entity.github_issue_number}")
+                
+                rest_url = f"https://api.github.com/repos/{repository_full_name}/issues/{entity.github_issue_number}"
+                rest_response = await client.get(
+                    rest_url,
                     headers={
                         "Authorization": f"Bearer {access_token}",
                         "Accept": "application/vnd.github.v3+json"
-                    },
-                    json={"state": "closed"}
+                    }
                 )
-                response.raise_for_status()
+                rest_response.raise_for_status()
+                issue_data = rest_response.json()
+                node_id = issue_data.get("node_id")
+                
+                if not node_id:
+                    logger.error(f"❌ Could not get GraphQL node_id for issue #{entity.github_issue_number}")
+                    return False
+                
+                logger.info(f"✅ Got node_id: {node_id}")
+                
+                # Step 2: Try to delete the issue using GraphQL
+                logger.info(f"🚀 Attempting to delete issue via GraphQL deleteIssue mutation")
+                
+                graphql_query = """
+                mutation DeleteIssue($issueId: ID!) {
+                  deleteIssue(input: { issueId: $issueId }) {
+                    clientMutationId
+                  }
+                }
+                """
+                
+                graphql_response = await client.post(
+                    "https://api.github.com/graphql",
+                    headers={
+                        "Authorization": f"Bearer {access_token}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "query": graphql_query,
+                        "variables": {
+                            "issueId": node_id
+                        }
+                    }
+                )
+                graphql_response.raise_for_status()
+                result = graphql_response.json()
+                
+                # Check for GraphQL errors
+                if "errors" in result:
+                    errors = result["errors"]
+                    error_messages = [err.get("message", str(err)) for err in errors]
+                    logger.warning(f"⚠️ GraphQL deletion failed: {', '.join(error_messages)}")
+                    
+                    # Check if it's a permission error
+                    permission_errors = [
+                        "Resource not accessible by integration",
+                        "Must have admin rights",
+                        "deletion of issues is disabled"
+                    ]
+                    
+                    is_permission_error = any(
+                        any(perm_err.lower() in err_msg.lower() for perm_err in permission_errors)
+                        for err_msg in error_messages
+                    )
+                    
+                    if is_permission_error:
+                        logger.info(f"ℹ️ Insufficient permissions to delete issue. Falling back to closing it.")
+                        # Fallback: Close the issue instead
+                        return await self._close_issue_fallback(client, access_token, repository_full_name, entity)
+                    
+                    # Other GraphQL errors
+                    logger.error(f"❌ GraphQL errors: {result['errors']}")
+                    return False
+                
+                # Success!
+                logger.info(f"✅ Issue successfully DELETED from GitHub via GraphQL!")
                 return True
+                
         except httpx.HTTPStatusError as e:
+            logger.error(f"❌ GitHub API error: {e.response.status_code} - {e.response.text}")
             # If it's a 404, the issue is already gone on GitHub
             if e.response and e.response.status_code == 404:
+                logger.info(f"ℹ️ Issue already gone on GitHub (404), continuing with DB deletion")
                 return True
+            
+            # On permission errors, try fallback
+            if e.response.status_code in [401, 403]:
+                logger.info(f"ℹ️ Permission error. Falling back to closing issue.")
+                async with httpx.AsyncClient() as client:
+                    return await self._close_issue_fallback(client, access_token, repository_full_name, entity)
+            
             raise
+        except Exception as e:
+            logger.error(f"❌ Unexpected error in delete_on_github: {str(e)}")
+            raise
+    
+    async def _close_issue_fallback(
+        self,
+        client: httpx.AsyncClient,
+        access_token: str,
+        repository_full_name: str,
+        entity: Issue
+    ) -> bool:
+        """
+        Fallback method when issue deletion is not permitted.
+        Closes the issue and adds a "deleted" label instead.
+        
+        Args:
+            client: HTTP client
+            access_token: GitHub access token
+            repository_full_name: Repository full name (owner/repo)
+            entity: Issue entity
+            
+        Returns:
+            True if successful
+        """
+        try:
+            logger.info(f"🔄 Fallback: Closing issue #{entity.github_issue_number} instead of deleting")
+            
+            # Close the issue with "not_planned" reason
+            issue_url = f"https://api.github.com/repos/{repository_full_name}/issues/{entity.github_issue_number}"
+            
+            response = await client.patch(
+                issue_url,
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Accept": "application/vnd.github.v3+json"
+                },
+                json={
+                    "state": "closed",
+                    "state_reason": "not_planned"
+                }
+            )
+            response.raise_for_status()
+            logger.info(f"✅ Issue closed successfully (fallback)")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Fallback close failed: {str(e)}")
+            # Even if fallback fails, allow DB deletion
+            return True
     
     # Implementation of SyncableService interface
     

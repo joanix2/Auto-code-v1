@@ -259,6 +259,7 @@ class RepositoryService(GitHubSyncService[Repository]):
     async def delete_on_github(
         self,
         access_token: str,
+        entity: Any,  # Repository type
         **kwargs
     ) -> bool:
         """
@@ -266,21 +267,18 @@ class RepositoryService(GitHubSyncService[Repository]):
         
         Args:
             access_token: GitHub access token
-            **kwargs: entity_id
+            entity: The repository to delete
+            **kwargs: Additional parameters
             
         Returns:
             True if deleted successfully
         """
-        # Get repository to find full_name
-        entity_id = kwargs.get("entity_id")
-        repository = await self.repo_repository.get_by_id(entity_id) if entity_id else None
-        
-        if not repository or not repository.full_name:
+        if not entity or not entity.full_name:
             return False
         
         async with httpx.AsyncClient() as client:
             response = await client.delete(
-                f"https://api.github.com/repos/{repository.full_name}",
+                f"https://api.github.com/repos/{entity.full_name}",
                 headers={
                     "Authorization": f"Bearer {access_token}",
                     "Accept": "application/vnd.github.v3+json"
