@@ -3,6 +3,7 @@ Helper pour la gestion des erreurs dans les controllers
 Évite les redondances de code en centralisant la gestion des erreurs courantes
 """
 import logging
+import json
 from typing import Callable, Any, TypeVar, Optional
 from functools import wraps
 from fastapi import HTTPException, status
@@ -72,7 +73,7 @@ def handle_github_api_error(e: httpx.HTTPStatusError) -> HTTPException:
         if e.response:
             error_data = e.response.json()
             error_detail = error_data.get("message", e.response.text)
-    except (ValueError, KeyError):
+    except json.JSONDecodeError:
         # Si le parsing JSON échoue, utiliser le texte brut
         if e.response:
             error_detail = e.response.text
@@ -143,43 +144,3 @@ def validate_authorization(condition: bool, detail: str = "Not authorized to per
             status_code=status.HTTP_403_FORBIDDEN,
             detail=detail
         )
-
-
-def handle_operation_error(
-    operation: str,
-    resource_name: str,
-    error: Exception,
-    resource_id: Optional[str] = None
-) -> HTTPException:
-    """
-    Gère une erreur d'opération et retourne une HTTPException appropriée
-    
-    Args:
-        operation: Type d'opération (e.g., 'creation', 'update', 'deletion')
-        resource_name: Nom de la ressource
-        error: Exception d'origine
-        resource_id: ID de la ressource (optionnel)
-        
-    Returns:
-        HTTPException formatée
-    """
-    # Si c'est déjà une HTTPException, la retourner directement
-    if isinstance(error, HTTPException):
-        return error
-    
-    # Si c'est une erreur API GitHub
-    if isinstance(error, httpx.HTTPStatusError):
-        return handle_github_api_error(error)
-    
-    # Erreur générique
-    log_message = f"{resource_name.capitalize()} {operation} error"
-    if resource_id:
-        log_message += f" for {resource_id}"
-    log_message += f": {str(error)}"
-    
-    logger.error(log_message)
-    
-    return HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail=f"Failed to {operation} {resource_name}: {str(error)}"
-    )
