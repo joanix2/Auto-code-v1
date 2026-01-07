@@ -39,12 +39,8 @@ def handle_controller_errors(
                 # Re-raise HTTPException as-is (already formatted)
                 raise
             except httpx.HTTPStatusError as e:
-                # Handle GitHub API errors
-                logger.error(f"GitHub API error: {e.response.status_code} - {e.response.text}")
-                raise HTTPException(
-                    status_code=e.response.status_code,
-                    detail=f"GitHub API error: {e.response.text}"
-                )
+                # Handle GitHub API errors using helper function
+                raise handle_github_api_error(e)
             except Exception as e:
                 # Handle generic errors
                 logger.error(f"{resource_name.capitalize()} {operation} error: {str(e)}")
@@ -59,6 +55,8 @@ def handle_controller_errors(
 def handle_github_api_error(e: httpx.HTTPStatusError) -> HTTPException:
     """
     Convertit une erreur HTTP de l'API GitHub en HTTPException
+    
+    Utilisée en interne par le décorateur @handle_controller_errors
     
     Args:
         e: Exception httpx.HTTPStatusError
