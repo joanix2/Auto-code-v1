@@ -7,6 +7,7 @@ import { RepositoryDetails } from "./pages/repository/RepositoryDetails";
 import { Issues } from "./pages/issues/Issues";
 import IssueDetails from "./pages/issues/IssueDetails";
 import { Messages } from "./pages/messages/Messages";
+import Profile from "./pages/profile/Profile";
 import { Toaster } from "@/components/ui/toaster";
 
 // Protected Route Component
@@ -102,6 +103,18 @@ function App() {
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <IssueDetails />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Profile route */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <Profile />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }
