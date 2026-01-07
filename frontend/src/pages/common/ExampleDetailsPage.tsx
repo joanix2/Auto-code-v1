@@ -18,13 +18,23 @@ interface ExampleFormData {
 }
 
 /**
+ * Props interface for ExampleDetailPageLayout
+ */
+interface ExampleDetailPageLayoutProps extends Omit<React.ComponentProps<typeof BaseDetailPageLayout>, 'children'> {
+  formData: ExampleFormData;
+  updateFormData: (updates: Partial<ExampleFormData>) => void;
+}
+
+/**
  * Example concrete implementation of BaseDetailPageLayout
  */
 class ExampleDetailPageLayout extends BaseDetailPageLayout {
+  // Override props type to include our custom props
+  declare props: ExampleDetailPageLayoutProps;
+
   protected renderFormFields(): React.ReactNode {
-    // Access formData and handlers through props
-    const formData = (this.props as any).formData as ExampleFormData;
-    const updateFormData = (this.props as any).updateFormData as (updates: Partial<ExampleFormData>) => void;
+    // Now we can access formData and updateFormData with proper typing
+    const { formData, updateFormData } = this.props;
 
     return (
       <>
@@ -89,47 +99,49 @@ export function ExampleDetailsPage() {
     description: "",
   };
 
+  // Stable callback functions using React.useCallback
+  const onLoadEntity = React.useCallback(async (id: string) => {
+    // Example: load from API
+    // const entity = await exampleService.getById(id);
+    // return { name: entity.name, description: entity.description };
+    
+    // Mock data for demonstration
+    return {
+      name: "Example " + id,
+      description: "This is a sample description",
+    };
+  }, []);
+
+  const onCreateEntity = React.useCallback(async (data: ExampleFormData) => {
+    // Example: create via API
+    // await exampleService.create(data);
+    
+    console.log("Creating entity:", data);
+  }, []);
+
+  const onUpdateEntity = React.useCallback(async (id: string, data: ExampleFormData) => {
+    // Example: update via API
+    // await exampleService.update(id, data);
+    
+    console.log("Updating entity:", id, data);
+  }, []);
+
+  const validateForm = React.useCallback((data: ExampleFormData) => {
+    if (!data.name.trim()) {
+      return "Le nom est requis";
+    }
+    if (data.name.length < 3) {
+      return "Le nom doit contenir au moins 3 caractères";
+    }
+    return null;
+  }, []);
+
   // Use the detail page hook
-  const { state, handlers, isEditMode, entityId } = useDetailPage<ExampleFormData>(config, initialFormData, {
-    // Load entity in edit mode
-    onLoadEntity: async (id: string) => {
-      // Example: load from API
-      // const entity = await exampleService.getById(id);
-      // return { name: entity.name, description: entity.description };
-      
-      // Mock data for demonstration
-      return {
-        name: "Example " + id,
-        description: "This is a sample description",
-      };
-    },
-
-    // Create new entity
-    onCreateEntity: async (data: ExampleFormData) => {
-      // Example: create via API
-      // await exampleService.create(data);
-      
-      console.log("Creating entity:", data);
-    },
-
-    // Update existing entity
-    onUpdateEntity: async (id: string, data: ExampleFormData) => {
-      // Example: update via API
-      // await exampleService.update(id, data);
-      
-      console.log("Updating entity:", id, data);
-    },
-
-    // Validate form before submission
-    validateForm: (data: ExampleFormData) => {
-      if (!data.name.trim()) {
-        return "Le nom est requis";
-      }
-      if (data.name.length < 3) {
-        return "Le nom doit contenir au moins 3 caractères";
-      }
-      return null;
-    },
+  const { state, handlers, isEditMode } = useDetailPage<ExampleFormData>(config, initialFormData, {
+    onLoadEntity,
+    onCreateEntity,
+    onUpdateEntity,
+    validateForm,
   });
 
   // Render using the abstract base class

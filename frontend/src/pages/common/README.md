@@ -32,6 +32,7 @@ Classe abstraite qui fournit la structure UI commune :
 
 ```typescript
 import { useDetailPage, DetailPageConfig } from "@/pages/common/BaseDetailsPage";
+import { useCallback } from "react";
 
 interface MyFormData {
   name: string;
@@ -52,25 +53,33 @@ export function MyDetailsPage() {
     cancelButtonLabel: "Annuler",
   };
 
+  // Use useCallback to ensure stable callbacks
+  const onLoadEntity = useCallback(async (id: string) => {
+    const entity = await myService.getById(id);
+    return { name: entity.name, description: entity.description };
+  }, []);
+
+  const onCreateEntity = useCallback(async (data: MyFormData) => {
+    await myService.create(data);
+  }, []);
+
+  const onUpdateEntity = useCallback(async (id: string, data: MyFormData) => {
+    await myService.update(id, data);
+  }, []);
+
+  const validateForm = useCallback((data: MyFormData) => {
+    if (!data.name.trim()) return "Le nom est requis";
+    return null;
+  }, []);
+
   const { state, handlers, isEditMode } = useDetailPage<MyFormData>(
     config,
     { name: "", description: "" }, // initialFormData
     {
-      onLoadEntity: async (id) => {
-        // Charger l'entité depuis l'API
-        const entity = await myService.getById(id);
-        return { name: entity.name, description: entity.description };
-      },
-      onCreateEntity: async (data) => {
-        await myService.create(data);
-      },
-      onUpdateEntity: async (id, data) => {
-        await myService.update(id, data);
-      },
-      validateForm: (data) => {
-        if (!data.name.trim()) return "Le nom est requis";
-        return null;
-      },
+      onLoadEntity,
+      onCreateEntity,
+      onUpdateEntity,
+      validateForm,
     }
   );
 

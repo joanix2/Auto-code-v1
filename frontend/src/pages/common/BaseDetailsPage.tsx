@@ -112,7 +112,10 @@ export function useDetailPage<TFormData>(
     };
 
     loadEntity();
-  }, [isEditMode, entityId]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Note: options.onLoadEntity is intentionally omitted from deps to avoid re-running on every render.
+    // The parent component should ensure onLoadEntity is stable (e.g., using useCallback).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, entityId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
