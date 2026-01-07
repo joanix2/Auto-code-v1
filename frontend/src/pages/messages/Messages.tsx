@@ -35,8 +35,8 @@ export function Messages() {
       const hasPrefix = /^@copilote(\s|$)/i.test(trimmedMessage);
       const messageToSend = hasPrefix ? trimmedMessage : `@copilote ${trimmedMessage}`;
       
-      // Prevent sending if the message is just "@copilote" without any content
-      if (messageToSend.trim() === '@copilote' || messageToSend.replace(/^@copilote\s*/i, '').trim() === '') {
+      // Prevent sending if the message has no content after the @copilote prefix
+      if (messageToSend.replace(/^@copilote\s*/i, '').trim() === '') {
         return;
       }
       
