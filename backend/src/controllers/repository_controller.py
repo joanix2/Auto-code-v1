@@ -314,7 +314,7 @@ async def sync_repository_issues(
             detail="Not authorized to sync this repository"
         )
     
-    issue_service = IssueService(issue_repository)
+    issue_service = IssueService(issue_repository, repo_repository)
     
     try:
         issues = await issue_service.sync_from_github(

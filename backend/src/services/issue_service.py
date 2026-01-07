@@ -7,6 +7,7 @@ import httpx
 
 from .base_service import GitHubSyncService
 from ..repositories.issue_repository import IssueRepository
+from ..repositories.repository_repository import RepositoryRepository
 from ..models.issue import Issue, IssueCreate
 
 logger = logging.getLogger(__name__)
@@ -15,14 +16,16 @@ logger = logging.getLogger(__name__)
 class IssueService(GitHubSyncService[Issue]):
     """Service for issue business logic and GitHub synchronization"""
     
-    def __init__(self, issue_repo: IssueRepository):
+    def __init__(self, issue_repo: IssueRepository, repo_repository: Optional[RepositoryRepository] = None):
         """
         Initialize issue service
         
         Args:
             issue_repo: Issue repository instance
+            repo_repository: Repository repository instance (optional, needed for updates)
         """
         self.issue_repo = issue_repo
+        self.repo_repository = repo_repository
     
     # Implementation of GitHubSyncService helper methods
     
@@ -170,7 +173,7 @@ class IssueService(GitHubSyncService[Issue]):
         
         Args:
             access_token: GitHub access token
-            **kwargs: entity_id, title, description, status, labels
+            **kwargs: entity_id, title, description, status, labels, repository_full_name (optional)
         """
         # Get issue to find repository and issue number
         entity_id = kwargs.get("entity_id")
@@ -179,13 +182,20 @@ class IssueService(GitHubSyncService[Issue]):
         if not issue:
             raise ValueError("Issue not found")
         
-        # We need the repository to build the URL
-        # For now, we'll assume repository_full_name is passed or we get it from issue
+        if not issue.github_issue_number:
+            raise ValueError("Issue is not linked to a GitHub issue")
+        
+        # Get repository_full_name
         repository_full_name = kwargs.get("repository_full_name")
         if not repository_full_name:
-            # If not provided, we need to get it from the repository
-            # This requires a repository lookup - for now raise error
-            raise ValueError("repository_full_name is required for update")
+            # Look up repository to get full name
+            if not self.repo_repository:
+                raise ValueError("repository_full_name is required for update when repo_repository is not available")
+            
+            repository = await self.repo_repository.get_by_id(issue.repository_id)
+            if not repository:
+                raise ValueError(f"Repository {issue.repository_id} not found")
+            repository_full_name = repository.full_name
         
         # Build update payload
         github_updates = {}
@@ -204,7 +214,7 @@ class IssueService(GitHubSyncService[Issue]):
         
         async with httpx.AsyncClient() as client:
             response = await client.patch(
-                f"https://api.github.com/repos/{repository_full_name}/issues/{issue.number}",
+                f"https://api.github.com/repos/{repository_full_name}/issues/{issue.github_issue_number}",
                 headers={
                     "Authorization": f"Bearer {access_token}",
                     "Accept": "application/vnd.github.v3+json"
