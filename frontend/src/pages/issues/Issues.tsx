@@ -9,12 +9,14 @@ import { ArrowLeft } from "lucide-react";
 import { AssignToCopilotDialog } from "@/components/common/AssignToCopilotDialog";
 import { Repository } from "@/types";
 import { IssueStatus } from "@/types/issue";
+import { useToast } from "@/components/ui/use-toast";
 
 export function Issues() {
   const navigate = useNavigate();
   const { repositoryId } = useParams<{ repositoryId?: string }>();
   const { issues, loading, loadIssues, assignToCopilot, deleteIssue, syncIssues } = useIssues(repositoryId);
   const { getRepository } = useRepositories();
+  const { toast } = useToast();
 
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
@@ -73,12 +75,19 @@ export function Issues() {
         custom_instructions: customInstructions || undefined,
       });
 
-      alert(`✅ ${result.message}\n\nSurveillez vos notifications GitHub pour la PR.`);
+      toast({
+        title: "✅ Assignation réussie",
+        description: `${result.message}\n\nSurveillez vos notifications GitHub pour la PR.`,
+      });
 
       setAssignDialogOpen(false);
       setSelectedIssueId(null);
     } catch (error) {
-      alert(`❌ Erreur d'assignation: ${(error as Error).message}`);
+      toast({
+        variant: "destructive",
+        title: "❌ Erreur d'assignation",
+        description: (error as Error).message,
+      });
     } finally {
       setAssignLoading(false);
     }
