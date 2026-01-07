@@ -45,14 +45,13 @@ export function useBaseDetails<TFormData>(
       }
 
       try {
-        setLoading(true);
+        setLoadingEntity(true);
         const data = await options.onLoadEntity(entityId);
         setFormData(data);
       } catch (err) {
         const error = err as { message?: string; detail?: string };
         setError(error?.message || error?.detail || "Erreur lors du chargement");
       } finally {
-        setLoading(false);
         setLoadingEntity(false);
       }
     };

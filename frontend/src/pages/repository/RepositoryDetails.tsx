@@ -67,7 +67,7 @@ export function RepositoryDetails() {
     const { name, value, type } = e.target;
     updateFormData({
       [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-    } as Partial<RepositoryFormData>);
+    });
   };
 
   if (loadingEntity) {
