@@ -7,6 +7,7 @@ import { RepositoryDetails } from "./pages/repository/RepositoryDetails";
 import { Issues } from "./pages/issues/Issues";
 import IssueDetails from "./pages/issues/IssueDetails";
 import { Messages } from "./pages/messages/Messages";
+import { Toaster } from "@/components/ui/toaster";
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -155,6 +156,7 @@ function App() {
           {/* 404 - Redirect to repositories */}
           <Route path="*" element={<Navigate to="/repositories" replace />} />
         </Routes>
+        <Toaster />
       </AuthProvider>
     </Router>
   );

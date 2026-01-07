@@ -75,7 +75,7 @@ export function AssignToCopilotDialog({ open, onOpenChange, onConfirm, issueName
           </Alert>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={handleCancel} disabled={loading}>
             Annuler
           </Button>
