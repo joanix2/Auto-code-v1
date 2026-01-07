@@ -14,6 +14,7 @@ from src.controllers import (
     repository_router,
     issue_router,
     message_router,
+    copilot_assignment_router,
 )
 
 logging.basicConfig(
@@ -66,6 +67,7 @@ app.include_router(auth_router)
 app.include_router(repository_router)
 app.include_router(issue_router)
 app.include_router(message_router)
+app.include_router(copilot_assignment_router)
 
 
 @app.get("/")

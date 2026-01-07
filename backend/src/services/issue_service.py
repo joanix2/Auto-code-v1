@@ -367,22 +367,4 @@ class IssueService(GitHubSyncService[Issue]):
     async def get_by_github_id(self, github_id: int) -> Optional[Issue]:
         """Get issue by GitHub ID"""
         return await self.issue_repo.get_by_github_id(github_id)
-    
-    async def assign_to_copilot(
-        self,
-        issue_id: str,
-        assigned_to_copilot: bool = True
-    ) -> Optional[Issue]:
-        """Assign/unassign issue to GitHub Copilot"""
-        issue = await self.issue_repo.assign_to_copilot(issue_id, assigned_to_copilot)
-        
-        if issue:
-            action = "Assigned" if assigned_to_copilot else "Unassigned"
-            logger.info(f"{action} issue {issue_id} to Copilot")
-        
-        return issue
-    
-    async def get_copilot_issues(self, repository_id: str) -> List[Issue]:
-        """Get all issues assigned to Copilot for a repository"""
-        return await self.issue_repo.get_copilot_issues(repository_id)
 

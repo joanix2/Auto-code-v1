@@ -98,22 +98,30 @@ class IssueRepository(BaseRepository[Issue]):
         """
         return await self.update(issue_id, github_data)
 
-    async def assign_to_copilot(self, issue_id: str) -> Optional[Issue]:
+    async def assign_to_copilot(self, issue_id: str, assigned: bool = True) -> Optional[Issue]:
         """
-        Assign issue to Copilot
+        Assign or unassign issue to/from Copilot
         
         Args:
             issue_id: Issue ID
+            assigned: True to assign, False to unassign
             
         Returns:
             Updated issue or None if not found
         """
         from datetime import datetime
-        return await self.update(issue_id, {
-            "assigned_to_copilot": True,
-            "copilot_started_at": datetime.utcnow(),
-            "status": "in_progress"
-        })
+        
+        if assigned:
+            return await self.update(issue_id, {
+                "assigned_to_copilot": True,
+                "copilot_started_at": datetime.utcnow(),
+                "status": "in_progress"
+            })
+        else:
+            return await self.update(issue_id, {
+                "assigned_to_copilot": False,
+                "copilot_started_at": None
+            })
 
     async def get_copilot_issues(self, repository_id: Optional[str] = None) -> List[Issue]:
         """

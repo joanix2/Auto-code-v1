@@ -33,10 +33,17 @@ class GitHubOAuthService:
         Returns:
             Authorization URL to redirect user to
         """
+        # Scopes requis:
+        # - repo: Accès complet aux repositories (lecture/écriture, issues, PRs)
+        # - delete_repo: Suppression de repositories
+        # - user:email: Lecture de l'email utilisateur
+        # - workflow: Nécessaire pour que Copilot puisse créer des PRs et branches
+        # - repo:status: Accès aux commit statuses
+        # - read:org: Lecture des infos d'organisation (pour les repos org)
         params = {
             "client_id": self.client_id,
             "redirect_uri": self.redirect_uri,
-            "scope": "repo delete_repo user:email",
+            "scope": "repo delete_repo user:email workflow repo:status read:org",
             "state": state,
         }
         query_string = "&".join([f"{k}={v}" for k, v in params.items()])
