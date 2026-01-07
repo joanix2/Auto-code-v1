@@ -65,8 +65,7 @@ class IssueService(GitHubSyncService[Issue]):
             existing_status = github_data["_context"]["existing_issue"].status
         
         # Only update status based on GitHub state if needed
-        github_state = github_data["state"]
-        if github_state == "closed":
+        if github_data["state"] == "closed":
             # If GitHub issue is closed, always set to closed
             db_data["status"] = "closed"
         elif existing_status and existing_status in ["in_progress", "review"]:

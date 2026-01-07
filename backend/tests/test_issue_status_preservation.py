@@ -180,7 +180,7 @@ async def test_new_issue_default_status():
         "html_url": "https://github.com/test/test/issues/4",
         "labels": [],
         "user": {"login": "test_user"}
-        # No _context with existing_issue
+        # No existing issue context for new issue
     }
     
     # Map GitHub data to DB format
