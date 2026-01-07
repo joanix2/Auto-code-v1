@@ -10,8 +10,6 @@ from ..controllers.copilot_assignment_controller import (
     AssignToCopilotResponse,
     CopilotAssignmentController,
     CopilotAvailabilityResponse,
-    RepositoryPreparationResponse,
-    DiagnosticResponse,
     get_copilot_assignment_controller,
 )
 from ..utils.auth import get_current_user
@@ -32,58 +30,6 @@ async def check_copilot_availability(
 ):
     """Check if GitHub Copilot coding agent is available for the repository"""
     return await controller.check_availability(repository_id, current_user)
-
-
-@router.get(
-    "/prepare/{repository_id}",
-    response_model=RepositoryPreparationResponse,
-    summary="Prepare repository for Copilot",
-    description="Check and automatically configure repository permissions for Copilot",
-)
-async def prepare_repository_for_copilot(
-    repository_id: str,
-    auto_configure: bool = True,
-    current_user: User = Depends(get_current_user),
-    controller: CopilotAssignmentController = Depends(get_copilot_assignment_controller),
-):
-    """
-    Prepare repository for Copilot by checking and configuring permissions.
-    
-    This endpoint:
-    - Verifies OAuth token has required scopes
-    - Checks repository rulesets
-    - Detects incompatible rules (e.g., required signatures)
-    - Automatically adds Copilot to bypass list if auto_configure=True
-    
-    Returns detailed status and manual steps if configuration fails.
-    """
-    return await controller.prepare_repository(repository_id, current_user, auto_configure)
-
-
-@router.get(
-    "/diagnose/{repository_id}",
-    response_model=DiagnosticResponse,
-    summary="Diagnose repository issues",
-    description="Run comprehensive diagnostic to identify why Copilot cannot start",
-)
-async def diagnose_repository_issues(
-    repository_id: str,
-    current_user: User = Depends(get_current_user),
-    controller: CopilotAssignmentController = Depends(get_copilot_assignment_controller),
-):
-    """
-    Run comprehensive diagnostic on repository to identify issues.
-    
-    This endpoint checks:
-    - Repository-level rulesets and bypass permissions
-    - Organization-level rulesets (inherited)
-    - Legacy branch protection rules
-    - Copilot app permissions
-    - Problematic rules (required signatures, linear history, etc.)
-    
-    Returns detailed report with issues found and recommendations.
-    """
-    return await controller.diagnose_repository(repository_id, current_user)
 
 
 @router.post(

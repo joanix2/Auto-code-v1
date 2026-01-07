@@ -4,6 +4,7 @@
 import { Issue, IssueCreate, IssueUpdate } from "../types";
 import { SyncableService, SyncResponse } from "./base.service";
 import { apiService } from "./api.service";
+import { copilotService, AssignToCopilotResponse } from "./copilot.service";
 
 class IssueService extends SyncableService<Issue, IssueCreate, IssueUpdate> {
   protected basePath = "/api/issues";
@@ -41,6 +42,7 @@ class IssueService extends SyncableService<Issue, IssueCreate, IssueUpdate> {
 
   /**
    * Assign issue to Copilot
+   * Uses the dedicated Copilot assignment service
    */
   async assignToCopilot(
     id: string,
@@ -48,8 +50,15 @@ class IssueService extends SyncableService<Issue, IssueCreate, IssueUpdate> {
       base_branch?: string;
       custom_instructions?: string;
     }
-  ): Promise<{ success: boolean; message: string }> {
-    return apiService.post(`${this.basePath}/${id}/assign-to-copilot`, options);
+  ): Promise<AssignToCopilotResponse> {
+    return copilotService.assignIssue(id, options);
+  }
+
+  /**
+   * Unassign issue from Copilot
+   */
+  async unassignFromCopilot(id: string): Promise<AssignToCopilotResponse> {
+    return copilotService.unassignIssue(id);
   }
 
   /**

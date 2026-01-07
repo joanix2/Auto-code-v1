@@ -76,8 +76,9 @@ export function useIssues(repositoryId?: string) {
       setLoading(true);
       setError(null);
       try {
-        await issueService.assignToCopilot(issueId, options);
+        const result = await issueService.assignToCopilot(issueId, options);
         await loadIssues();
+        return result;
       } catch (err) {
         setError((err as Error).message);
         throw err;

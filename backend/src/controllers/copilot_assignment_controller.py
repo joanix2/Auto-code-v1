@@ -13,8 +13,6 @@ from ..repositories.issue_repository import IssueRepository
 from ..repositories.repository_repository import RepositoryRepository
 from ..repositories.user_repository import UserRepository
 from ..services.copilot_agent_service import GitHubCopilotAgentService
-from ..services.repository_permission_service import RepositoryPermissionService
-from ..services.github_ruleset_diagnostic import GitHubRulesetDiagnostic
 from ..services.repository_initializer_service import RepositoryInitializerService
 from ..database import get_db
 
@@ -49,26 +47,6 @@ class CopilotAvailabilityResponse(BaseModel):
     available: bool
     message: str
     bot_id: Optional[str] = None
-
-
-class RepositoryPreparationResponse(BaseModel):
-    """Response model for repository preparation check"""
-    
-    ready: bool
-    message: str
-    checks: dict
-    actions_taken: list
-    manual_steps: list
-
-
-class DiagnosticResponse(BaseModel):
-    """Response model for diagnostic report"""
-    
-    repository: str
-    summary: str
-    issues_found: list
-    recommendations: list
-    all_checks: dict
 
 
 class CopilotAssignmentController:
@@ -144,111 +122,6 @@ class CopilotAssignmentController:
             logger.error(f"Error checking Copilot availability: {e}")
             raise HTTPException(
                 status_code=500, detail=f"Error checking Copilot availability: {str(e)}"
-            )
-
-    async def prepare_repository(
-        self, repository_id: str, user: User, auto_configure: bool = True
-    ) -> RepositoryPreparationResponse:
-        """
-        Prepare repository for Copilot by checking and configuring permissions
-        
-        Args:
-            repository_id: ID of the repository
-            user: Current user
-            auto_configure: If True, automatically configure bypass permissions
-            
-        Returns:
-            RepositoryPreparationResponse with preparation status
-        """
-        try:
-            # Get repository
-            repository = await self.repository_repo.get_by_id(repository_id)
-            if not repository:
-                raise HTTPException(status_code=404, detail="Repository not found")
-            
-            # Parse owner/repo
-            parts = repository.full_name.split("/")
-            if len(parts) != 2:
-                raise HTTPException(status_code=400, detail="Invalid repository full_name")
-            owner, repo = parts
-            
-            # Get user token and create permission service
-            token = await self._get_user_token(user)
-            permission_service = RepositoryPermissionService(token)
-            
-            # Prepare repository
-            logger.info(f"Preparing repository {owner}/{repo} for Copilot (auto_configure={auto_configure})")
-            result = await permission_service.prepare_repository_for_copilot(
-                owner=owner,
-                repo=repo,
-                auto_configure=auto_configure
-            )
-            
-            message = "✅ Repository is ready for Copilot!" if result["ready"] else "⚠️ Manual configuration required"
-            
-            return RepositoryPreparationResponse(
-                ready=result["ready"],
-                message=message,
-                checks=result.get("checks", {}),
-                actions_taken=result.get("actions_taken", []),
-                manual_steps=result.get("manual_steps", [])
-            )
-            
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error preparing repository: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Error preparing repository: {str(e)}"
-            )
-
-    async def diagnose_repository(
-        self, repository_id: str, user: User
-    ) -> DiagnosticResponse:
-        """
-        Run comprehensive diagnostic to identify why Copilot cannot start
-        
-        Args:
-            repository_id: ID of the repository
-            user: Current user
-            
-        Returns:
-            DiagnosticResponse with detailed diagnostic report
-        """
-        try:
-            # Get repository
-            repository = await self.repository_repo.get_by_id(repository_id)
-            if not repository:
-                raise HTTPException(status_code=404, detail="Repository not found")
-            
-            # Parse owner/repo
-            parts = repository.full_name.split("/")
-            if len(parts) != 2:
-                raise HTTPException(status_code=400, detail="Invalid repository full_name")
-            owner, repo = parts
-            
-            # Get user token and create diagnostic service
-            token = await self._get_user_token(user)
-            diagnostic_service = GitHubRulesetDiagnostic(token)
-            
-            # Run full diagnostic
-            logger.info(f"🔍 Running comprehensive diagnostic for {owner}/{repo}...")
-            result = await diagnostic_service.full_diagnostic(owner, repo)
-            
-            return DiagnosticResponse(
-                repository=result.get("repository", f"{owner}/{repo}"),
-                summary=result.get("summary", "Diagnostic completed"),
-                issues_found=result.get("issues_found", []),
-                recommendations=result.get("recommendations", []),
-                all_checks=result.get("all_checks", {})
-            )
-            
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error during diagnostic: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Error during diagnostic: {str(e)}"
             )
 
     async def assign_to_copilot(

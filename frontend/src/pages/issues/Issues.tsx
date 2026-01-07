@@ -1,17 +1,45 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { IssueList } from "@/components/common/CardList/IssueList";
 import { useIssues } from "@/hooks/useIssues";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { AssignToCopilotDialog } from "@/components/common/AssignToCopilotDialog";
 
 export function Issues() {
   const navigate = useNavigate();
   const { repositoryId } = useParams<{ repositoryId?: string }>();
   const { issues, loading, loadIssues, assignToCopilot, deleteIssue, syncIssues } = useIssues(repositoryId);
 
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
+  const [assignLoading, setAssignLoading] = useState(false);
+
+  const selectedIssue = issues.find((issue) => issue.id === selectedIssueId);
+
   const handleAssignToCopilot = async (issueId: string) => {
-    await assignToCopilot(issueId);
+    setSelectedIssueId(issueId);
+    setAssignDialogOpen(true);
+  };
+
+  const handleConfirmAssign = async (customInstructions: string) => {
+    if (!selectedIssueId) return;
+
+    setAssignLoading(true);
+    try {
+      const result = await assignToCopilot(selectedIssueId, {
+        custom_instructions: customInstructions || undefined,
+      });
+
+      alert(`✅ ${result.message}\n\nSurveillez vos notifications GitHub pour la PR.`);
+
+      setAssignDialogOpen(false);
+      setSelectedIssueId(null);
+    } catch (error) {
+      alert(`❌ Erreur d'assignation: ${(error as Error).message}`);
+    } finally {
+      setAssignLoading(false);
+    }
   };
 
   const handleDeleteIssue = async (issueId: string) => {
@@ -55,6 +83,8 @@ export function Issues() {
         onDelete={handleDeleteIssue}
         createUrl={repositoryId ? `/issues/new?repository=${repositoryId}` : undefined}
       />
+
+      <AssignToCopilotDialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen} onConfirm={handleConfirmAssign} issueName={selectedIssue?.title || ""} loading={assignLoading} />
     </div>
   );
 }
