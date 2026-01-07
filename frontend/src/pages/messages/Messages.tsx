@@ -31,9 +31,14 @@ export function Messages() {
     try {
       // Automatically prepend @copilote to the message if not already present
       const trimmedMessage = newMessage.trim();
-      // Check if message already starts with @copilote (case-insensitive)
-      const hasPrefix = /^@copilote\b/i.test(trimmedMessage);
+      // Check if message already starts with @copilote (case-insensitive, followed by space or end of string)
+      const hasPrefix = /^@copilote(\s|$)/i.test(trimmedMessage);
       const messageToSend = hasPrefix ? trimmedMessage : `@copilote ${trimmedMessage}`;
+      
+      // Prevent sending if the message is just "@copilote" without any content
+      if (messageToSend.trim() === '@copilote' || messageToSend.replace(/^@copilote\s*/i, '').trim() === '') {
+        return;
+      }
       
       await sendMessage(messageToSend, user?.username || "anonymous");
       setNewMessage("");
