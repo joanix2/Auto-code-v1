@@ -22,6 +22,10 @@ export function Repositories() {
     await deleteRepository(repoId);
   };
 
+  const handleEditRepository = (repoId: string) => {
+    navigate(`/repositories/${repoId}/edit`);
+  };
+
   const handleRepositoryClick = (repoId: string) => {
     navigate(`/repositories/${repoId}/issues`);
   };
@@ -56,6 +60,7 @@ export function Repositories() {
         onSync={handleSyncRepositories}
         onSyncIssues={handleSyncIssues}
         onClick={handleRepositoryClick}
+        onEdit={handleEditRepository}
         onDelete={handleDeleteRepository}
         createUrl="/repositories/new"
       />

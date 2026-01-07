@@ -1,6 +1,6 @@
 import { API_BASE_URL } from "../../config/env";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,9 @@ import { repositoryService } from "@/services/repository.service";
 export function RepositoryDetails() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = !!id;
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -20,6 +23,29 @@ export function RepositoryDetails() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Load repository data in edit mode
+  useEffect(() => {
+    if (isEditMode && id) {
+      const loadRepository = async () => {
+        try {
+          setLoading(true);
+          const repo = await repositoryService.getById(id);
+          setFormData({
+            name: repo.name,
+            description: repo.description || "",
+            private: repo.is_private,
+          });
+        } catch (err) {
+          const error = err as { message?: string; detail?: string };
+          setError(error?.message || error?.detail || "Erreur lors du chargement");
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadRepository();
+    }
+  }, [isEditMode, id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,11 +64,20 @@ export function RepositoryDetails() {
       setLoading(true);
       setError("");
 
-      await repositoryService.create({
-        name: formData.name.trim(),
-        description: formData.description.trim() || undefined,
-        private: formData.private,
-      });
+      if (isEditMode && id) {
+        // Update existing repository (name and description can be updated)
+        await repositoryService.update(id, {
+          name: formData.name.trim(),
+          description: formData.description.trim() || undefined,
+        });
+      } else {
+        // Create new repository
+        await repositoryService.create({
+          name: formData.name.trim(),
+          description: formData.description.trim() || undefined,
+          private: formData.private,
+        });
+      }
 
       // Rediriger vers la liste des projets après succès
       navigate("/repositories");
@@ -98,12 +133,18 @@ export function RepositoryDetails() {
       {/* Form Card */}
       <Card className="border-slate-200 dark:border-slate-800">
         <CardHeader className="flex flex-col gap-2">
-          <CardTitle>Créer un nouveau repository</CardTitle>
+          <CardTitle>{isEditMode ? "Éditer le repository" : "Créer un nouveau repository"}</CardTitle>
           <CardDescription>
-            Assurez-vous d'avoir configuré votre token GitHub dans votre{" "}
-            <Link to="/profile" className="text-blue-600 hover:underline">
-              profil
-            </Link>
+            {isEditMode ? (
+              "Modifiez le nom et/ou la description de votre repository. Les changements seront synchronisés avec GitHub."
+            ) : (
+              <>
+                Assurez-vous d'avoir configuré votre token GitHub dans votre{" "}
+                <Link to="/profile" className="text-blue-600 hover:underline">
+                  profil
+                </Link>
+              </>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -111,10 +152,10 @@ export function RepositoryDetails() {
             {/* Repository Name */}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-sm font-medium">
-                Nom du repository *
+                Nom du repository {!isEditMode && "*"}
               </Label>
               <Input id="name" name="name" type="text" placeholder="mon-super-projet" value={formData.name} onChange={handleChange} required className="w-full" />
-              <p className="text-xs text-slate-500">Choisissez un nom court et descriptif pour votre repository</p>
+              <p className="text-xs text-slate-500">{isEditMode ? "Le changement de nom sera synchronisé avec GitHub" : "Choisissez un nom court et descriptif pour votre repository"}</p>
             </div>
 
             {/* Repository Description */}
@@ -131,26 +172,28 @@ export function RepositoryDetails() {
                 rows={4}
                 className="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <p className="text-xs text-slate-500">Décrivez brièvement votre projet (optionnel)</p>
+              <p className="text-xs text-slate-500">{isEditMode ? "La description sera synchronisée avec GitHub" : "Décrivez brièvement votre projet (optionnel)"}</p>
             </div>
 
-            {/* Private Checkbox */}
-            <div className="flex items-start space-x-3 rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-900/50">
-              <input
-                id="private"
-                name="private"
-                type="checkbox"
-                checked={formData.private}
-                onChange={handleChange}
-                className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-              />
-              <div className="flex-1">
-                <Label htmlFor="private" className="text-sm font-medium cursor-pointer">
-                  Repository privé
-                </Label>
-                <p className="text-xs text-slate-500 mt-1">Les repositories privés ne sont visibles que par vous et les collaborateurs que vous choisissez</p>
+            {/* Private Checkbox - only in create mode */}
+            {!isEditMode && (
+              <div className="flex items-start space-x-3 rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-900/50">
+                <input
+                  id="private"
+                  name="private"
+                  type="checkbox"
+                  checked={formData.private}
+                  onChange={handleChange}
+                  className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="private" className="text-sm font-medium cursor-pointer">
+                    Repository privé
+                  </Label>
+                  <p className="text-xs text-slate-500 mt-1">Les repositories privés ne sont visibles que par vous et les collaborateurs que vous choisissez</p>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-col-reverse md:flex-row gap-3">
@@ -164,10 +207,10 @@ export function RepositoryDetails() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Création...
+                    {isEditMode ? "Mise à jour..." : "Création..."}
                   </>
                 ) : (
-                  <>Créer le repository</>
+                  <>{isEditMode ? "Mettre à jour" : "Créer le repository"}</>
                 )}
               </Button>
             </div>

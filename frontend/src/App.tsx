@@ -63,6 +63,17 @@ function App() {
           />
 
           <Route
+            path="/repositories/:id/edit"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <RepositoryDetails />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/repositories/:repositoryId/issues"
             element={
               <ProtectedRoute>

@@ -64,6 +64,7 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Issue not found"
             )
+        return None  # No modified data to return
     
     async def validate_delete(self, resource_id: str, current_user: User, db) -> Issue:
         issue = await self.repository.get_by_id(resource_id)

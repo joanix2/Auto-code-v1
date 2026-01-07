@@ -31,6 +31,7 @@ export interface RepositoryCreate {
 }
 
 export interface RepositoryUpdate {
+  name?: string;
   description?: string;
   default_branch?: string;
 }

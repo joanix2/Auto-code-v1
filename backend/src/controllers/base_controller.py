@@ -54,9 +54,10 @@ class BaseController(ABC, Generic[T, TCreate, TUpdate]):
         pass
     
     @abstractmethod
-    async def validate_update(self, resource_id: str, updates: TUpdate, current_user: User, db) -> None:
+    async def validate_update(self, resource_id: str, updates: TUpdate, current_user: User, db) -> Optional[Dict[str, Any]]:
         """
-        Validate update operation
+        Validate update operation. Can return modified update data if needed (e.g., after GitHub sync).
+        Returns: None or Dict with validated/modified update data
         Raises: HTTPException if validation fails
         """
         pass
@@ -180,13 +181,16 @@ class BaseController(ABC, Generic[T, TCreate, TUpdate]):
             Updated resource
         """
         try:
-            # Validate update
-            await self.validate_update(resource_id, updates, current_user, db)
+            # Validate update (may return modified data after GitHub sync)
+            validated_updates = await self.validate_update(resource_id, updates, current_user, db)
+            
+            # Use validated data if returned, otherwise use original updates
+            update_data = validated_updates if validated_updates is not None else updates.dict(exclude_unset=True)
             
             # Update resource
             updated_resource = await self.repository.update(
                 resource_id,
-                updates.dict(exclude_unset=True)
+                update_data
             )
             
             logger.info(f"Updated {self.get_resource_name()} {resource_id}")

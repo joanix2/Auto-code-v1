@@ -5,14 +5,14 @@ from typing import List, Optional, Dict, Any
 import logging
 import httpx
 
-from .base_service import BaseService, SyncableService
+from .base_service import GitHubSyncService
 from ..repositories.repository_repository import RepositoryRepository
 from ..models.repository import Repository, RepositoryCreate
 
 logger = logging.getLogger(__name__)
 
 
-class RepositoryService(BaseService[Repository], SyncableService[Repository]):
+class RepositoryService(GitHubSyncService[Repository]):
     """Service for repository business logic and GitHub synchronization"""
     
     def __init__(self, repo_repository: RepositoryRepository):
@@ -24,11 +24,40 @@ class RepositoryService(BaseService[Repository], SyncableService[Repository]):
         """
         self.repo_repository = repo_repository
     
-    # Implementation of BaseService interface
+    # Implementation of GitHubSyncService helper methods
     
-    async def create(self, data: Dict[str, Any]) -> Repository:
-        """Create a new repository in database"""
+    async def _create_in_db(self, data: Dict[str, Any]) -> Repository:
+        """Create repository in database"""
         return await self.repo_repository.create(data)
+    
+    async def _update_in_db(self, entity_id: str, data: Dict[str, Any]) -> Optional[Repository]:
+        """Update repository in database"""
+        return await self.repo_repository.update(entity_id, data)
+    
+    async def _delete_from_db(self, entity_id: str) -> bool:
+        """Delete repository from database"""
+        return await self.repo_repository.delete(entity_id)
+    
+    def _get_github_syncable_fields(self) -> List[str]:
+        """Fields that should be synced with GitHub"""
+        return ["name", "description"]
+    
+    async def map_github_to_db(self, github_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Map GitHub API response to database entity format"""
+        return {
+            "id": f"repo-{github_data['id']}",
+            "github_id": github_data["id"],
+            "owner_username": github_data["owner"]["login"],
+            "name": github_data["name"],
+            "full_name": github_data["full_name"],
+            "description": github_data.get("description"),
+            "is_private": github_data["private"],
+            "default_branch": github_data["default_branch"],
+            "github_created_at": github_data.get("created_at"),
+            "github_pushed_at": github_data.get("pushed_at"),
+        }
+    
+    # Implementation of BaseService interface
     
     async def get_by_id(self, entity_id: str) -> Optional[Repository]:
         """Get repository by ID"""
@@ -39,14 +68,6 @@ class RepositoryService(BaseService[Repository], SyncableService[Repository]):
         if filters and "owner" in filters:
             return await self.repo_repository.get_by_owner(filters["owner"])
         return await self.repo_repository.get_all()
-    
-    async def update(self, entity_id: str, update_data: Dict[str, Any]) -> Optional[Repository]:
-        """Update repository"""
-        return await self.repo_repository.update(entity_id, update_data)
-    
-    async def delete(self, entity_id: str) -> bool:
-        """Delete repository"""
-        return await self.repo_repository.delete(entity_id)
     
     # Implementation of SyncableService interface
     
@@ -124,6 +145,8 @@ class RepositoryService(BaseService[Repository], SyncableService[Repository]):
                 "description": gh_repo.get("description"),
                 "is_private": gh_repo["private"],
                 "default_branch": gh_repo["default_branch"],
+                "github_created_at": gh_repo.get("created_at"),
+                "github_pushed_at": gh_repo.get("pushed_at"),
             }
             
             if existing_repo:
@@ -143,8 +166,6 @@ class RepositoryService(BaseService[Repository], SyncableService[Repository]):
     
     # Custom methods
     
-    # Custom methods
-    
     async def get_by_full_name(self, full_name: str) -> Optional[Repository]:
         """Get repository by full name (owner/repo)"""
         return await self.repo_repository.get_by_full_name(full_name)
@@ -156,4 +177,114 @@ class RepositoryService(BaseService[Repository], SyncableService[Repository]):
     async def get_by_github_id(self, github_id: int) -> Optional[Repository]:
         """Get repository by GitHub ID"""
         return await self.repo_repository.get_by_github_id(github_id)
-
+    
+    # GitHub API methods (implementation of GitHubSyncService abstract methods)
+    
+    async def create_on_github(
+        self,
+        access_token: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Create repository on GitHub
+        
+        Args:
+            access_token: GitHub access token
+            **kwargs: name, description, private
+            
+        Returns:
+            GitHub repository data
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.github.com/user/repos",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Accept": "application/vnd.github.v3+json"
+                },
+                json={
+                    "name": kwargs.get("name"),
+                    "description": kwargs.get("description"),
+                    "private": kwargs.get("private", False),
+                }
+            )
+            response.raise_for_status()
+            return response.json()
+    
+    async def update_on_github(
+        self,
+        access_token: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Update repository on GitHub
+        
+        Args:
+            access_token: GitHub access token
+            **kwargs: entity_id, name, description, and other fields
+            
+        Returns:
+            Updated GitHub repository data
+        """
+        # Get repository to find full_name
+        entity_id = kwargs.get("entity_id")
+        repository = await self.repo_repository.get_by_id(entity_id) if entity_id else None
+        
+        if not repository:
+            raise ValueError("Repository not found")
+        
+        # Build update payload
+        github_updates = {}
+        if "name" in kwargs and kwargs["name"] is not None:
+            github_updates["name"] = kwargs["name"]
+        if "description" in kwargs and kwargs["description"] is not None:
+            github_updates["description"] = kwargs["description"]
+        
+        if not github_updates:
+            # No updates to make, return current data
+            return await self.map_github_to_db(repository.model_dump())
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.patch(
+                f"https://api.github.com/repos/{repository.full_name}",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Accept": "application/vnd.github.v3+json"
+                },
+                json=github_updates
+            )
+            response.raise_for_status()
+            return response.json()
+    
+    async def delete_on_github(
+        self,
+        access_token: str,
+        **kwargs
+    ) -> bool:
+        """
+        Delete repository on GitHub
+        
+        Args:
+            access_token: GitHub access token
+            **kwargs: entity_id
+            
+        Returns:
+            True if deleted successfully
+        """
+        # Get repository to find full_name
+        entity_id = kwargs.get("entity_id")
+        repository = await self.repo_repository.get_by_id(entity_id) if entity_id else None
+        
+        if not repository or not repository.full_name:
+            return False
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.delete(
+                f"https://api.github.com/repos/{repository.full_name}",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Accept": "application/vnd.github.v3+json"
+                }
+            )
+            response.raise_for_status()
+            return response.status_code == 204

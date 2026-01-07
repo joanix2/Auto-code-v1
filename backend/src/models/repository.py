@@ -15,6 +15,8 @@ class Repository(BaseEntity):
     github_id: Optional[int] = Field(None, description="GitHub repository ID")
     default_branch: str = Field(default="main", description="Default branch")
     is_private: bool = Field(default=False, description="Is private repository")
+    github_created_at: Optional[str] = Field(None, description="Creation timestamp from GitHub")
+    github_pushed_at: Optional[str] = Field(None, description="Last push timestamp from GitHub")
     
     # Stats
     open_issues_count: int = Field(default=0, description="Number of open issues")

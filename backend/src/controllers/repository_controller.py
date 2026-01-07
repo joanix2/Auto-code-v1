@@ -34,54 +34,81 @@ class RepositoryController(BaseController[Repository, RepositoryCreate, Reposito
         return "repositories"
     
     async def generate_id(self, data: Dict[str, Any]) -> str:
-        # ID is generated based on GitHub ID
-        return data.get("id")  # Already set in validate_create
+        # ID is generated in the service from GitHub ID
+        return data.get("id", "")  # Will be set by service
+    
+    async def create(self, data: RepositoryCreate, current_user: User, db) -> Repository:
+        """Create repository using service (orchestrates GitHub + DB)"""
+        try:
+            # Validate and prepare data
+            validated_data = await self.validate_create(data, current_user, db)
+            
+            # Create using service (orchestrates GitHub + DB)
+            resource = await self.service.create(validated_data)
+            logger.info(f"Created repository {resource.id}")
+            
+            return resource
+            
+        except HTTPException:
+            raise
+        except httpx.HTTPStatusError as e:
+            error_detail = e.response.json().get("message", "Unknown error") if e.response else str(e)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to create repository on GitHub: {error_detail}"
+            )
+        except Exception as e:
+            logger.error(f"Repository creation error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to create repository: {str(e)}"
+            )
+    
+    async def update(self, resource_id: str, updates: RepositoryUpdate, current_user: User, db) -> Repository:
+        """Update repository using service (orchestrates GitHub + DB)"""
+        try:
+            # Validate update (returns data with access_token)
+            validated_updates = await self.validate_update(resource_id, updates, current_user, db)
+            
+            # Update using service (orchestrates GitHub + DB)
+            updated_resource = await self.service.update(resource_id, validated_updates)
+            
+            logger.info(f"Updated repository {resource_id}")
+            return updated_resource
+            
+        except HTTPException:
+            raise
+        except httpx.HTTPStatusError as e:
+            error_detail = e.response.json().get("message", "Unknown error") if e.response else str(e)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to update repository on GitHub: {error_detail}"
+            )
+        except Exception as e:
+            logger.error(f"Repository update error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to update repository: {str(e)}"
+            )
     
     async def validate_create(self, data: RepositoryCreate, current_user: User, db) -> Dict[str, Any]:
-        """Create repository on GitHub first, then prepare data for DB"""
+        """Prepare data for service to create repository on GitHub and DB"""
         if not current_user.github_token:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="GitHub account not connected. Please connect your GitHub account in your profile settings."
             )
         
-        # Create repository on GitHub
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                "https://api.github.com/user/repos",
-                headers={
-                    "Authorization": f"Bearer {current_user.github_token}",
-                    "Accept": "application/vnd.github.v3+json"
-                },
-                json={
-                    "name": data.name,
-                    "description": data.description,
-                    "private": data.private,
-                }
-            )
-            
-            if response.status_code != 201:
-                error_detail = response.json().get("message", "Unknown error")
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Failed to create repository on GitHub: {error_detail}"
-                )
-            
-            gh_repo = response.json()
-        
-        # Prepare data for database
+        # Return data with access_token for service to use
         return {
-            "id": f"repo-{gh_repo['id']}",
-            "github_id": gh_repo["id"],
-            "owner_username": gh_repo["owner"]["login"],
-            "name": gh_repo["name"],
-            "full_name": gh_repo["full_name"],
-            "description": gh_repo.get("description"),
-            "is_private": gh_repo["private"],
-            "default_branch": gh_repo["default_branch"],
+            "access_token": current_user.github_token,
+            "name": data.name,
+            "description": data.description,
+            "private": data.private
         }
     
-    async def validate_update(self, resource_id: str, updates: RepositoryUpdate, current_user: User, db) -> None:
+    async def validate_update(self, resource_id: str, updates: RepositoryUpdate, current_user: User, db) -> Dict[str, Any]:
+        """Prepare update data for service to update on GitHub and DB"""
         repository = await self.repository.get_by_id(resource_id)
         if not repository:
             raise HTTPException(
@@ -94,9 +121,20 @@ class RepositoryController(BaseController[Repository, RepositoryCreate, Reposito
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not authorized to update this repository"
             )
+        
+        if not current_user.github_token:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="GitHub account not connected"
+            )
+        
+        # Prepare data with access_token for service
+        update_data = updates.model_dump(exclude_unset=True)
+        update_data["access_token"] = current_user.github_token
+        return update_data
     
     async def validate_delete(self, resource_id: str, current_user: User, db) -> Repository:
-        """Validate and delete from GitHub before DB deletion"""
+        """Validate delete operation"""
         repository = await self.repository.get_by_id(resource_id)
         if not repository:
             raise HTTPException(
@@ -110,34 +148,44 @@ class RepositoryController(BaseController[Repository, RepositoryCreate, Reposito
                 detail="Not authorized to delete this repository"
             )
         
-        # Delete from GitHub FIRST
-        if current_user.github_token and repository.full_name:
-            async with httpx.AsyncClient() as client:
-                response = await client.delete(
-                    f"https://api.github.com/repos/{repository.full_name}",
-                    headers={
-                        "Authorization": f"Bearer {current_user.github_token}",
-                        "Accept": "application/vnd.github.v3+json"
-                    }
-                )
-                
-                if response.status_code == 204:
-                    logger.info(f"Deleted repository {repository.full_name} from GitHub")
-                else:
-                    try:
-                        error_data = response.json()
-                        error_detail = error_data.get("message", "Unknown error")
-                        logger.error(f"GitHub API error {response.status_code}: {error_data}")
-                    except:
-                        error_detail = f"HTTP {response.status_code}"
-                        logger.error(f"GitHub API error {response.status_code}: Unable to parse response")
-                    
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Failed to delete repository from GitHub: {error_detail}"
-                    )
-        
         return repository
+    
+    async def delete(self, resource_id: str, current_user: User, db) -> Dict[str, str]:
+        """Delete repository from GitHub and database using service"""
+        try:
+            # Validate delete
+            repository = await self.validate_delete(resource_id, current_user, db)
+            
+            # Delete using service (orchestrates GitHub + DB)
+            deleted = await self.service.delete(
+                entity_id=resource_id,
+                access_token=current_user.github_token
+            )
+            
+            if deleted:
+                logger.info(f"Deleted repository {resource_id}")
+                return {"message": "Repository deleted successfully"}
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to delete repository"
+                )
+        
+        except HTTPException:
+            raise
+        except httpx.HTTPStatusError as e:
+            error_detail = e.response.json().get("message", "Unknown error") if e.response else str(e)
+            logger.error(f"GitHub API error: {error_detail}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to delete repository from GitHub: {error_detail}"
+            )
+        except Exception as e:
+            logger.error(f"Repository delete error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to delete repository: {str(e)}"
+            )
     
     async def sync_from_github(self, github_token: str, current_user: User, **kwargs) -> List[Repository]:
         """Sync repositories from GitHub"""
