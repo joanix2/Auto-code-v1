@@ -72,7 +72,7 @@ def handle_github_api_error(e: httpx.HTTPStatusError) -> HTTPException:
         if e.response:
             error_data = e.response.json()
             error_detail = error_data.get("message", e.response.text)
-    except:
+    except (ValueError, KeyError):
         # Si le parsing JSON échoue, utiliser le texte brut
         if e.response:
             error_detail = e.response.text

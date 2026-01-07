@@ -18,8 +18,7 @@ from ..utils.error_handler import (
     handle_controller_errors,
     validate_github_token,
     validate_resource_exists,
-    validate_authorization,
-    handle_github_api_error
+    validate_authorization
 )
 from ..database import get_db
 
