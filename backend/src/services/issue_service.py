@@ -251,10 +251,15 @@ class IssueService(GitHubSyncService[Issue]):
             logger.warning(f"Cannot close issue {entity_id} on GitHub: repository_full_name not provided")
             return True  # Return true anyway to allow DB deletion
         
+        # Check if issue has a GitHub issue number
+        if not issue.github_issue_number:
+            logger.warning(f"Cannot close issue {entity_id} on GitHub: no github_issue_number")
+            return True  # Return true anyway to allow DB deletion
+        
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.patch(
-                    f"https://api.github.com/repos/{repository_full_name}/issues/{issue.number}",
+                    f"https://api.github.com/repos/{repository_full_name}/issues/{issue.github_issue_number}",
                     headers={
                         "Authorization": f"Bearer {access_token}",
                         "Accept": "application/vnd.github.v3+json"
