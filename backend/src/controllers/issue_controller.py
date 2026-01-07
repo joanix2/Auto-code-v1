@@ -16,6 +16,11 @@ from ..repositories.repository_repository import RepositoryRepository
 from ..services.copilot_agent_service import GitHubCopilotAgentService
 from ..services.issue_service import IssueService
 from ..utils.auth import get_current_user
+from ..utils.error_handler import (
+    handle_controller_errors,
+    validate_resource_exists,
+    validate_authorization
+)
 from ..database import get_db
 
 router = APIRouter(prefix="/api/issues", tags=["issues"])
@@ -42,17 +47,12 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
     async def validate_create(self, data: IssueCreate, current_user: User, db) -> Dict[str, Any]:
         # Verify repository exists and user has access
         repository = await self.repo_repository.get_by_id(data.repository_id)
-        if not repository:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Repository not found"
-            )
+        validate_resource_exists(repository, "repository", data.repository_id)
         
-        if repository.owner_username != current_user.username:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to create issues in this repository"
-            )
+        validate_authorization(
+            repository.owner_username == current_user.username,
+            "Not authorized to create issues in this repository"
+        )
         
         # Prepare data with GitHub context for sync
         return {
@@ -71,19 +71,11 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
     async def validate_update(self, resource_id: str, updates: IssueUpdate, current_user: User, db) -> Dict[str, Any]:
         """Validate and prepare update data for service to update on GitHub and DB"""
         issue = await self.service.issue_repo.get_by_id(resource_id)
-        if not issue:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Issue not found"
-            )
+        validate_resource_exists(issue, "issue", resource_id)
         
         # Get repository for full name (needed for GitHub API)
         repository = await self.repo_repository.get_by_id(issue.repository_id)
-        if not repository:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Repository not found"
-            )
+        validate_resource_exists(repository, "repository", issue.repository_id)
         
         # Prepare update data with access token and repository full name
         update_data = updates.model_dump(exclude_unset=True)
@@ -95,11 +87,7 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
     async def validate_delete(self, resource_id: str, current_user: User, db) -> Dict[str, Any]:
         """Validate issue deletion and prepare data for GitHub sync"""
         issue = await self.service.issue_repo.get_by_id(resource_id)
-        if not issue:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Issue not found"
-            )
+        validate_resource_exists(issue, "issue", resource_id)
         
         # Get repository info for GitHub API
         repository = await self.repo_repository.get_by_id(issue.repository_id)
@@ -117,86 +105,47 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
             "repository_full_name": repository.full_name
         }
     
+    @handle_controller_errors(resource_name="issue", operation="creation")
     async def create(self, data: IssueCreate, current_user: User, db) -> Issue:
         """Create issue with GitHub sync"""
-        try:
-            validated_data = await self.validate_create(data, current_user, db)
-            issue = await self.service.create(validated_data)
-            return issue
-        except httpx.HTTPStatusError as e:
-            logger.error(f"GitHub API error: {e.response.status_code} - {e.response.text}")
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=f"GitHub API error: {e.response.text}"
-            )
+        validated_data = await self.validate_create(data, current_user, db)
+        issue = await self.service.create(validated_data)
+        return issue
     
+    @handle_controller_errors(resource_name="issue", operation="update")
     async def update(self, resource_id: str, updates: IssueUpdate, current_user: User, db) -> Issue:
         """Update issue using service (orchestrates GitHub + DB)"""
-        try:
-            # Validate update (returns data with access_token and repository_full_name)
-            validated_updates = await self.validate_update(resource_id, updates, current_user, db)
-            
-            # Update using service (orchestrates GitHub + DB)
-            updated_resource = await self.service.update(resource_id, validated_updates)
-            
-            if not updated_resource:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Issue not found"
-                )
-            
-            logger.info(f"Updated issue {resource_id}")
-            return updated_resource
-            
-        except HTTPException:
-            raise
-        except httpx.HTTPStatusError as e:
-            logger.error(f"GitHub API error: {e.response.status_code} - {e.response.text}")
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=f"GitHub API error: {e.response.text}"
-            )
-        except Exception as e:
-            logger.error(f"Issue update error: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to update issue: {str(e)}"
-            )
+        # Validate update (returns data with access_token and repository_full_name)
+        validated_updates = await self.validate_update(resource_id, updates, current_user, db)
+        
+        # Update using service (orchestrates GitHub + DB)
+        updated_resource = await self.service.update(resource_id, validated_updates)
+        
+        validate_resource_exists(updated_resource, "issue", resource_id)
+        
+        logger.info(f"Updated issue {resource_id}")
+        return updated_resource
     
+    @handle_controller_errors(resource_name="issue", operation="deletion")
     async def delete(self, resource_id: str, current_user: User, db) -> Dict[str, str]:
         """Delete issue with GitHub sync (closes issue on GitHub)"""
         logger.info(f"🔍 IssueController.delete called for issue_id={resource_id}")
-        try:
-            # Validate delete and get data with GitHub context
-            validated_data = await self.validate_delete(resource_id, current_user, db)
-            logger.info(f"✅ Validation passed. validated_data={validated_data}")
-            
-            # Extract access_token and entity_id (already passed as resource_id)
-            access_token = validated_data.pop("access_token", None)
-            validated_data.pop("entity_id", None)  # Remove to avoid duplication with resource_id
-            
-            logger.info(f"🚀 Calling service.delete with: resource_id={resource_id}, has_token={bool(access_token)}, kwargs={validated_data}")
-            
-            # Delete using service (orchestrates GitHub + DB)
-            await self.service.delete(resource_id, access_token, **validated_data)
-            
-            logger.info(f"✅ Deleted issue {resource_id}")
-            return {"message": "Issue deleted successfully"}
-            
-        except HTTPException:
-            raise
-        except httpx.HTTPStatusError as e:
-            logger.error(f"❌ GitHub API error: {e.response.status_code} - {e.response.text}")
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=f"GitHub API error: {e.response.text}"
-            )
-        except Exception as e:
-            logger.error(f"❌ Issue deletion error: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to delete issue: {str(e)}"
-            )
+        
+        # Validate delete and get data with GitHub context
+        validated_data = await self.validate_delete(resource_id, current_user, db)
+        logger.info(f"✅ Validation passed. validated_data={validated_data}")
+        
+        # Extract access_token and entity_id (already passed as resource_id)
+        access_token = validated_data.pop("access_token", None)
+        validated_data.pop("entity_id", None)  # Remove to avoid duplication with resource_id
+        
+        logger.info(f"🚀 Calling service.delete with: resource_id={resource_id}, has_token={bool(access_token)}, kwargs={validated_data}")
+        
+        # Delete using service (orchestrates GitHub + DB)
+        await self.service.delete(resource_id, access_token, **validated_data)
+        
+        logger.info(f"✅ Deleted issue {resource_id}")
+        return {"message": "Issue deleted successfully"}
     
     async def sync_from_github(self, github_token: str, current_user: User, **kwargs) -> List[Issue]:
         """Sync issues from GitHub for a specific repository"""
@@ -290,6 +239,7 @@ async def delete_issue(
 
 
 @router.post("/{issue_id}/assign-to-copilot")
+@handle_controller_errors(resource_name="issue", operation="Copilot assignment")
 async def assign_to_copilot(
     issue_id: str,
     base_branch: str = "main",
@@ -308,87 +258,69 @@ async def assign_to_copilot(
     Returns:
         Assignment result
     """
-    try:
-        if not current_user.github_token:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="GitHub not connected"
-            )
-        
-        issue_repository = IssueRepository(db)
-        repo_repository = RepositoryRepository(db)
-        
-        # Get issue
-        issue = await issue_repository.get_by_id(issue_id)
-        if not issue:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Issue not found"
-            )
-        
-        # Get repository
-        repository = await repo_repository.get_by_id(issue.repository_id)
-        if not repository:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Repository not found"
-            )
-        
-        # Initialize Copilot service
-        copilot_service = GitHubCopilotAgentService(current_user.github_token)
-        
-        # Check Copilot status
-        copilot_status = await copilot_service.check_copilot_agent_status(
-            repository.owner_username,
-            repository.name
-        )
-        
-        if not copilot_status.get("enabled"):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="GitHub Copilot Agent not enabled for this repository"
-            )
-        
-        # Create or get GitHub issue
-        if not issue.github_issue_number:
-            # Create GitHub issue first
-            from github import Github
-            gh = Github(current_user.github_token)
-            gh_repo = gh.get_repo(repository.full_name)
-            
-            gh_issue = gh_repo.create_issue(
-                title=issue.title,
-                body=issue.description
-            )
-            
-            # Update our issue with GitHub data
-            await issue_repository.link_to_github(issue_id, {
-                "github_issue_number": gh_issue.number,
-                "github_issue_url": gh_issue.html_url
-            })
-            
-            issue = await issue_repository.get_by_id(issue_id)
-        
-        # Assign to Copilot
-        result = await copilot_service.assign_issue_to_copilot(
-            owner=repository.owner_username,
-            repo=repository.name,
-            issue_number=issue.github_issue_number,
-            base_branch=base_branch,
-            custom_instructions=custom_instructions or issue.description
-        )
-        
-        # Update issue status
-        await issue_repository.assign_to_copilot(issue_id)
-        
-        logger.info(f"Assigned issue {issue_id} to Copilot")
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Copilot assignment error: {str(e)}")
+    if not current_user.github_token:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to assign to Copilot: {str(e)}"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="GitHub not connected"
         )
+    
+    issue_repository = IssueRepository(db)
+    repo_repository = RepositoryRepository(db)
+    
+    # Get issue
+    issue = await issue_repository.get_by_id(issue_id)
+    validate_resource_exists(issue, "issue", issue_id)
+    
+    # Get repository
+    repository = await repo_repository.get_by_id(issue.repository_id)
+    validate_resource_exists(repository, "repository", issue.repository_id)
+    
+    # Initialize Copilot service
+    copilot_service = GitHubCopilotAgentService(current_user.github_token)
+    
+    # Check Copilot status
+    copilot_status = await copilot_service.check_copilot_agent_status(
+        repository.owner_username,
+        repository.name
+    )
+    
+    if not copilot_status.get("enabled"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="GitHub Copilot Agent not enabled for this repository"
+        )
+    
+    # Create or get GitHub issue
+    if not issue.github_issue_number:
+        # Create GitHub issue first
+        from github import Github
+        gh = Github(current_user.github_token)
+        gh_repo = gh.get_repo(repository.full_name)
+        
+        gh_issue = gh_repo.create_issue(
+            title=issue.title,
+            body=issue.description
+        )
+        
+        # Update our issue with GitHub data
+        await issue_repository.link_to_github(issue_id, {
+            "github_issue_number": gh_issue.number,
+            "github_issue_url": gh_issue.html_url
+        })
+        
+        issue = await issue_repository.get_by_id(issue_id)
+    
+    # Assign to Copilot
+    result = await copilot_service.assign_issue_to_copilot(
+        owner=repository.owner_username,
+        repo=repository.name,
+        issue_number=issue.github_issue_number,
+        base_branch=base_branch,
+        custom_instructions=custom_instructions or issue.description
+    )
+    
+    # Update issue status
+    await issue_repository.assign_to_copilot(issue_id)
+    
+    logger.info(f"Assigned issue {issue_id} to Copilot")
+    return result

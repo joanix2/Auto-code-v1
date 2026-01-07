@@ -15,6 +15,7 @@ from ..repositories.user_repository import UserRepository
 from ..database import get_db
 from ..utils.auth import get_current_user, create_access_token
 from ..utils.config import config
+from ..utils.error_handler import validate_resource_exists
 from neo4j import AsyncDriver
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
@@ -142,12 +143,7 @@ async def update_current_user(
         )
     
     updated_user = await user_service.update(current_user.id, update_dict)
-    
-    if not updated_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+    validate_resource_exists(updated_user, "user", current_user.id)
     
     logger.info(f"User {current_user.username} updated their profile")
     return UserPublic.from_user(updated_user)
