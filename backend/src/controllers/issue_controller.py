@@ -86,7 +86,7 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
             )
         
         # Prepare update data with access token and repository full name
-        update_data = updates.dict(exclude_unset=True)
+        update_data = updates.model_dump(exclude_unset=True)
         update_data["access_token"] = current_user.github_token
         update_data["repository_full_name"] = repository.full_name
         
