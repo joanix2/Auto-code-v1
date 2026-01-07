@@ -81,7 +81,9 @@ export function AlertDialog({
     onClose?.();
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
     onConfirm?.();
     onOpenChange(false);
   };

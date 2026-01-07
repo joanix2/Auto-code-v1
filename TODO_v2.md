@@ -1,8 +1,8 @@
 ✅ repos dans l'ordre des plus récent
 ✅ delete RABBITMQ
 ✅ bug à la connexion (deux chargement)
-bug de redirection à la supression d'un repo
-editer un repo
+✅ bug de redirection à la supression d'un repo
+a coté du bouton de supression dans la card d'un repo editer un repo
 afficher la date de création et celle du dernier commit dans la card
 
 liste des issues
