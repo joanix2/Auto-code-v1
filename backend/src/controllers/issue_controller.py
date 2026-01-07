@@ -169,8 +169,9 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
             # Validate delete and get data with GitHub context
             validated_data = await self.validate_delete(resource_id, current_user, db)
             
-            # Extract access_token and pass remaining data as kwargs
+            # Extract access_token and entity_id (already passed as resource_id)
             access_token = validated_data.pop("access_token", None)
+            validated_data.pop("entity_id", None)  # Remove to avoid duplication with resource_id
             
             # Delete using service (orchestrates GitHub + DB)
             await self.service.delete(resource_id, access_token, **validated_data)
