@@ -1,87 +1,119 @@
-# Moteur IA
+✅ repos dans l'ordre des plus récent
+✅ delete RABBITMQ
+✅ bug à la connexion (deux chargement)
+✅ bug de redirection à la supression d'un repo
 
-✅ get next ticket
+✅ a coté du bouton de supression dans la card d'un repo on veut un bouton pour editer le repos qui nous redirige vers la page detail en mode édition (je veux pouvoir modifier le nom et la description et que ca se synchronise avec github, ne modifie pas la base neo4j avant d'avoir modifier le repo et pense à utiliser les services dédier)
 
-✅ créer un service pour les messages qui sera utiliser par l'api et la cli fonctions à ajouté dans le service des messages :
-✅ récupérer le nombre de message
-✅ savoir si le nombre de message est supérieur à n (la limite)
-✅ récupérer le dernier message
+✅ afficher la date de création et celle du dernier commit dans la card
 
-✅ get messages from ticket
+✅ liste des issues
 
-✅ mettre le ticket en pending (immédiatement au clic, workflow en arrière-plan)
+✅ ajouter supprimer et modifier en haut à gauche
+✅ popup de suppression
+✅ créer une issus
+✅ corriger la card des issues
+✅ corriger l'édition
+✅ supprimer une issue
 
-✅ clone / pull les repo dans un workspace (structure owner/repo)
+✅ syncro des issues
 
-✅ gestion des branches (créer la branche / aller sur la branche)
+✅ bouton pour lancer la codage automatique d'une issue
 
-✅ on veut récupérer le dernier message mais si il n'y a pas de message, on veut pouvoir le créer en utilisant les propriété du ticket (titre,description, etc) avec un template jinja (le service jinja est à créer dans utils)
+✅ afficher le nom du repo en haut de la liste des issues
 
-✅ créer une interface/calsse abstraite agent avec une classe dummy agent qui modifi un fichier "toto"
+✅ filtrer les issues en fonction du status
 
-✅ commit
+✅ classe abstraite de la page détail
 
-✅ merge de la branche / envoie d'une PR
+✅ corriger le style de la popup de dev auto + enlever l'alerte
 
-✅ relier à l'api
+✅ afficher le profile
 
-✅ mettre pending dans le workflow
+✅ numéro de l'issue
 
-tester dans le containner
+créer un drawer
 
-créer un agent avec langgraph (agent Claude Opus 4 créé avec 3 workflows)
+helper pour la gestion des erreur dans le controller
 
-reasoning, création d'un plan
+bug fix : les ticket en attente de validation passent en open (même chose pour en cours)
 
-modification des fichiers
+suppression de l'onglet home (gadre juste les repos et home)
 
-tester dans le containner
+deployement et url
 
-récupérer la sortie de la CI -> nouveau message
+# Infra
 
-✅ créer un nouveau ticket de bug si limite atteinte (utilise le nombre de messages via MessageService au lieu de iteration_count)
+deployer sur un vps cloud : https://www.hetzner.com/cloud/
 
-mettre en place le workflow complet
+ajout d'une CI
 
-# TODO
+build les images sur un registery avec tag de la branch
 
-✅ réglé le problème de localhost
+créer des sous domaine dev, test, prod
 
-✅ mettre à jour l'app github avec l'ip du serveur
+deployer l'image d'une branche
 
-✅ refaire le page de login
+# Messages
 
-✅ gestion des messages liée à un ticket
+liste des messages de la pr (utilisation automatique de @copilote)
 
-supprimer les settings
+ajouter un message à la pr
 
-ajouter le token dans les parms utilisateurs
+modifier les messages ??
 
-modifier le logo et index.html
+injection des erreurs de la CI dans le chat
 
-la modification de l'odre des tickets intefert avec le scroll
+# Améliroration de la logique métier
 
-corriger les tickets avec claude (review des tickets par LLMs)
+ecriture automatique du code de teste
 
-modifier les messages
+review des issues via IA (reformulation du ticker)
 
-✅ relier les tickets à un projet github
+merge automatique
 
-ajout d'un queue rabbit mq pour multi utilisateur
+DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les prochains les quels peuvent être parallèliser)
 
-deployement d'un blueprint (avec auth et profile)
+# Partie Scaffolding MDE
 
-créer une iterface pour les card
+Objectif : instancier un template avec une API, un front, une infra, une CI, une doc spec kit
 
-créer un composant générique pour la liste de card
+on veux pouvoir visualiser les noeuds et les arrêtes sous la forme d'un graphe orienté avec de la physique entre les noeuds
+
+on veux pour selsctionner un type de noeud et créer des noeuds de se type
+on veux pouvoir supprimer les noeuds
+
+on veux pouvoir afficher les propriété du noeud dans le panneau latéral
+on veux pouvoir créer des propriétés
+modifier des propriétés
+supprimer des propriétés
+
+on veux pouvoir selectionner un type de relation et créer des relation entres les noeuds
+on veux pouvoir supprimer des relation entre les noeuds
+
+créer des converstion avec un ensemble de message chainer les un aux autres
+
+On veux pouvoir poser des question à un LLM dans une bar de chat et qu'il nous réponde en fonction des information contenu dans le graphe
+
+on veux pouvoir définir le prompte systhème de l'agent
+
+on veut donner des tools à l'agent, il est capble de géréer des noeuds, des propriétés et des relations en prennant en compte les types de noeuds et les types de relations
+
+versionner le graphe
+
+créer des contraintes sur le graphe
+-> ontologique
+-> SMT
+-> bi-simulation
+-> flot
+
+créer des metamodel
+
+créer des templates
+
+faire du scaffolding
 
 # Future
-
-avoir des templates de projets avec un formulaire
-
-✅ IaC et CI/CD pour depoiment automatique
-
-DAG de ticker
 
 ajout des KG
 
@@ -91,9 +123,9 @@ règles sur le graphe
 
 ajouter la commande vocal
 
-liée des fichiers
+liée des fichiers tickets
 
-liée des images
+liée des images tickets
 
 workflow multi agent
 
@@ -102,3 +134,62 @@ gestion des tags liée aux tickets
 utilisation de spec kit
 
 chatbot pour créer des tickets
+
+# Gestion de projet
+
+Liste des projets liées à github
+
+kanban
+
+graphe de dépendance entre les tâches
+
+Gatt
+
+estimation de temps
+
+cf docs/GESTION-DE-PROJET-STEPPER.md
+
+# Analyse du besoin
+
+avatar client
+
+liste des besoins
+
+liste des solutions techniques
+
+graphe de relation entre
+
+CRM (liste des client lié à leur avatar)
+
+# Marketing
+
+Analyse des tendances
+Tunnel d’acquisition
+Techniques de storytelling
+Stratégie de contenu
+Social Media Management
+SEO
+Pilotage via KPIs
+Gestion des publicités Google
+Gestion des publicités Facebook
+Email marketing
+CRM et relation client
+Construction de personas
+Branding et positionnement
+Analyse SWOT
+Analyse PESTEL
+Analyse du besoin
+
+# Génération de videos
+
+créer le script
+
+créer un story bord
+
+créer générer les audio
+
+créer la video
+
+valider et modifier la video
+
+uploader la video
