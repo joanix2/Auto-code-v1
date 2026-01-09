@@ -85,51 +85,114 @@ Application
 │       ├── Synchronisation
 │       └── Diff / patch
 │
-└── 4. Marketing & Croissance
-    ├── Analyse de Tendances
-    │   ├── Mots-clés
-    │   ├── Formats performants
-    │   └── Signaux faibles (niches, sujets émergents)
+├── 4. Marketing & Croissance
+│   ├── Analyse de Tendances
+│   │   ├── Mots-clés
+│   │   ├── Formats performants
+│   │   └── Signaux faibles (niches, sujets émergents)
+│   │
+│   ├── Contenus
+│   │   ├── Textuels
+│   │   │   ├── Articles
+│   │   │   ├── Posts
+│   │   │   └── Scripts
+│   │   │
+│   │   ├── Visuels
+│   │   │   ├── Images
+│   │   │   └── Slides
+│   │   │
+│   │   └── Vidéos
+│   │       ├── Types
+│   │       │   ├── Short (Reels / TikTok / Shorts)
+│   │       │   ├── Présentation produit
+│   │       │   ├── Démo technique
+│   │       │   └── Pédagogique / storytelling
+│   │       │
+│   │       ├── Pipeline
+│   │       │   ├── Script (LLM)
+│   │       │   ├── Storyboard
+│   │       │   ├── Voix (TTS)
+│   │       │   ├── Génération visuelle
+│   │       │   ├── Montage automatique
+│   │       │   └── Upload
+│   │       │
+│   │       └── Déclinaisons
+│   │           ├── Vidéo longue
+│   │           ├── Shorts
+│   │           └── Extraits
+│   │
+│   ├── Diffusion
+│   │   ├── Emailing
+│   │   ├── Réseaux sociaux
+│   │   └── Ads
+│   │
+│   └── Mesure Marketing
+│       ├── Engagement
+│       ├── Conversion
+│       └── ROI
+│
+├── 5. Comptabilité & Finance
+│   ├── Facturation
+│   │   ├── Devis
+│   │   ├── Factures
+│   │   ├── Avoirs
+│   │   └── Relances
+│   │
+│   ├── Dépenses
+│   │   ├── Fournisseurs
+│   │   ├── Frais
+│   │   ├── Achats
+│   │   └── Notes de frais
+│   │
+│   ├── Trésorerie
+│   │   ├── Encaissements
+│   │   ├── Décaissements
+│   │   ├── Prévisionnel
+│   │   └── Rapprochement bancaire
+│   │
+│   ├── Reporting Financier
+│   │   ├── Bilan
+│   │   ├── Compte de résultat
+│   │   ├── Tableau de flux
+│   │   └── Budget prévisionnel
+│   │
+│   └── Analytics Business
+│       ├── KPIs financiers
+│       │   ├── CA
+│       │   ├── Marge
+│       │   └── Rentabilité
+│       ├── Coûts par projet
+│       └── ROI par client
+│
+└── 6. Juridique & Conformité
+    ├── Contrats
+    │   ├── Clients
+    │   ├── Fournisseurs
+    │   ├── Partenaires
+    │   └── Salariés / Freelances
     │
-    ├── Contenus
-    │   ├── Textuels
-    │   │   ├── Articles
-    │   │   ├── Posts
-    │   │   └── Scripts
-    │   │
-    │   ├── Visuels
-    │   │   ├── Images
-    │   │   └── Slides
-    │   │
-    │   └── Vidéos
-    │       ├── Types
-    │       │   ├── Short (Reels / TikTok / Shorts)
-    │       │   ├── Présentation produit
-    │       │   ├── Démo technique
-    │       │   └── Pédagogique / storytelling
-    │       │
-    │       ├── Pipeline
-    │       │   ├── Script (LLM)
-    │       │   ├── Storyboard
-    │       │   ├── Voix (TTS)
-    │       │   ├── Génération visuelle
-    │       │   ├── Montage automatique
-    │       │   └── Upload
-    │       │
-    │       └── Déclinaisons
-    │           ├── Vidéo longue
-    │           ├── Shorts
-    │           └── Extraits
+    ├── Propriété Intellectuelle
+    │   ├── Licences code
+    │   ├── Marques
+    │   ├── Brevets
+    │   └── Droits d'auteur
     │
-    ├── Diffusion
-    │   ├── Emailing
-    │   ├── Réseaux sociaux
-    │   └── Ads
+    ├── RGPD & Conformité
+    │   ├── Registre des traitements
+    │   ├── Consentements
+    │   ├── Droit à l'oubli
+    │   ├── DPO / audits
+    │   └── Violations de données
     │
-    └── Mesure Marketing
-        ├── Engagement
-        ├── Conversion
-        └── ROI
+    ├── Documents légaux
+    │   ├── CGV/CGU
+    │   ├── Mentions légales
+    │   ├── Politique de confidentialité
+    │   └── Cookies
+    │
+    └── Obligations légales
+        ├── Déclarations fiscales
+        ├── Déclarations sociales
+        ├── Assurances
+        └── Certifications
 ```
-
-A ajouter aspect contable et juridique
