@@ -15,6 +15,11 @@ from ..repositories.message_repository import MessageRepository
 from ..repositories.issue_repository import IssueRepository
 from ..repositories.repository_repository import RepositoryRepository
 from ..utils.auth import get_current_user
+from ..utils.error_handler import (
+    handle_controller_errors,
+    validate_resource_exists,
+    validate_authorization
+)
 from ..database import get_db
 
 router = APIRouter(prefix="/api/messages", tags=["messages"])
@@ -52,11 +57,7 @@ class MessageController(BaseController[Message, MessageCreate, None]):
         """
         # Verify issue exists
         issue = await self.issue_repository.get_by_id(data.issue_id)
-        if not issue:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Issue not found"
-            )
+        validate_resource_exists(issue, "issue", data.issue_id)
         
         # Verify issue has a PR (required for comments)
         if not issue.github_pr_number:
@@ -73,11 +74,7 @@ class MessageController(BaseController[Message, MessageCreate, None]):
             )
         
         repository = await self.repository_repository.get_by_id(issue.repository_id)
-        if not repository:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Repository not found"
-            )
+        validate_resource_exists(repository, "repository", issue.repository_id)
         
         if not repository.full_name:
             raise HTTPException(
@@ -106,18 +103,13 @@ class MessageController(BaseController[Message, MessageCreate, None]):
     async def validate_delete(self, resource_id: str, current_user: User, db) -> Dict[str, Any]:
         """Validate message deletion and prepare data for GitHub sync"""
         message = await self.service.get_by_id(resource_id)
-        if not message:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Message not found"
-            )
+        validate_resource_exists(message, "message", resource_id)
         
         # Check authorization (only author can delete)
-        if message.author_username != current_user.username:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to delete this message"
-            )
+        validate_authorization(
+            message.author_username == current_user.username,
+            "Not authorized to delete this message"
+        )
         
         # Get issue and repository info for GitHub API
         issue = await self.issue_repository.get_by_id(message.issue_id)
@@ -143,31 +135,19 @@ class MessageController(BaseController[Message, MessageCreate, None]):
             "repository_full_name": repository.full_name
         }
     
+    @handle_controller_errors(resource_name="message", operation="creation")
     async def create(self, data: MessageCreate, current_user: User, db) -> Message:
         """Create message with GitHub PR comment sync"""
-        try:
-            validated_data = await self.validate_create(data, current_user, db)
-            message = await self.service.create(validated_data)
-            return message
-        except httpx.HTTPStatusError as e:
-            logger.error(f"GitHub API error: {e.response.status_code} - {e.response.text}")
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=f"GitHub API error: {e.response.text}"
-            )
+        validated_data = await self.validate_create(data, current_user, db)
+        message = await self.service.create(validated_data)
+        return message
     
+    @handle_controller_errors(resource_name="message", operation="deletion")
     async def delete(self, resource_id: str, current_user: User, db) -> Dict[str, str]:
         """Delete message with GitHub PR comment sync"""
-        try:
-            validated_data = await self.validate_delete(resource_id, current_user, db)
-            await self.service.delete(resource_id, validated_data.get("access_token"), **validated_data)
-            return {"message": f"Message {resource_id} deleted successfully"}
-        except httpx.HTTPStatusError as e:
-            logger.error(f"GitHub API error: {e.response.status_code} - {e.response.text}")
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=f"GitHub API error: {e.response.text}"
-            )
+        validated_data = await self.validate_delete(resource_id, current_user, db)
+        await self.service.delete(resource_id, validated_data.get("access_token"), **validated_data)
+        return {"message": f"Message {resource_id} deleted successfully"}
     
     async def sync_from_github(self, github_token: str, current_user: User, **kwargs) -> List[Message]:
         # Messages are not synced from GitHub (they're PR comments)
@@ -180,11 +160,7 @@ class MessageController(BaseController[Message, MessageCreate, None]):
         """Get all messages for an issue"""
         # Verify issue exists
         issue = await self.issue_repository.get_by_id(issue_id)
-        if not issue:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Issue not found"
-            )
+        validate_resource_exists(issue, "issue", issue_id)
         
         return await self.service.get_all({"issue_id": issue_id})
 
