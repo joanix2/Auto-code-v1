@@ -54,10 +54,27 @@ class IssueService(GitHubSyncService[Issue]):
             "github_issue_number": github_data["number"],
             "title": github_data["title"],
             "description": github_data.get("body", ""),
-            "status": "open" if github_data["state"] == "open" else "closed",
             "github_issue_url": github_data["html_url"],
             "labels": [label["name"] for label in github_data.get("labels", [])]
         }
+        
+        # Handle status mapping carefully to preserve granular states
+        # Check if there's an existing issue status in the context
+        existing_status = None
+        if "_context" in github_data and "existing_issue" in github_data["_context"]:
+            existing_status = github_data["_context"]["existing_issue"].status
+        
+        # Only update status based on GitHub state if needed
+        if github_data["state"] == "closed":
+            # If GitHub issue is closed, always set to closed
+            db_data["status"] = "closed"
+        elif existing_status and existing_status in ["in_progress", "review"]:
+            # Preserve granular statuses when GitHub issue is still open
+            # Don't overwrite "in_progress" or "review" with "open"
+            db_data["status"] = existing_status
+        else:
+            # Default mapping for new issues or basic states
+            db_data["status"] = "open"
         
         # Get author from GitHub user data
         if "user" in github_data and github_data["user"]:
@@ -478,6 +495,11 @@ class IssueService(GitHubSyncService[Issue]):
         for gh_issue in github_issues:
             # Check if issue already exists
             existing_issue = await self.issue_repo.get_by_github_id(gh_issue["id"])
+            
+            # Add existing issue to context for status preservation
+            if existing_issue:
+                gh_issue["_context"] = gh_issue.get("_context", {})
+                gh_issue["_context"]["existing_issue"] = existing_issue
             
             # Map GitHub data to DB format
             issue_data = await self.map_github_to_db(gh_issue)
