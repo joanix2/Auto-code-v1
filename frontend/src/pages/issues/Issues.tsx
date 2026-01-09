@@ -105,6 +105,10 @@ export function Issues() {
     navigate(`/issues/${issueId}`);
   };
 
+  const handleViewMessages = (issueId: string) => {
+    navigate(`/issues/${issueId}/messages`);
+  };
+
   const handleSyncIssues = async () => {
     if (syncIssues) {
       await syncIssues();
@@ -134,6 +138,7 @@ export function Issues() {
         loading={loading}
         onSync={repositoryId ? handleSyncIssues : undefined}
         onAssignToCopilot={handleAssignToCopilot}
+        onViewMessages={handleViewMessages}
         onClick={handleIssueClick}
         onEdit={handleEditIssue}
         onDelete={handleDeleteIssue}
