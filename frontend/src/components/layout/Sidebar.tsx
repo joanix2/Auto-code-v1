@@ -1,10 +1,9 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FolderGit2, FileText, Home } from "lucide-react";
+import { FolderGit2, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { name: "Home", href: "/", icon: Home },
   { name: "Repositories", href: "/repositories", icon: FolderGit2 },
   { name: "Issues", href: "/issues", icon: FileText },
 ];
