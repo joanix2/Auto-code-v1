@@ -37,14 +37,14 @@ export function Login() {
           title: "Successfully authenticated",
           description: "Redirecting to repositories...",
         });
-        navigate("/repositories", { replace: true });
+        navigate("/development/repositories", { replace: true });
       });
     }
   }, [searchParams, toast, navigate, refreshUser]);
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    return <Navigate to="/repositories" replace />;
+    return <Navigate to="/development/repositories" replace />;
   }
 
   const handleGitHubLogin = () => {

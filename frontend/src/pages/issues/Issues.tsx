@@ -98,11 +98,11 @@ export function Issues() {
   };
 
   const handleEditIssue = (issueId: string) => {
-    navigate(`/issues/${issueId}/edit`);
+    navigate(`/development/issues/${issueId}/edit`);
   };
 
   const handleIssueClick = (issueId: string) => {
-    navigate(`/issues/${issueId}`);
+    navigate(`/development/issues/${issueId}`);
   };
 
   const handleSyncIssues = async () => {

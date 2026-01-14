@@ -19,49 +19,43 @@ interface RepositoryFormData {
 export function RepositoryDetails() {
   const { user } = useAuth();
 
-  const {
-    formData,
-    loading,
-    loadingEntity,
-    error,
-    isEditMode,
-    setError,
-    handleSubmit,
-    handleCancel,
-    updateFormData,
-  } = useBaseDetails<RepositoryFormData>("id", { name: "", description: "", private: false }, {
-    onLoadEntity: async (id: string) => {
-      const repo = await repositoryService.getById(id);
-      return {
-        name: repo.name,
-        description: repo.description || "",
-        private: repo.is_private,
-      };
-    },
-    onCreateEntity: async (data: RepositoryFormData) => {
-      await repositoryService.create({
-        name: data.name.trim(),
-        description: data.description.trim() || undefined,
-        private: data.private,
-      });
-    },
-    onUpdateEntity: async (id: string, data: RepositoryFormData) => {
-      await repositoryService.update(id, {
-        name: data.name.trim(),
-        description: data.description.trim() || undefined,
-      });
-    },
-    validateForm: (data: RepositoryFormData) => {
-      if (!data.name.trim()) {
-        return "Le nom du repository est requis";
-      }
-      if (!user?.github_token) {
-        return "Veuillez configurer votre token GitHub dans les paramètres de votre profil";
-      }
-      return null;
-    },
-    defaultSuccessPath: "/repositories",
-  });
+  const { formData, loading, loadingEntity, error, isEditMode, setError, handleSubmit, handleCancel, updateFormData } = useBaseDetails<RepositoryFormData>(
+    "id",
+    { name: "", description: "", private: false },
+    {
+      onLoadEntity: async (id: string) => {
+        const repo = await repositoryService.getById(id);
+        return {
+          name: repo.name,
+          description: repo.description || "",
+          private: repo.is_private,
+        };
+      },
+      onCreateEntity: async (data: RepositoryFormData) => {
+        await repositoryService.create({
+          name: data.name.trim(),
+          description: data.description.trim() || undefined,
+          private: data.private,
+        });
+      },
+      onUpdateEntity: async (id: string, data: RepositoryFormData) => {
+        await repositoryService.update(id, {
+          name: data.name.trim(),
+          description: data.description.trim() || undefined,
+        });
+      },
+      validateForm: (data: RepositoryFormData) => {
+        if (!data.name.trim()) {
+          return "Le nom du repository est requis";
+        }
+        if (!user?.github_token) {
+          return "Veuillez configurer votre token GitHub dans les paramètres de votre profil";
+        }
+        return null;
+      },
+      defaultSuccessPath: "/development/repositories",
+    }
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;

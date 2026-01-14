@@ -2,12 +2,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components/layout/Layout";
 import { Login } from "./pages/auth/Login";
+import { Dashboard } from "./pages/Dashboard";
 import { Repositories } from "./pages/repository/Repositories";
 import { RepositoryDetails } from "./pages/repository/RepositoryDetails";
 import { Issues } from "./pages/issues/Issues";
 import IssueDetails from "./pages/issues/IssueDetails";
 import { Messages } from "./pages/messages/Messages";
 import Profile from "./pages/profile/Profile";
+import { NotFound } from "./pages/NotFound";
 import { Toaster } from "@/components/ui/toaster";
 
 // Protected Route Component
@@ -43,7 +45,7 @@ function App() {
         <Routes>
           {/* Protected Routes with Layout */}
           <Route
-            path="/repositories"
+            path="/development/repositories"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
@@ -54,7 +56,7 @@ function App() {
           />
 
           <Route
-            path="/repositories/new"
+            path="/development/repositories/new"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
@@ -65,7 +67,7 @@ function App() {
           />
 
           <Route
-            path="/repositories/:id/edit"
+            path="/development/repositories/:id/edit"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
@@ -76,7 +78,7 @@ function App() {
           />
 
           <Route
-            path="/repositories/:repositoryId/issues"
+            path="/development/repositories/:repositoryId/issues"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
@@ -87,7 +89,7 @@ function App() {
           />
 
           <Route
-            path="/issues"
+            path="/development/issues"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
@@ -98,11 +100,44 @@ function App() {
           />
 
           <Route
-            path="/issues/new"
+            path="/development/issues/new"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <IssueDetails />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/development/issues/:issueId"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <IssueDetails />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/development/issues/:issueId/edit"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <IssueDetails />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/development/issues/:issueId/messages"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <Messages />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }
@@ -123,51 +158,29 @@ function App() {
           {/* Login route - public */}
           <Route path="/login" element={<Login />} />
 
-          <Route
-            path="/issues/:issueId"
-            element={
-              <ProtectedRoute>
-                <AuthenticatedLayout>
-                  <IssueDetails />
-                </AuthenticatedLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/issues/:issueId/edit"
-            element={
-              <ProtectedRoute>
-                <AuthenticatedLayout>
-                  <IssueDetails />
-                </AuthenticatedLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/issues/:issueId/messages"
-            element={
-              <ProtectedRoute>
-                <AuthenticatedLayout>
-                  <Messages />
-                </AuthenticatedLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Default route - redirect to repositories */}
+          {/* Dashboard - page d'accueil */}
           <Route
             path="/"
             element={
               <ProtectedRoute>
-                <Navigate to="/repositories" replace />
+                <AuthenticatedLayout>
+                  <Dashboard />
+                </AuthenticatedLayout>
               </ProtectedRoute>
             }
           />
 
-          {/* 404 - Redirect to repositories */}
-          <Route path="*" element={<Navigate to="/repositories" replace />} />
+          {/* 404 - Page non trouvée */}
+          <Route
+            path="*"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <NotFound />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
         </Routes>
         <Toaster />
       </AuthProvider>

@@ -31,18 +31,7 @@ export function IssueDetails() {
   const { repositories, loading: loadingRepos } = useRepositories();
   const { getIssue, createIssue, updateIssue } = useIssues(repositoryIdParam || "");
 
-  const {
-    formData,
-    loading,
-    loadingEntity,
-    error,
-    isEditMode,
-    setFormData,
-    setError,
-    handleSubmit,
-    handleCancel,
-    updateFormData,
-  } = useBaseDetails<IssueFormData>(
+  const { formData, loading, loadingEntity, error, isEditMode, setFormData, setError, handleSubmit, handleCancel, updateFormData } = useBaseDetails<IssueFormData>(
     "issueId",
     {
       title: "",
@@ -89,9 +78,9 @@ export function IssueDetails() {
         return null;
       },
       getSuccessPath: (data: IssueFormData) => {
-        return data.repository_id ? `/repositories/${data.repository_id}/issues` : "/repositories";
+        return data.repository_id ? `/development/repositories/${data.repository_id}/issues` : "/development/repositories";
       },
-      defaultSuccessPath: "/repositories",
+      defaultSuccessPath: "/development/repositories",
     }
   );
 

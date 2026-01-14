@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 
@@ -13,20 +13,19 @@ interface LayoutProps {
 }
 
 export function Layout({ children, user, onSignOut }: LayoutProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex h-screen overflow-hidden">
-        {/* Sidebar */}
-        <Sidebar />
+      {/* Header - Toute la largeur */}
+      <Header user={user} onSignOut={onSignOut} onMenuClick={() => setMobileMenuOpen(true)} />
+
+      <div className="flex h-[calc(100vh-73px)] overflow-hidden">
+        {/* Sidebar (Desktop + Mobile Drawer) */}
+        <Sidebar mobileMenuOpen={mobileMenuOpen} onMobileMenuChange={setMobileMenuOpen} />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header */}
-          <Header user={user} onSignOut={onSignOut} />
-
-          {/* Page Content */}
-          <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>
-        </div>
+        <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>
       </div>
     </div>
   );

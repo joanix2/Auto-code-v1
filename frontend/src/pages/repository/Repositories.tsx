@@ -23,11 +23,11 @@ export function Repositories() {
   };
 
   const handleEditRepository = (repoId: string) => {
-    navigate(`/repositories/${repoId}/edit`);
+    navigate(`/development/repositories/${repoId}/edit`);
   };
 
   const handleRepositoryClick = (repoId: string) => {
-    navigate(`/repositories/${repoId}/issues`);
+    navigate(`/development/repositories/${repoId}/issues`);
   };
 
   const isGitHubNotConnected = error?.includes("GitHub account not connected");
@@ -62,7 +62,7 @@ export function Repositories() {
         onClick={handleRepositoryClick}
         onEdit={handleEditRepository}
         onDelete={handleDeleteRepository}
-        createUrl="/repositories/new"
+        createUrl="/development/repositories/new"
       />
     </div>
   );

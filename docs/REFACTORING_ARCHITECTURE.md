@@ -1122,7 +1122,7 @@ export function RepositoriesPage() {
         loading={loading}
         onSync={syncRepositories}
         onSyncIssues={(repoId) => syncIssues(repoId)}
-        onClick={(repoId) => navigate(`/repositories/${repoId}/issues`)}
+        onClick={(repoId) => navigate(`/development/repositories/${repoId}/issues`)}
         onDelete={(repoId) => console.log("Delete", repoId)}
         onEdit={(repoId) => console.log("Edit", repoId)}
       />

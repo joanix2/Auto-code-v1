@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Menu } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,10 @@ interface HeaderProps {
     profile_picture?: string;
   };
   onSignOut?: () => void;
+  onMenuClick?: () => void;
 }
 
-export function Header({ user, onSignOut }: HeaderProps) {
+export function Header({ user, onSignOut, onMenuClick }: HeaderProps) {
   const getInitials = (username: string) => {
     return username.slice(0, 2).toUpperCase();
   };
@@ -36,6 +37,11 @@ export function Header({ user, onSignOut }: HeaderProps) {
     <header className="border-b bg-white shadow-sm z-10">
       <div className="p-3 sm:p-6 py-3">
         <div className="flex items-center justify-between gap-2 sm:gap-4">
+          {/* Mobile Menu Button */}
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={onMenuClick}>
+            <Menu className="h-6 w-6" />
+          </Button>
+
           {/* Logo + Title */}
           <Link to="/repositories" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity group">
             <img src="/logo_ticket_code.svg" alt="AutoCode Logo" className="h-8 w-8 sm:h-10 sm:w-10 transition-transform group-hover:scale-105" />
