@@ -37,7 +37,7 @@ export const createNodes = (
     .attr("stroke", (d) => (d.id === selectedNodeId ? SELECTED_NODE_STROKE_COLOR : DEFAULT_NODE_STROKE_COLOR))
     .attr("stroke-width", (d) => (d.id === selectedNodeId ? SELECTED_STROKE_WIDTH : DEFAULT_STROKE_WIDTH))
     .style("cursor", "pointer")
-    .style("touch-action", "none") // Prevent browser touch handling
+    .style("touch-action", "manipulation") // Allow clicks but prevent double-tap zoom
     .style("user-select", "none") // Prevent text selection during drag
     .style("-webkit-user-select", "none")
     .style("-webkit-tap-highlight-color", "transparent") // Remove tap highlight on mobile
@@ -91,27 +91,22 @@ export const updateNodePositions = (
  * Adds drag behavior to nodes
  */
 export const addDragBehavior = (node: d3.Selection<d3.BaseType | SVGCircleElement, GraphNode, SVGGElement, unknown>, simulation: d3.Simulation<GraphNode, undefined>) => {
+  let dragStartTime = 0;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let hasMoved = false;
+
   const drag = d3
     .drag<SVGCircleElement, GraphNode>()
     .subject((event, d) => {
       // Ensure proper subject for touch events
-      console.log("[DRAG] Subject called", {
-        eventType: event.type,
-        sourceEventType: event.sourceEvent?.type,
-        nodeId: d.id,
-        position: { x: d.x, y: d.y },
-      });
       return { x: d.x!, y: d.y! };
     })
     .on("start", (event, d) => {
-      console.log("[DRAG] Start", {
-        nodeId: d.id,
-        eventType: event.type,
-        sourceEventType: event.sourceEvent?.type,
-        active: event.active,
-        position: { x: d.x, y: d.y },
-        eventPosition: { x: event.x, y: event.y },
-      });
+      dragStartTime = Date.now();
+      dragStartX = event.x;
+      dragStartY = event.y;
+      hasMoved = false;
 
       if (!event.active) simulation.alphaTarget(0.3).restart();
       d.fx = d.x;
@@ -119,27 +114,25 @@ export const addDragBehavior = (node: d3.Selection<d3.BaseType | SVGCircleElemen
 
       // Prevent zoom behavior from interfering
       if (event.sourceEvent) {
-        console.log("[DRAG] Stopping propagation on", event.sourceEvent.type);
         event.sourceEvent.stopPropagation();
 
-        // Prevent default touch behavior (scrolling, zooming)
-        if (event.sourceEvent.type.startsWith("touch")) {
-          console.log("[DRAG] Preventing default for touch event");
-          event.sourceEvent.preventDefault();
-        }
+        // Only preventDefault on touch if we're sure it's a drag, not on start
+        // This allows click events to fire on mobile
       }
     })
     .on("drag", (event, d) => {
-      console.log("[DRAG] Dragging", {
-        nodeId: d.id,
-        eventType: event.type,
-        sourceEventType: event.sourceEvent?.type,
-        newPosition: { x: event.x, y: event.y },
-        delta: {
-          dx: event.x - (d.fx || d.x!),
-          dy: event.y - (d.fy || d.y!),
-        },
-      });
+      const dx = Math.abs(event.x - dragStartX);
+      const dy = Math.abs(event.y - dragStartY);
+
+      // Consider it a drag if moved more than 5 pixels
+      if (dx > 5 || dy > 5) {
+        hasMoved = true;
+
+        // Now we can safely preventDefault to avoid scrolling
+        if (event.sourceEvent && event.sourceEvent.type.startsWith("touch")) {
+          event.sourceEvent.preventDefault();
+        }
+      }
 
       d.fx = event.x;
       d.fy = event.y;
@@ -147,25 +140,23 @@ export const addDragBehavior = (node: d3.Selection<d3.BaseType | SVGCircleElemen
       // Prevent zoom behavior from interfering
       if (event.sourceEvent) {
         event.sourceEvent.stopPropagation();
-        if (event.sourceEvent.type.startsWith("touch")) {
-          event.sourceEvent.preventDefault();
-        }
       }
     })
     .on("end", (event, d) => {
-      console.log("[DRAG] End", {
-        nodeId: d.id,
-        eventType: event.type,
-        sourceEventType: event.sourceEvent?.type,
-        active: event.active,
-        finalPosition: { x: d.x, y: d.y },
-      });
-
       if (!event.active) simulation.alphaTarget(0);
-      d.fx = null;
-      d.fy = null;
+
+      // If it was a tap/click (not a drag), restore position
+      const duration = Date.now() - dragStartTime;
+      if (!hasMoved && duration < 200) {
+        // It's a tap/click, not a drag - don't fix position
+        d.fx = null;
+        d.fy = null;
+      } else {
+        // It was a drag - keep position fixed briefly then release
+        d.fx = null;
+        d.fy = null;
+      }
     });
 
-  console.log("[DRAG] Drag behavior attached to", node.size(), "nodes");
   node.call(drag);
 };

@@ -11,7 +11,7 @@ interface ZoomControlsProps {
 
 export const ZoomControls: React.FC<ZoomControlsProps> = ({ onZoomIn, onZoomOut, onFitToScreen, onReset }) => {
   return (
-    <div className="absolute top-2 right-2 flex flex-col gap-1 bg-white rounded-lg shadow-md p-1">
+    <div className="absolute top-2 left-2 flex flex-col gap-1 bg-white rounded-lg shadow-md p-1 z-10">
       <Button variant="ghost" size="icon" onClick={onZoomIn} className="h-8 w-8" title="Zoom in">
         <ZoomIn className="h-4 w-4" />
       </Button>

@@ -44,4 +44,6 @@ export interface GraphViewerProps {
   enableZoom?: boolean;
   enableDrag?: boolean;
   className?: string;
+  onEditNode?: (node: GraphNode) => void;
+  onDeleteNode?: (node: GraphNode) => void;
 }

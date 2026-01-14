@@ -9,6 +9,7 @@ import { createEdges, createEdgeLabels, updateEdgePositions } from "./edges";
 import { createNodes, createNodeLabels, updateNodePositions, addDragBehavior } from "./nodes";
 import { createZoomBehavior } from "./zoom";
 import { ZoomControls } from "./ZoomControls";
+import { GraphNodePanel } from "./GraphNodePanel";
 
 export const GraphViewer: React.FC<GraphViewerProps> = ({
   data,
@@ -26,6 +27,8 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   enableZoom = true,
   enableDrag = true,
   className = "",
+  onEditNode,
+  onDeleteNode,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -36,6 +39,10 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
   const clickThreshold = 5; // pixels
+
+  // State pour le panel de propriétés du nœud
+  const [selectedNodeData, setSelectedNodeData] = useState<GraphNode | null>(null);
+  const [showNodePanel, setShowNodePanel] = useState(false);
 
   // Handlers de zoom qui utilisent la référence stockée
   const handleZoomInClick = () => {
@@ -162,32 +169,18 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     if (onBackgroundClick) {
       background
         .on("pointerdown", (event) => {
-          console.log("[BACKGROUND] Pointer down", {
-            x: event.clientX,
-            y: event.clientY,
-            target: event.target,
-          });
           dragStartPosRef.current = { x: event.clientX, y: event.clientY };
         })
         .on("pointerup", (event) => {
-          console.log("[BACKGROUND] Pointer up", {
-            x: event.clientX,
-            y: event.clientY,
-            dragStartPos: dragStartPosRef.current,
-          });
-
           if (dragStartPosRef.current) {
             const dx = Math.abs(event.clientX - dragStartPosRef.current.x);
             const dy = Math.abs(event.clientY - dragStartPosRef.current.y);
 
-            console.log("[BACKGROUND] Movement delta", { dx, dy, threshold: clickThreshold });
-
             // Only trigger click if movement is minimal (not a drag)
             if (dx < clickThreshold && dy < clickThreshold) {
-              console.log("[BACKGROUND] Click detected - calling onBackgroundClick");
-              onBackgroundClick();
-            } else {
-              console.log("[BACKGROUND] Not a click - drag detected");
+              setSelectedNodeData(null);
+              setShowNodePanel(false);
+              if (onBackgroundClick) onBackgroundClick();
             }
           }
           dragStartPosRef.current = null;
@@ -206,7 +199,13 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     const edgeLabels = createEdgeLabels(g, data.edges, showLabels);
 
     // Create nodes and node labels
-    const node = createNodes(g, data.nodes, nodeRadius, selectedNodeId, nodeColorMap, onNodeClick, onNodeDoubleClick);
+    const handleInternalNodeClick = (node: GraphNode) => {
+      setSelectedNodeData(node);
+      setShowNodePanel(true);
+      if (onNodeClick) onNodeClick(node);
+    };
+
+    const node = createNodes(g, data.nodes, nodeRadius, selectedNodeId, nodeColorMap, handleInternalNodeClick, onNodeDoubleClick);
     const nodeLabels = createNodeLabels(g, data.nodes, nodeRadius, selectedNodeId, showLabels);
 
     // Add drag behavior
@@ -235,6 +234,18 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
 
         {/* Zoom Controls */}
         {enableZoom && <ZoomControls onZoomIn={handleZoomInClick} onZoomOut={handleZoomOutClick} onFitToScreen={handleFitToScreenClick} onReset={handleResetZoomClick} />}
+
+        {/* Node Properties Panel */}
+        <GraphNodePanel
+          node={selectedNodeData}
+          isOpen={showNodePanel}
+          onClose={() => {
+            setShowNodePanel(false);
+            setSelectedNodeData(null);
+          }}
+          onEdit={onEditNode}
+          onDelete={onDeleteNode}
+        />
 
         {/* Empty state */}
         {data.nodes.length === 0 && (

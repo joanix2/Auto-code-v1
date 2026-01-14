@@ -6,10 +6,6 @@ import { Database } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { GraphViewer } from "@/components/common/GraphViewer";
 import type { GraphData, GraphNode, GraphEdge } from "@/components/common/GraphViewer";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 export function MetamodelDetail() {
   const { id } = useParams<{ id: string }>();
@@ -17,8 +13,6 @@ export function MetamodelDetail() {
   const [metamodel, setMetamodel] = useState<Metamodel | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [selectedNodeData, setSelectedNodeData] = useState<GraphNode | null>(null);
-  const [showNodePanel, setShowNodePanel] = useState(false);
 
   // Sample graph data - À remplacer par les vraies données du métamodèle
   const [graphData, setGraphData] = useState<GraphData>({
@@ -81,8 +75,6 @@ export function MetamodelDetail() {
 
   const handleNodeClick = (node: GraphNode) => {
     setSelectedNode(node.id);
-    setSelectedNodeData(node);
-    setShowNodePanel(true);
   };
 
   const handleNodeDoubleClick = (node: GraphNode) => {
@@ -103,8 +95,21 @@ export function MetamodelDetail() {
 
   const handleBackgroundClick = () => {
     setSelectedNode(null);
-    setSelectedNodeData(null);
-    setShowNodePanel(false);
+  };
+
+  const handleEditNode = (node: GraphNode) => {
+    toast({
+      title: "Édition du nœud",
+      description: `Édition de ${node.label} - Fonctionnalité à venir`,
+    });
+  };
+
+  const handleDeleteNode = (node: GraphNode) => {
+    toast({
+      title: "Suppression du nœud",
+      description: `Suppression de ${node.label} - Fonctionnalité à venir`,
+      variant: "destructive",
+    });
   };
 
   const nodeColorMap = {
@@ -139,7 +144,7 @@ export function MetamodelDetail() {
   }
 
   return (
-    <div className="flex h-full w-full">
+    <div className="flex h-full w-full relative overflow-hidden">
       {/* Graphe en plein écran */}
       {graphData.nodes.length > 0 ? (
         <GraphViewer
@@ -155,6 +160,8 @@ export function MetamodelDetail() {
           showLabels={true}
           enableZoom={true}
           enableDrag={true}
+          onEditNode={handleEditNode}
+          onDeleteNode={handleDeleteNode}
           className="w-full h-full"
         />
       ) : (
@@ -165,65 +172,6 @@ export function MetamodelDetail() {
           </div>
         </div>
       )}
-
-      {/* Node Properties Panel */}
-      <Sheet open={showNodePanel} onOpenChange={setShowNodePanel}>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Propriétés du nœud</SheetTitle>
-            <SheetDescription>{selectedNodeData?.label}</SheetDescription>
-          </SheetHeader>
-
-          {selectedNodeData && (
-            <div className="mt-6 space-y-4">
-              <div>
-                <h3 className="font-semibold mb-2">Informations</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">ID:</span>
-                    <span className="text-sm font-mono">{selectedNodeData.id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Label:</span>
-                    <span className="text-sm">{selectedNodeData.label}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Type:</span>
-                    <Badge variant="secondary">{selectedNodeData.type}</Badge>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-2">Propriétés</h3>
-                {selectedNodeData.properties && Object.keys(selectedNodeData.properties).length > 0 ? (
-                  <div className="space-y-2">
-                    {Object.entries(selectedNodeData.properties).map(([key, value]) => (
-                      <div key={key} className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">{key}:</span>
-                        <span className="text-sm">{String(value)}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Aucune propriété</p>
-                )}
-              </div>
-
-              <div className="pt-4 space-y-2">
-                <Button variant="outline" className="w-full">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Modifier
-                </Button>
-                <Button variant="destructive" className="w-full">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Supprimer
-                </Button>
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }

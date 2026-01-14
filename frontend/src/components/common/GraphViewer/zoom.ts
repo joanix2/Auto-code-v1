@@ -19,42 +19,21 @@ export const createZoomBehavior = (
       const target = event.target as HTMLElement;
       const tagName = target.tagName?.toUpperCase();
 
-      console.log("[ZOOM FILTER]", {
-        eventType: event.type,
-        targetTag: tagName,
-        button: event.button,
-        ctrlKey: event.ctrlKey,
-        target: target,
-      });
-
       // Block zoom on interactive elements
       if (tagName === "CIRCLE" || tagName === "TEXT") {
-        console.log("[ZOOM FILTER] Blocked - interactive element");
         return false;
       }
 
       // Allow zoom with modifier keys or wheel
       if (event.ctrlKey || event.type === "wheel") {
-        console.log("[ZOOM FILTER] Allowed - modifier key or wheel");
         return true;
       }
 
       // Allow pan/zoom on background (no button pressed means left click/touch)
-      const allowed = !event.button;
-      console.log("[ZOOM FILTER]", allowed ? "Allowed - background" : "Blocked - button pressed");
-      return allowed;
+      return !event.button;
     })
     .touchable(() => true) // Enable touch support
     .on("zoom", (event) => {
-      console.log("[ZOOM]", {
-        eventType: event.type,
-        transform: {
-          x: event.transform.x,
-          y: event.transform.y,
-          k: event.transform.k,
-        },
-        sourceEvent: event.sourceEvent?.type,
-      });
       g.attr("transform", event.transform);
       onTransform(event.transform);
     });

@@ -82,7 +82,7 @@ DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les
 
 Objectif : instancier un template avec une API, un front, une infra, une CI, une doc spec kit
 
-on veux pouvoir visualiser les noeuds et les arrêtes sous la forme d'un graphe orienté avec de la physique entre les noeuds
+✅ on veux pouvoir visualiser les noeuds et les arrêtes sous la forme d'un graphe orienté avec de la physique entre les noeuds
 
 on veux pour selsctionner un type de noeud et créer des noeuds de se type
 on veux pouvoir supprimer les noeuds
