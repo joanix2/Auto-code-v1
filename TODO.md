@@ -76,9 +76,9 @@ DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les
 
 # Partie Scaffolding MDE
 
-créer un composant générique capable d'afficher des graphe avec d3.js garde en tête que nous somme en mobile first
+✅ créer un composant générique capable d'afficher des graphe avec d3.js garde en tête que nous somme en mobile first
 
-créer la page detail d'un metamodel qui affiche le meta model avec ce composant
+✅ créer la page detail d'un metamodel qui affiche le meta model avec ce composant
 
 Objectif : instancier un template avec une API, un front, une infra, une CI, une doc spec kit
 
