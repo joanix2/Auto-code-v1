@@ -14,6 +14,11 @@ from ..repositories.repository_repository import RepositoryRepository
 from ..repositories.user_repository import UserRepository
 from ..services.copilot_agent_service import GitHubCopilotAgentService
 from ..services.repository_initializer_service import RepositoryInitializerService
+from ..utils.error_handler import (
+    handle_controller_errors,
+    validate_github_token,
+    validate_resource_exists
+)
 from ..database import get_db
 
 logger = logging.getLogger(__name__)
@@ -66,12 +71,10 @@ class CopilotAssignmentController:
 
     async def _get_user_token(self, user: User) -> str:
         """Get GitHub access token for user"""
-        if not user.github_token:
-            raise HTTPException(
-                status_code=401, detail="GitHub access token not found for user"
-            )
+        validate_github_token(user.github_token, "GitHub access token not found for user")
         return user.github_token
 
+    @handle_controller_errors(resource_name="Copilot availability", operation="check")
     async def check_availability(
         self, repository_id: str, user: User
     ) -> CopilotAvailabilityResponse:
@@ -85,45 +88,36 @@ class CopilotAssignmentController:
         Returns:
             CopilotAvailabilityResponse with availability status
         """
-        try:
-            # Get repository
-            repository = await self.repository_repo.get_by_id(repository_id)
-            if not repository:
-                raise HTTPException(status_code=404, detail="Repository not found")
+        # Get repository
+        repository = await self.repository_repo.get_by_id(repository_id)
+        validate_resource_exists(repository, "repository", repository_id)
 
-            # Get user token and create service instance
-            token = await self._get_user_token(user)
-            copilot_service = GitHubCopilotAgentService(token)
+        # Get user token and create service instance
+        token = await self._get_user_token(user)
+        copilot_service = GitHubCopilotAgentService(token)
 
-            # Parse owner/repo from full_name
-            parts = repository.full_name.split("/")
-            if len(parts) != 2:
-                raise HTTPException(status_code=400, detail="Invalid repository full_name")
-            owner, repo = parts
+        # Parse owner/repo from full_name
+        parts = repository.full_name.split("/")
+        if len(parts) != 2:
+            raise HTTPException(status_code=400, detail="Invalid repository full_name")
+        owner, repo = parts
 
-            # Check availability using check_copilot_agent_status
-            status_result = await copilot_service.check_copilot_agent_status(owner, repo)
+        # Check availability using check_copilot_agent_status
+        status_result = await copilot_service.check_copilot_agent_status(owner, repo)
 
-            if status_result["enabled"]:
-                return CopilotAvailabilityResponse(
-                    available=True,
-                    message=status_result["message"],
-                    bot_id=None,  # GraphQL query doesn't return bot_id in this service
-                )
-            else:
-                return CopilotAvailabilityResponse(
-                    available=False,
-                    message=status_result["message"],
-                )
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error checking Copilot availability: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Error checking Copilot availability: {str(e)}"
+        if status_result["enabled"]:
+            return CopilotAvailabilityResponse(
+                available=True,
+                message=status_result["message"],
+                bot_id=None,  # GraphQL query doesn't return bot_id in this service
+            )
+        else:
+            return CopilotAvailabilityResponse(
+                available=False,
+                message=status_result["message"],
             )
 
+    @handle_controller_errors(resource_name="issue", operation="Copilot assignment")
     async def assign_to_copilot(
         self, issue_id: str, request: AssignToCopilotRequest, user: User
     ) -> AssignToCopilotResponse:
@@ -139,99 +133,89 @@ class CopilotAssignmentController:
         Returns:
             AssignToCopilotResponse with assignment result
         """
-        try:
-            # Get issue
-            issue = await self.issue_repo.get_by_id(issue_id)
-            if not issue:
-                raise HTTPException(status_code=404, detail="Issue not found")
+        # Get issue
+        issue = await self.issue_repo.get_by_id(issue_id)
+        validate_resource_exists(issue, "issue", issue_id)
 
-            # Get repository
-            repository = await self.repository_repo.get_by_id(issue.repository_id)
-            if not repository:
-                raise HTTPException(status_code=404, detail="Repository not found")
+        # Get repository
+        repository = await self.repository_repo.get_by_id(issue.repository_id)
+        validate_resource_exists(repository, "repository", issue.repository_id)
 
-            # Get user token and create service instances
-            token = await self._get_user_token(user)
-            copilot_service = GitHubCopilotAgentService(token)
-            initializer_service = RepositoryInitializerService(token)
+        # Get user token and create service instances
+        token = await self._get_user_token(user)
+        copilot_service = GitHubCopilotAgentService(token)
+        initializer_service = RepositoryInitializerService(token)
 
-            # Parse owner/repo
-            parts = repository.full_name.split("/")
-            if len(parts) != 2:
-                raise HTTPException(status_code=400, detail="Invalid repository full_name")
-            owner, repo = parts
+        # Parse owner/repo
+        parts = repository.full_name.split("/")
+        if len(parts) != 2:
+            raise HTTPException(status_code=400, detail="Invalid repository full_name")
+        owner, repo = parts
 
-            # 🎯 VÉRIFICATION: Repository initialisé (a des commits)
-            logger.info(f"🔍 Checking if repository {owner}/{repo} is initialized...")
-            ready_result = await initializer_service.ensure_repository_ready(
-                owner=owner,
-                repo=repo,
-                auto_initialize=True  # Initialisation automatique si vide
+        # 🎯 VÉRIFICATION: Repository initialisé (a des commits)
+        logger.info(f"🔍 Checking if repository {owner}/{repo} is initialized...")
+        ready_result = await initializer_service.ensure_repository_ready(
+            owner=owner,
+            repo=repo,
+            auto_initialize=True  # Initialisation automatique si vide
+        )
+        
+        if not ready_result["ready"]:
+            error_message = (
+                f"⚠️ Repository is empty and cannot be initialized.\n\n"
+                f"{ready_result.get('message', '')}\n\n"
+                f"Manual steps:\n" + "\n".join(ready_result.get("manual_steps", []))
             )
-            
-            if not ready_result["ready"]:
-                error_message = (
-                    f"⚠️ Repository is empty and cannot be initialized.\n\n"
-                    f"{ready_result.get('message', '')}\n\n"
-                    f"Manual steps:\n" + "\n".join(ready_result.get("manual_steps", []))
-                )
-                raise HTTPException(status_code=412, detail=error_message)
-            
-            # Log si auto-initialisé
-            if ready_result.get("action_taken") == "created_readme":
-                logger.info(f"✅ Repository auto-initialized with README.md")
+            raise HTTPException(status_code=412, detail=error_message)
+        
+        # Log si auto-initialisé
+        if ready_result.get("action_taken") == "created_readme":
+            logger.info(f"✅ Repository auto-initialized with README.md")
 
-            # Check if issue has GitHub issue number
-            if not issue.github_issue_number:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Issue does not have a GitHub issue number. It may not be synced with GitHub.",
-                )
-
-            # Get base branch
-            base_branch = request.base_branch
-            if not base_branch:
-                # Get default branch from repository data or use main
-                base_branch = "main"
-
-            # Assign to Copilot on GitHub using the service
-            result = await copilot_service.assign_issue_to_copilot(
-                owner=owner,
-                repo=repo,
-                issue_number=issue.github_issue_number,
-                custom_instructions=request.custom_instructions or "",
-                base_branch=base_branch,
-            )
-
-            if not result["success"]:
-                raise HTTPException(
-                    status_code=500, detail="Failed to assign issue to Copilot on GitHub"
-                )
-
-            # Update issue in database
-            updated_issue = await self.issue_repo.assign_to_copilot(issue_id, True)
-
-            if not updated_issue:
-                logger.warning(
-                    f"Issue {issue_id} assigned to Copilot on GitHub but failed to update in database"
-                )
-
-            return AssignToCopilotResponse(
-                success=True,
-                message=f"Issue successfully assigned to GitHub Copilot. Check your GitHub notifications for PR updates.",
-                issue_id=issue_id,
-                assigned_to_copilot=True,
-                github_issue_number=issue.github_issue_number,
-            )
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error assigning issue to Copilot: {e}")
+        # Check if issue has GitHub issue number
+        if not issue.github_issue_number:
             raise HTTPException(
-                status_code=500, detail=f"Error assigning issue to Copilot: {str(e)}"
+                status_code=400,
+                detail="Issue does not have a GitHub issue number. It may not be synced with GitHub.",
             )
 
+        # Get base branch
+        base_branch = request.base_branch
+        if not base_branch:
+            # Get default branch from repository data or use main
+            base_branch = "main"
+
+        # Assign to Copilot on GitHub using the service
+        result = await copilot_service.assign_issue_to_copilot(
+            owner=owner,
+            repo=repo,
+            issue_number=issue.github_issue_number,
+            custom_instructions=request.custom_instructions or "",
+            base_branch=base_branch,
+        )
+
+        if not result["success"]:
+            raise HTTPException(
+                status_code=500, detail="Failed to assign issue to Copilot on GitHub"
+            )
+
+        # Update issue in database
+        updated_issue = await self.issue_repo.assign_to_copilot(issue_id, True)
+
+        if not updated_issue:
+            logger.warning(
+                f"Issue {issue_id} assigned to Copilot on GitHub but failed to update in database"
+            )
+
+        return AssignToCopilotResponse(
+            success=True,
+            message=f"Issue successfully assigned to GitHub Copilot. Check your GitHub notifications for PR updates.",
+            issue_id=issue_id,
+            assigned_to_copilot=True,
+            github_issue_number=issue.github_issue_number,
+        )
+
+    @handle_controller_errors(resource_name="issue", operation="Copilot unassignment")
     async def unassign_from_copilot(
         self, issue_id: str, user: User
     ) -> AssignToCopilotResponse:
@@ -245,57 +229,46 @@ class CopilotAssignmentController:
         Returns:
             AssignToCopilotResponse with unassignment result
         """
-        try:
-            # Get issue
-            issue = await self.issue_repo.get_by_id(issue_id)
-            if not issue:
-                raise HTTPException(status_code=404, detail="Issue not found")
+        # Get issue
+        issue = await self.issue_repo.get_by_id(issue_id)
+        validate_resource_exists(issue, "issue", issue_id)
 
-            # Get repository
-            repository = await self.repository_repo.get_by_id(issue.repository_id)
-            if not repository:
-                raise HTTPException(status_code=404, detail="Repository not found")
+        # Get repository
+        repository = await self.repository_repo.get_by_id(issue.repository_id)
+        validate_resource_exists(repository, "repository", issue.repository_id)
 
-            # Get user token and create service instance
-            token = await self._get_user_token(user)
-            copilot_service = GitHubCopilotAgentService(token)
+        # Get user token and create service instance
+        token = await self._get_user_token(user)
+        copilot_service = GitHubCopilotAgentService(token)
 
-            # Parse owner/repo
-            parts = repository.full_name.split("/")
-            if len(parts) != 2:
-                raise HTTPException(status_code=400, detail="Invalid repository full_name")
-            owner, repo = parts
+        # Parse owner/repo
+        parts = repository.full_name.split("/")
+        if len(parts) != 2:
+            raise HTTPException(status_code=400, detail="Invalid repository full_name")
+        owner, repo = parts
 
-            # Check if issue has GitHub issue number
-            if not issue.github_issue_number:
-                # Just update in database
-                updated_issue = await self.issue_repo.assign_to_copilot(issue_id, False)
-                return AssignToCopilotResponse(
-                    success=True,
-                    message="Issue unassigned from Copilot in database (no GitHub sync needed)",
-                    issue_id=issue_id,
-                    assigned_to_copilot=False,
-                )
-
-            # Note: GitHubCopilotAgentService doesn't have unassign method
-            # We'll just update in database for now
+        # Check if issue has GitHub issue number
+        if not issue.github_issue_number:
+            # Just update in database
             updated_issue = await self.issue_repo.assign_to_copilot(issue_id, False)
-
             return AssignToCopilotResponse(
                 success=True,
-                message="Issue unassigned from GitHub Copilot",
+                message="Issue unassigned from Copilot in database (no GitHub sync needed)",
                 issue_id=issue_id,
                 assigned_to_copilot=False,
-                github_issue_number=issue.github_issue_number,
             )
 
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error unassigning issue from Copilot: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Error unassigning issue from Copilot: {str(e)}"
-            )
+        # Note: GitHubCopilotAgentService doesn't have unassign method
+        # We'll just update in database for now
+        updated_issue = await self.issue_repo.assign_to_copilot(issue_id, False)
+
+        return AssignToCopilotResponse(
+            success=True,
+            message="Issue unassigned from GitHub Copilot",
+            issue_id=issue_id,
+            assigned_to_copilot=False,
+            github_issue_number=issue.github_issue_number,
+        )
 
 
 # Factory function to create controller instance
