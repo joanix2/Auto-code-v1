@@ -1,5 +1,5 @@
 import React from "react";
-import { BaseCard, BaseCardProps } from "./BaseCard";
+import { BaseCard, BaseCardProps } from "../../common/Card/BaseCard";
 import { Repository } from "@/types/repository";
 import { CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

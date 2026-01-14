@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
+import { Toaster } from "@/components/ui/toaster";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -27,6 +28,9 @@ export function Layout({ children, user, onSignOut }: LayoutProps) {
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>
       </div>
+
+      {/* Toast notifications */}
+      <Toaster />
     </div>
   );
 }

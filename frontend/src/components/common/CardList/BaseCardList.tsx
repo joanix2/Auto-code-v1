@@ -10,6 +10,7 @@ export interface BaseCardListProps<T> {
   onSearch?: (query: string) => void;
   loading?: boolean;
   createUrl?: string;
+  showSync?: boolean; // Option pour afficher/masquer le bouton de sync
 }
 
 export abstract class BaseCardList<T extends { id: string }> extends React.Component<BaseCardListProps<T>, { searchQuery: string; syncing: boolean }> {
@@ -50,7 +51,7 @@ export abstract class BaseCardList<T extends { id: string }> extends React.Compo
   }
 
   render() {
-    const { loading, createUrl } = this.props;
+    const { loading, createUrl, showSync = true } = this.props;
     const { syncing, searchQuery } = this.state;
     const filteredItems = this.filterItems();
 
@@ -74,7 +75,7 @@ export abstract class BaseCardList<T extends { id: string }> extends React.Compo
             )}
           </div>
 
-          {this.props.onSync && (
+          {showSync && this.props.onSync && (
             <Button onClick={this.handleSync} disabled={syncing || loading} variant="outline" className="w-full sm:w-auto">
               <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
               {this.getSyncButtonLabel()}

@@ -1,6 +1,6 @@
 import React from "react";
-import { BaseCardList, BaseCardListProps } from "./BaseCardList";
-import { RepositoryCard } from "../Card/RepositoryCard";
+import { BaseCardList, BaseCardListProps } from "../../common/CardList/BaseCardList";
+import { RepositoryCard } from "./RepositoryCard";
 import { Repository } from "@/types/repository";
 
 interface RepositoryListProps extends BaseCardListProps<Repository> {

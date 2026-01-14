@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { RepositoryList } from "@/components/common/CardList/RepositoryList";
+import { RepositoryList } from "@/components/development/repositories/RepositoryList";
 import { useRepositories } from "@/hooks/useRepositories";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Settings } from "lucide-react";

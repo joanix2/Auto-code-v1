@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import type { IssueCreate, IssueUpdate, IssuePriority, IssueType, IssueStatus } from "@/types";
-import { useBaseDetails } from "../common/BaseDetailsPage";
+import { useBaseDetails } from "../../common/BaseDetailsPage";
 
 interface IssueFormData {
   title: string;

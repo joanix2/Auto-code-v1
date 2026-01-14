@@ -3,11 +3,14 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components/layout/Layout";
 import { Login } from "./pages/auth/Login";
 import { Dashboard } from "./pages/Dashboard";
-import { Repositories } from "./pages/repository/Repositories";
-import { RepositoryDetails } from "./pages/repository/RepositoryDetails";
-import { Issues } from "./pages/issues/Issues";
-import IssueDetails from "./pages/issues/IssueDetails";
-import { Messages } from "./pages/messages/Messages";
+import { Repositories } from "./pages/development/repository/Repositories";
+import { RepositoryDetails } from "./pages/development/repository/RepositoryDetails";
+import { Issues } from "./pages/development/issues/Issues";
+import IssueDetails from "./pages/development/issues/IssueDetails";
+import { Messages } from "./pages/development/messages/Messages";
+import { Metamodels } from "./pages/development/metamodels/Metamodels";
+import { MetamodelDetail } from "./pages/development/metamodels/MetamodelDetail";
+import { MetamodelForm } from "./pages/development/metamodels/MetamodelForm";
 import Profile from "./pages/profile/Profile";
 import { NotFound } from "./pages/NotFound";
 import { Toaster } from "@/components/ui/toaster";
@@ -94,6 +97,48 @@ function App() {
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <Issues />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Metamodels routes */}
+          <Route
+            path="/development/metamodeles"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <Metamodels />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/development/metamodeles/new"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <MetamodelForm />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/development/metamodeles/:id"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <MetamodelDetail />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/development/metamodeles/:id/edit"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <MetamodelForm />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }

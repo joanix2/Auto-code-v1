@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { IssueList } from "@/components/common/CardList/IssueList";
-import { IssueStatusFilter } from "@/components/common/IssueStatusFilter";
+import { IssueList } from "@/components/development/issues/IssueList";
+import { IssueStatusFilter } from "@/components/development/issues/IssueStatusFilter";
 import { useIssues } from "@/hooks/useIssues";
 import { useRepositories } from "@/hooks/useRepositories";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { AssignToCopilotDialog } from "@/components/common/AssignToCopilotDialog";
+import { AssignToCopilotDialog } from "@/components/development/issues/AssignToCopilotDialog";
 import { Repository } from "@/types";
 import { IssueStatus } from "@/types/issue";
 import { useToast } from "@/components/ui/use-toast";

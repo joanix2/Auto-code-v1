@@ -1,6 +1,6 @@
 import React from "react";
-import { BaseCardList, BaseCardListProps } from "./BaseCardList";
-import { IssueCard } from "../Card/IssueCard";
+import { BaseCardList, BaseCardListProps } from "../../common/CardList/BaseCardList";
+import { IssueCard } from "./IssueCard";
 import { Issue } from "@/types/issue";
 
 interface IssueListProps extends BaseCardListProps<Issue> {

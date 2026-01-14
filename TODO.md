@@ -32,7 +32,7 @@
 
 ✅ numéro de l'issue
 
-créer un drawer
+✅ créer un drawer
 
 helper pour la gestion des erreur dans le controller
 
@@ -75,6 +75,10 @@ merge automatique
 DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les prochains les quels peuvent être parallèliser)
 
 # Partie Scaffolding MDE
+
+créer un composant générique capable d'afficher des graphe avec d3.js garde en tête que nous somme en mobile first
+
+créer la page detail d'un metamodel qui affiche le meta model avec ce composant
 
 Objectif : instancier un template avec une API, un front, une infra, une CI, une doc spec kit
 
