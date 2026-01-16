@@ -32,36 +32,7 @@ class Metamodel(Graph):
     status: MetamodelStatus = Field(default="draft", description="Metamodel status")
     repository_id: Optional[str] = Field(default=None, description="GitHub repository ID")
     
-    # Backward compatibility - map to Graph properties
-    @property
-    def author(self) -> Optional[str]:
-        """Alias for owner_id (backward compatibility)"""
-        return self.owner_id
-    
-    @author.setter
-    def author(self, value: Optional[str]):
-        """Setter for author (backward compatibility)"""
-        self.owner_id = value
-    
-    @property
-    def concepts(self) -> int:
-        """Alias for node_count (backward compatibility)"""
-        return self.node_count
-    
-    @concepts.setter
-    def concepts(self, value: int):
-        """Setter for concepts (backward compatibility)"""
-        self.node_count = value
-    
-    @property
-    def relations(self) -> int:
-        """Alias for edge_count (backward compatibility)"""
-        return self.edge_count
-    
-    @relations.setter
-    def relations(self, value: int):
-        """Setter for relations (backward compatibility)"""
-        self.edge_count = value
+
     
     # Abstract methods implementation
     def get_graph_type(self) -> str:

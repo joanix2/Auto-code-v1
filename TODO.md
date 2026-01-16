@@ -40,6 +40,8 @@ bug fix : les ticket en attente de validation passent en open (même chose pour 
 
 ✅ suppression de l'onglet home (gadre juste les repos et home)
 
+plus de relations en base
+
 deployement et url
 
 # Infra

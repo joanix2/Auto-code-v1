@@ -1,5 +1,5 @@
-from typing import List, Optional
-from src.repositories.base import BaseRepository, convert_neo4j_types
+from typing import List, Optional, Dict, Any
+from src.repositories.base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
 from src.models.MDE.metamodel import Metamodel, MetamodelCreate, MetamodelUpdate
 import logging
 
@@ -9,31 +9,58 @@ logger = logging.getLogger(__name__)
 class MetamodelRepository(BaseRepository[Metamodel]):
     def __init__(self, db):
         super().__init__(db, Metamodel, "Metamodel")
-
-    def _create_node_query(self, data: MetamodelCreate) -> str:
-        """Generate Cypher query for creating a metamodel node"""
-        return """
-        CREATE (m:Metamodel {
-            id: randomUUID(),
-            name: $name,
-            description: $description,
-            version: $version,
-            node_count: $node_count,
-            edge_count: $edge_count,
-            author: $author,
-            status: $status,
-            created_at: datetime(),
-            updated_at: null
-        })
-        RETURN m
+    
+    async def create(self, data: Dict[str, Any]) -> Metamodel:
         """
-
-    def _update_node_query(self) -> str:
-        """Generate Cypher query for updating a metamodel node"""
-        return """
-        MATCH (m:Metamodel {id: $id})
-        SET m.updated_at = datetime()
+        Create a new metamodel with OWNS relationship to owner
+        
+        Args:
+            data: Metamodel data including owner_id
+            
+        Returns:
+            Created metamodel
         """
+        logger.info(f"🔍 Creating metamodel: {data.get('name')}")
+        logger.info(f"🔍 Owner ID: {data.get('owner_id')}")
+        
+        # Prepare data for Neo4j
+        prepared_data = prepare_neo4j_properties(data)
+        
+        # Extract owner_id for relationship creation
+        owner_id = prepared_data.get('owner_id')
+        
+        # Create metamodel node and OWNS relationship if owner exists
+        if owner_id:
+            query = f"""
+            // Create metamodel node
+            CREATE (m:{self.label} $props)
+            SET m.created_at = datetime()
+            
+            // Find owner and create OWNS relationship
+            WITH m
+            MATCH (u:User {{username: $owner_id}})
+            CREATE (u)-[r:OWNS]->(m)
+            
+            RETURN m
+            """
+            params = {"props": prepared_data, "owner_id": owner_id}
+        else:
+            # Fallback to standard creation without relationship
+            query = f"""
+            CREATE (m:{self.label} $props)
+            SET m.created_at = datetime()
+            RETURN m
+            """
+            params = {"props": prepared_data}
+        
+        result = self.db.execute_query(query, params)
+        
+        if not result:
+            raise ValueError(f"Failed to create {self.label}")
+        
+        node = convert_neo4j_types(result[0]["m"])
+        logger.info(f"✅ Created {self.label} with id={node.get('id')} and OWNS relationship")
+        return self.model(**node)
 
     async def get_by_name(self, name: str) -> Optional[Metamodel]:
         """Get a metamodel by name"""
