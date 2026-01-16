@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Metamodel } from "@/types/metamodel";
 import { metamodelService } from "@/services/metamodelService";
+import { conceptService, ConceptCreate } from "@/services/conceptService";
 import { Database, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { GraphViewer } from "@/components/common/GraphViewer";
@@ -115,27 +116,52 @@ export function MetamodelDetail() {
     });
   };
 
-  const handleCreateNode = (nodeData: { name: string; description: string; type: "concept" | "attribute" }) => {
-    // TODO: Appeler l'API pour créer le nœud
-    const newNode: GraphNode = {
-      id: `${nodeData.type}-${Date.now()}`,
-      label: nodeData.name,
-      type: nodeData.type,
-      properties: {
+  const handleCreateNode = async (nodeData: { name: string; description: string; type: "concept" | "attribute" }) => {
+    if (!id) return;
+
+    try {
+      // Appeler l'API pour créer le concept
+      const createData: ConceptCreate = {
+        name: nodeData.name,
         description: nodeData.description,
-        attributes: [],
-      },
-    };
+        graph_id: id,
+        // Position aléatoire pour commencer (sera mise à jour par l'utilisateur)
+        x_position: Math.random() * 400 + 100,
+        y_position: Math.random() * 400 + 100,
+      };
 
-    setGraphData((prev) => ({
-      nodes: [...prev.nodes, newNode],
-      edges: prev.edges,
-    }));
+      const createdConcept = await conceptService.create(createData);
 
-    toast({
-      title: "Nœud créé",
-      description: `${nodeData.type === "concept" ? "Concept" : "Attribut"} "${nodeData.name}" créé avec succès`,
-    });
+      // Ajouter le nouveau nœud au graphe local
+      const newNode: GraphNode = {
+        id: createdConcept.id,
+        label: createdConcept.name,
+        type: nodeData.type,
+        properties: {
+          description: createdConcept.description || "",
+          attributes: [],
+        },
+      };
+
+      setGraphData((prev) => ({
+        nodes: [...prev.nodes, newNode],
+        edges: prev.edges,
+      }));
+
+      toast({
+        title: "Concept créé",
+        description: `Concept "${nodeData.name}" créé avec succès`,
+      });
+
+      setIsCreateNodeOpen(false);
+    } catch (error) {
+      console.error("Error creating concept:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le concept",
+        variant: "destructive",
+      });
+    }
   };
 
   const nodeColorMap = {

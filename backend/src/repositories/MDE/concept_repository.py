@@ -4,7 +4,7 @@ Concept Repository - Database operations for concepts
 from typing import Optional, List, Dict, Any
 import logging
 
-from ..base import BaseRepository, convert_neo4j_types
+from ..base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
 from src.models.MDE.concept import Concept
 
 logger = logging.getLogger(__name__)
@@ -15,6 +15,57 @@ class ConceptRepository(BaseRepository[Concept]):
 
     def __init__(self, db):
         super().__init__(db, Concept, "Concept")
+
+    async def create(self, data: Dict[str, Any]) -> Concept:
+        """
+        Create a new concept with HAS_CONCEPT relationship to metamodel
+        
+        Args:
+            data: Concept data including graph_id (metamodel ID)
+            
+        Returns:
+            Created concept
+        """
+        logger.info(f"🔍 Creating concept: {data.get('name')}")
+        
+        # Prepare data for Neo4j
+        prepared_data = prepare_neo4j_properties(data)
+        
+        # Extract graph_id for relationship creation
+        graph_id = prepared_data.get('graph_id')
+        
+        # Create concept node and HAS_CONCEPT relationship
+        if graph_id:
+            query = f"""
+            // Create concept node
+            CREATE (c:{self.label} $props)
+            SET c.created_at = datetime()
+            
+            // Find metamodel and create HAS_CONCEPT relationship
+            WITH c
+            MATCH (m:Metamodel {{id: $graph_id}})
+            CREATE (m)-[r:HAS_CONCEPT]->(c)
+            
+            RETURN c
+            """
+            params = {"props": prepared_data, "graph_id": graph_id}
+        else:
+            # Fallback to standard creation without relationship
+            query = f"""
+            CREATE (c:{self.label} $props)
+            SET c.created_at = datetime()
+            RETURN c
+            """
+            params = {"props": prepared_data}
+        
+        result = self.db.execute_query(query, params)
+        
+        if not result:
+            raise ValueError(f"Failed to create {self.label}")
+        
+        node = convert_neo4j_types(result[0]["c"])
+        logger.info(f"✅ Created {self.label} with id={node.get('id')} and HAS_CONCEPT relationship")
+        return self.model(**node)
 
     async def get_by_metamodel(self, metamodel_id: str, skip: int = 0, limit: int = 100) -> List[Concept]:
         """

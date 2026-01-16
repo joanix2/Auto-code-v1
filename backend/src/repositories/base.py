@@ -59,6 +59,7 @@ def convert_neo4j_types(node: Dict[str, Any]) -> Dict[str, Any]:
     """
     Convert Neo4j types to Python native types
     Also deserializes JSON strings back to dicts/lists.
+    Also handles backward compatibility for field name changes.
     
     Args:
         node: Node data from Neo4j
@@ -89,6 +90,15 @@ def convert_neo4j_types(node: Dict[str, Any]) -> Dict[str, Any]:
                 converted[key] = value
         else:
             converted[key] = value
+    
+    # Backward compatibility: map old field names to new ones
+    # For concepts that still have old field names in Neo4j
+    if 'metamodel_id' in converted and 'graph_id' not in converted:
+        converted['graph_id'] = converted['metamodel_id']
+    if 'x' in converted and 'x_position' not in converted:
+        converted['x_position'] = converted['x']
+    if 'y' in converted and 'y_position' not in converted:
+        converted['y_position'] = converted['y']
     
     return converted
 

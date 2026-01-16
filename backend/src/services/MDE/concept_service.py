@@ -34,27 +34,26 @@ class ConceptService(BaseService[Concept]):
         if not isinstance(data, dict):
             data = data.model_dump()
         
-        # Check if metamodel exists
-        metamodel_id = data.get("metamodel_id")
-        metamodel = await self.metamodel_repo.get_by_id(metamodel_id)
+        # Check if metamodel exists (frontend sends graph_id)
+        graph_id = data.get("graph_id")
+        metamodel = await self.metamodel_repo.get_by_id(graph_id)
         if not metamodel:
-            raise ValueError(f"Metamodel not found: {metamodel_id}")
+            raise ValueError(f"Metamodel not found: {graph_id}")
         
         # Check for duplicate name in same metamodel
         name = data.get("name")
-        existing = await self.concept_repo.get_by_name(metamodel_id, name)
+        existing = await self.concept_repo.get_by_name(graph_id, name)
         if existing:
             raise ValueError(f"Concept with name '{name}' already exists in this metamodel")
         
-        # Prepare data
+        # Generate ID and create concept
         concept_data = {**data}
         concept_data["id"] = str(uuid4())
         
-        # Create concept
-        concept = await self.concept_repo.create(concept_data)
+        logger.info(f"🔍 Creating concept with data: {concept_data}")
         
-        # Increment metamodel concept count
-        await self.metamodel_repo.increment_concepts_count(metamodel_id)
+        # Create concept (repository will create HAS_CONCEPT relationship)
+        concept = await self.concept_repo.create(concept_data)
         
         logger.info(f"Created concept: {concept.name} (id={concept.id})")
         
@@ -155,8 +154,6 @@ class ConceptService(BaseService[Concept]):
         deleted = await self.concept_repo.delete(concept_id)
         
         if deleted:
-            # Decrement metamodel concept count
-            await self.metamodel_repo.decrement_concepts_count(concept.metamodel_id)
             logger.info(f"Deleted concept: {concept_id}")
         
         return deleted

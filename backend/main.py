@@ -17,6 +17,7 @@ from src.controllers import (
     copilot_assignment_router,
 )
 from src.controllers.MDE.metamodel_controller import router as metamodel_router
+from src.controllers.MDE.concept_routes import router as concept_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -70,6 +71,7 @@ app.include_router(issue_router)
 app.include_router(message_router)
 app.include_router(copilot_assignment_router)
 app.include_router(metamodel_router)
+app.include_router(concept_router)
 
 
 @app.get("/")

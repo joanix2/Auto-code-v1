@@ -70,17 +70,17 @@ class ConceptCreate(BaseModel):
     """Schema for creating a concept"""
     name: str = Field(..., min_length=1)
     description: Optional[str] = None
-    metamodel_id: str
-    x: Optional[float] = None
-    y: Optional[float] = None
+    graph_id: str
+    x_position: Optional[float] = None
+    y_position: Optional[float] = None
 
 
 class ConceptUpdate(BaseModel):
     """Schema for updating a concept"""
     name: Optional[str] = None
     description: Optional[str] = None
-    x: Optional[float] = None
-    y: Optional[float] = None
+    x_position: Optional[float] = None
+    y_position: Optional[float] = None
 
 
 class ConceptResponse(Concept):
