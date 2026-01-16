@@ -6,13 +6,13 @@ from typing import List, Optional, Dict, Any
 import logging
 import uuid
 
-from .base_controller import BaseController
-from ..models.user import User
-from ..models.metamodel import Metamodel, MetamodelCreate, MetamodelUpdate
-from ..services.metamodel_service import MetamodelService
-from ..repositories.metamodel_repository import MetamodelRepository
-from ..utils.auth import get_current_user
-from ..database import get_db
+from ..base_controller import BaseController
+from ...models.user import User
+from ...models import Metamodel, MetamodelCreate, MetamodelUpdate
+from ...services.MDE.metamodel_service import MetamodelService
+from ...repositories.MDE.metamodel_repository import MetamodelRepository
+from ...utils.auth import get_current_user
+from ...database import get_db
 
 router = APIRouter(prefix="/api/metamodels", tags=["metamodels"])
 logger = logging.getLogger(__name__)
@@ -54,6 +54,9 @@ class MetamodelController(BaseController[Metamodel, MetamodelCreate, MetamodelUp
         # Prepare data with author info
         result = data.model_dump()
         result["author"] = current_user.username
+        
+        # Debug: log the data being sent to repository
+        logger.info(f"🔍 Data to create: {result}")
         
         return result
     

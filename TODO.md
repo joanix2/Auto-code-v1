@@ -76,15 +76,30 @@ DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les
 
 # Partie Scaffolding MDE
 
+**Objectif** : instancier un template avec une API, un front, une infra, une CI, une doc spec kit
+
 ✅ créer un composant générique capable d'afficher des graphe avec d3.js garde en tête que nous somme en mobile first
 
 ✅ créer la page detail d'un metamodel qui affiche le meta model avec ce composant
 
-Objectif : instancier un template avec une API, un front, une infra, une CI, une doc spec kit
-
 ✅ on veux pouvoir visualiser les noeuds et les arrêtes sous la forme d'un graphe orienté avec de la physique entre les noeuds
 
-on veux pour selsctionner un type de noeud et créer des noeuds de se type
+créer les classes :
+
+- metamodel.py
+- attribute.py
+- concept.py
+- relationship.py
+
+créer les controllers
+
+créer l'interface de création de meta-model
+
+- model.py
+- individual.py
+- templates.py
+
+on veux pour selectionner un type de noeud et créer des noeuds de se type
 on veux pouvoir supprimer les noeuds
 
 on veux pouvoir afficher les propriété du noeud dans le panneau latéral

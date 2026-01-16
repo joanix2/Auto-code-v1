@@ -1,6 +1,6 @@
 from typing import List, Optional
 from src.repositories.base import BaseRepository, convert_neo4j_types
-from src.models.metamodel import Metamodel, MetamodelCreate, MetamodelUpdate
+from src.models.MDE.metamodel import Metamodel, MetamodelCreate, MetamodelUpdate
 import logging
 
 logger = logging.getLogger(__name__)
@@ -18,8 +18,8 @@ class MetamodelRepository(BaseRepository[Metamodel]):
             name: $name,
             description: $description,
             version: $version,
-            concepts: $concepts,
-            relations: $relations,
+            node_count: $node_count,
+            edge_count: $edge_count,
             author: $author,
             status: $status,
             created_at: datetime(),

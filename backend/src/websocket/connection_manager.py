@@ -1,5 +1,5 @@
 """
-WebSocket Connection Manager for real-time ticket processing updates.
+WebSocket Connection Manager for real-time issue processing updates.
 """
 from typing import Dict, Set
 from fastapi import WebSocket
@@ -11,48 +11,48 @@ logger = logging.getLogger(__name__)
 
 class ConnectionManager:
     """
-    Manages WebSocket connections for ticket processing updates.
-    Clients can subscribe to specific ticket IDs to receive real-time updates.
+    Manages WebSocket connections for issue processing updates.
+    Clients can subscribe to specific issue IDs to receive real-time updates.
     """
     
     def __init__(self):
-        # ticket_id -> set of WebSocket connections
+        # issue_id -> set of WebSocket connections
         self.active_connections: Dict[str, Set[WebSocket]] = {}
         # Global connections (receive all updates)
         self.global_connections: Set[WebSocket] = set()
     
-    async def connect(self, websocket: WebSocket, ticket_id: str = None):
+    async def connect(self, websocket: WebSocket, issue_id: str = None):
         """
         Accept a new WebSocket connection.
         
         Args:
             websocket: The WebSocket connection
-            ticket_id: Optional ticket ID to subscribe to specific updates
+            issue_id: Optional issue ID to subscribe to specific updates
         """
         await websocket.accept()
         
-        if ticket_id:
-            if ticket_id not in self.active_connections:
-                self.active_connections[ticket_id] = set()
-            self.active_connections[ticket_id].add(websocket)
-            logger.info(f"WebSocket connected for ticket {ticket_id}")
+        if issue_id:
+            if issue_id not in self.active_connections:
+                self.active_connections[issue_id] = set()
+            self.active_connections[issue_id].add(websocket)
+            logger.info(f"WebSocket connected for issue {issue_id}")
         else:
             self.global_connections.add(websocket)
             logger.info("Global WebSocket connected")
     
-    def disconnect(self, websocket: WebSocket, ticket_id: str = None):
+    def disconnect(self, websocket: WebSocket, issue_id: str = None):
         """
         Remove a WebSocket connection.
         
         Args:
             websocket: The WebSocket connection
-            ticket_id: Optional ticket ID if subscribed to specific updates
+            issue_id: Optional issue ID if subscribed to specific updates
         """
-        if ticket_id and ticket_id in self.active_connections:
-            self.active_connections[ticket_id].discard(websocket)
-            if not self.active_connections[ticket_id]:
-                del self.active_connections[ticket_id]
-            logger.info(f"WebSocket disconnected for ticket {ticket_id}")
+        if issue_id and issue_id in self.active_connections:
+            self.active_connections[issue_id].discard(websocket)
+            if not self.active_connections[issue_id]:
+                del self.active_connections[issue_id]
+            logger.info(f"WebSocket disconnected for issue {issue_id}")
         else:
             self.global_connections.discard(websocket)
             logger.info("Global WebSocket disconnected")
@@ -61,20 +61,20 @@ class ConnectionManager:
         """Send a message to a specific WebSocket connection."""
         await websocket.send_text(message)
     
-    async def broadcast_to_ticket(self, ticket_id: str, message: dict):
+    async def broadcast_to_issue(self, issue_id: str, message: dict):
         """
-        Broadcast a message to all connections subscribed to a specific ticket.
+        Broadcast a message to all connections subscribed to a specific issue.
         
         Args:
-            ticket_id: The ticket ID
+            issue_id: The issue ID
             message: Message dictionary to send (will be JSON serialized)
         """
         message_str = json.dumps(message)
         
-        # Send to ticket-specific connections
-        if ticket_id in self.active_connections:
+        # Send to issue-specific connections
+        if issue_id in self.active_connections:
             connections_to_remove = []
-            for connection in self.active_connections[ticket_id]:
+            for connection in self.active_connections[issue_id]:
                 try:
                     await connection.send_text(message_str)
                 except Exception as e:
@@ -83,7 +83,7 @@ class ConnectionManager:
             
             # Clean up dead connections
             for connection in connections_to_remove:
-                self.active_connections[ticket_id].discard(connection)
+                self.active_connections[issue_id].discard(connection)
         
         # Send to global connections
         global_to_remove = []

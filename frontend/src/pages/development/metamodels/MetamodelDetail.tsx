@@ -2,10 +2,12 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Metamodel } from "@/types/metamodel";
 import { metamodelService } from "@/services/metamodelService";
-import { Database } from "lucide-react";
+import { Database, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { GraphViewer } from "@/components/common/GraphViewer";
 import type { GraphData, GraphNode, GraphEdge } from "@/components/common/GraphViewer";
+import { Button } from "@/components/ui/button";
+import { CreateNodeModal } from "@/components/development/metamodels/CreateNodeModal";
 
 export function MetamodelDetail() {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +15,7 @@ export function MetamodelDetail() {
   const [metamodel, setMetamodel] = useState<Metamodel | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [isCreateNodeOpen, setIsCreateNodeOpen] = useState(false);
 
   // Sample graph data - À remplacer par les vraies données du métamodèle
   const [graphData, setGraphData] = useState<GraphData>({
@@ -112,6 +115,29 @@ export function MetamodelDetail() {
     });
   };
 
+  const handleCreateNode = (nodeData: { name: string; description: string; type: "concept" | "attribute" }) => {
+    // TODO: Appeler l'API pour créer le nœud
+    const newNode: GraphNode = {
+      id: `${nodeData.type}-${Date.now()}`,
+      label: nodeData.name,
+      type: nodeData.type,
+      properties: {
+        description: nodeData.description,
+        attributes: [],
+      },
+    };
+
+    setGraphData((prev) => ({
+      nodes: [...prev.nodes, newNode],
+      edges: prev.edges,
+    }));
+
+    toast({
+      title: "Nœud créé",
+      description: `${nodeData.type === "concept" ? "Concept" : "Attribut"} "${nodeData.name}" créé avec succès`,
+    });
+  };
+
   const nodeColorMap = {
     concept: "#3b82f6",
     attribute: "#10b981",
@@ -172,6 +198,14 @@ export function MetamodelDetail() {
           </div>
         </div>
       )}
+
+      {/* Bouton flottant pour créer un nœud */}
+      <Button onClick={() => setIsCreateNodeOpen(true)} className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50" size="icon">
+        <Plus className="h-6 w-6" />
+      </Button>
+
+      {/* Modale de création de nœud */}
+      <CreateNodeModal open={isCreateNodeOpen} onOpenChange={setIsCreateNodeOpen} onCreateNode={handleCreateNode} />
     </div>
   );
 }

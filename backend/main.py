@@ -16,7 +16,7 @@ from src.controllers import (
     message_router,
     copilot_assignment_router,
 )
-from src.controllers.metamodel_controller import router as metamodel_router
+from src.controllers.MDE.metamodel_controller import router as metamodel_router
 
 logging.basicConfig(
     level=logging.INFO,

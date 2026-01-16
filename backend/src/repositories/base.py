@@ -6,15 +6,59 @@ from pydantic import BaseModel
 from abc import ABC
 from datetime import datetime
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar('T', bound=BaseModel)
 
 
+def prepare_neo4j_properties(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Prepare data for Neo4j by converting complex types to JSON strings
+    
+    Neo4j properties can only be:
+    - Primitives: str, int, float, bool
+    - Lists of primitives
+    - None
+    
+    Complex types (dict, list of dicts) must be serialized to JSON strings.
+    
+    Args:
+        data: Dictionary with potentially complex types
+        
+    Returns:
+        Dictionary with Neo4j-compatible types
+    """
+    prepared = {}
+    for key, value in data.items():
+        if value is None:
+            prepared[key] = None
+        elif isinstance(value, (str, int, float, bool)):
+            # Primitive types are OK
+            prepared[key] = value
+        elif isinstance(value, list):
+            # Check if it's a list of primitives
+            if all(isinstance(item, (str, int, float, bool)) for item in value):
+                prepared[key] = value
+            else:
+                # List of complex objects - serialize to JSON
+                prepared[key] = json.dumps(value)
+        elif isinstance(value, dict):
+            # Dict - serialize to JSON string
+            prepared[key] = json.dumps(value)
+        else:
+            # Other types - convert to string
+            logger.warning(f"Converting non-standard type {type(value)} to string for key '{key}'")
+            prepared[key] = str(value)
+    
+    return prepared
+
+
 def convert_neo4j_types(node: Dict[str, Any]) -> Dict[str, Any]:
     """
     Convert Neo4j types to Python native types
+    Also deserializes JSON strings back to dicts/lists.
     
     Args:
         node: Node data from Neo4j
@@ -33,6 +77,16 @@ def convert_neo4j_types(node: Dict[str, Any]) -> Dict[str, Any]:
                 value.hour, value.minute, value.second,
                 value.nanosecond // 1000  # Convert nanoseconds to microseconds
             )
+        elif isinstance(value, str):
+            # Try to deserialize JSON strings (for settings, metadata, tags, etc.)
+            if value.startswith('{') or value.startswith('['):
+                try:
+                    converted[key] = json.loads(value)
+                except (json.JSONDecodeError, ValueError):
+                    # Not JSON, keep as string
+                    converted[key] = value
+            else:
+                converted[key] = value
         else:
             converted[key] = value
     
@@ -69,12 +123,20 @@ class BaseRepository(ABC, Generic[T]):
         Returns:
             Created entity
         """
+        # Debug: log what we're sending to Neo4j
+        logger.info(f"🔍 BaseRepository.create data keys: {list(data.keys())}")
+        logger.info(f"🔍 BaseRepository.create data: {data}")
+        
+        # Prepare data for Neo4j (convert complex types to JSON strings)
+        prepared_data = prepare_neo4j_properties(data)
+        logger.info(f"🔍 Prepared data for Neo4j: {prepared_data}")
+        
         query = f"""
         CREATE (n:{self.label} $props)
         SET n.created_at = datetime()
         RETURN n
         """
-        result = self.db.execute_query(query, {"props": data})
+        result = self.db.execute_query(query, {"props": prepared_data})
         if not result:
             raise ValueError(f"Failed to create {self.label}")
         

@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict, Any
 from src.services.base_service import BaseService
-from backend.src.repositories.MDE.metamodel_repository import MetamodelRepository
+from src.repositories.MDE.metamodel_repository import MetamodelRepository
 from src.models.MDE.metamodel import Metamodel, MetamodelCreate, MetamodelUpdate
 import logging
 

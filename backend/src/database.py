@@ -86,10 +86,10 @@ class Neo4jConnection:
                     "FOR (r:Repository) REQUIRE r.id IS UNIQUE"
                 )
                 
-                # Contrainte d'unicité sur Ticket.id
+                # Contrainte d'unicité sur Issue.id
                 session.run(
-                    "CREATE CONSTRAINT ticket_id_unique IF NOT EXISTS "
-                    "FOR (t:Ticket) REQUIRE t.id IS UNIQUE"
+                    "CREATE CONSTRAINT issue_id_unique IF NOT EXISTS "
+                    "FOR (i:Issue) REQUIRE i.id IS UNIQUE"
                 )
                 
                 print("✓ Contraintes Neo4j initialisées")
