@@ -51,9 +51,9 @@ class MetamodelController(BaseController[Metamodel, MetamodelCreate, MetamodelUp
                 detail=f"Metamodel with name '{data.name}' already exists"
             )
         
-        # Prepare data with author info
+        # Prepare data with owner info
         result = data.model_dump()
-        result["author"] = current_user.username
+        result["owner_id"] = current_user.username
         
         # Debug: log the data being sent to repository
         logger.info(f"🔍 Data to create: {result}")

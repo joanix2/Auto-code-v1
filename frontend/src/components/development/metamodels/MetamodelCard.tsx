@@ -52,7 +52,7 @@ export class MetamodelCard extends BaseCard<Metamodel> {
   }
 
   renderContent() {
-    const { description, concepts, relations, author } = this.props.data;
+    const { description, node_count, edge_count, owner_id } = this.props.data;
     return (
       <div className="space-y-3">
         {description && <CardDescription className="line-clamp-2">{description}</CardDescription>}
@@ -61,20 +61,20 @@ export class MetamodelCard extends BaseCard<Metamodel> {
           <div className="flex items-center gap-1">
             <Database className="h-4 w-4" />
             <span>
-              {concepts} concept{concepts > 1 ? "s" : ""}
+              {node_count ?? 0} concept{(node_count ?? 0) > 1 ? "s" : ""}
             </span>
           </div>
           <div className="flex items-center gap-1">
             <GitBranch className="h-4 w-4" />
             <span>
-              {relations} relation{relations > 1 ? "s" : ""}
+              {edge_count ?? 0} relation{(edge_count ?? 0) > 1 ? "s" : ""}
             </span>
           </div>
         </div>
 
-        {author && (
+        {owner_id && (
           <div className="text-sm text-muted-foreground">
-            <span className="font-medium">Auteur:</span> {author}
+            <span className="font-medium">Auteur:</span> {owner_id}
           </div>
         )}
       </div>

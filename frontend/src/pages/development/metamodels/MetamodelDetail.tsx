@@ -37,7 +37,7 @@ export function MetamodelDetail() {
       const sampleEdges: GraphEdge[] = [];
 
       // Créer des nœuds exemples basés sur le nombre de concepts
-      for (let i = 0; i < Math.min(data.concepts || 5, 10); i++) {
+      for (let i = 0; i < Math.min(data.node_count || 5, 10); i++) {
         sampleNodes.push({
           id: `concept-${i}`,
           label: `Concept ${i + 1}`,
@@ -50,7 +50,7 @@ export function MetamodelDetail() {
       }
 
       // Créer des relations exemples
-      for (let i = 0; i < Math.min(data.relations || 3, sampleNodes.length - 1); i++) {
+      for (let i = 0; i < Math.min(data.edge_count || 3, sampleNodes.length - 1); i++) {
         sampleEdges.push({
           id: `relation-${i}`,
           source: sampleNodes[i].id,

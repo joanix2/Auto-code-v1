@@ -34,6 +34,16 @@ class Metamodel(Graph):
     
     # Backward compatibility - map to Graph properties
     @property
+    def author(self) -> Optional[str]:
+        """Alias for owner_id (backward compatibility)"""
+        return self.owner_id
+    
+    @author.setter
+    def author(self, value: Optional[str]):
+        """Setter for author (backward compatibility)"""
+        self.owner_id = value
+    
+    @property
     def concepts(self) -> int:
         """Alias for node_count (backward compatibility)"""
         return self.node_count

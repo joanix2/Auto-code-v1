@@ -73,11 +73,11 @@ class MetamodelRepository(BaseRepository[Metamodel]):
         return [self.model(**convert_neo4j_types(record["m"])) for record in result]
 
     async def get_by_author(self, author: str) -> List[Metamodel]:
-        """Get all metamodels by author"""
+        """Get all metamodels by author (owner_id)"""
         logger.info(f"🔍 Getting metamodels by author: {author}")
         
         query = """
-        MATCH (m:Metamodel {author: $author})
+        MATCH (m:Metamodel {owner_id: $author})
         RETURN m
         ORDER BY m.created_at DESC
         """

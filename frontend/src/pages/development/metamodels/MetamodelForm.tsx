@@ -42,9 +42,8 @@ export function MetamodelForm() {
       onCreateEntity: async (data: MetamodelFormData) => {
         const createData: MetamodelCreate = {
           ...data,
-          concepts: 0,
-          relations: 0,
-          author: user?.username || "",
+          node_count: 0,
+          edge_count: 0,
           status: "draft",
         };
         await metamodelService.create(createData);
@@ -66,7 +65,7 @@ export function MetamodelForm() {
         return null;
       },
       defaultSuccessPath: "/development/metamodeles",
-    }
+    },
   );
 
   if (loadingEntity) {
