@@ -16,8 +16,11 @@ export interface GraphNodePanelProps {
   onDelete?: (node: GraphNode) => void;
   className?: string;
   /**
-   * Formulaire personnalisé à afficher pour le nœud
-   * Si fourni, il remplace l'affichage par défaut des propriétés
+   * Formulaire NodeForm à afficher pour le nœud
+   * Le formulaire gère automatiquement la section "Informations" et "Propriétés"
+   * @param node - Le nœud à afficher
+   * @param isEditing - Si le formulaire est en mode édition
+   * @param onCancelEdit - Callback pour annuler l'édition
    */
   renderForm?: (node: GraphNode, isEditing: boolean, onCancelEdit: () => void) => React.ReactNode;
 }
@@ -25,8 +28,6 @@ export interface GraphNodePanelProps {
 export const GraphNodePanel: React.FC<GraphNodePanelProps> = ({ node, isOpen, onClose, onEdit, onDelete, className, renderForm }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedLabel, setEditedLabel] = useState("");
-  const [editedDescription, setEditedDescription] = useState("");
 
   useEffect(() => {
     const checkMobile = () => {
@@ -38,105 +39,29 @@ export const GraphNodePanel: React.FC<GraphNodePanelProps> = ({ node, isOpen, on
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Réinitialiser le mode édition quand le panel se ferme
+  // Reset edit mode when node changes
   useEffect(() => {
-    if (!isOpen) {
-      setIsEditing(false);
-    }
-  }, [isOpen]);
-
-  // Initialiser les valeurs éditées quand le nœud change
-  useEffect(() => {
-    if (node) {
-      setEditedLabel(node.label);
-      setEditedDescription((node.properties?.description as string) || "");
-    }
-  }, [node]);
+    setIsEditing(false);
+  }, [node?.id]);
 
   const handleEdit = () => {
-    if (renderForm) {
-      // Si un formulaire est fourni, basculer en mode édition
-      setIsEditing(true);
-    } else if (onEdit && node) {
-      // Sinon, basculer en mode édition locale
-      setIsEditing(true);
-    }
+    setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
-    // Réinitialiser les valeurs
-    if (node) {
-      setEditedLabel(node.label);
-      setEditedDescription((node.properties?.description as string) || "");
-    }
     setIsEditing(false);
-  };
-
-  const handleSaveEdit = () => {
-    if (node && onEdit) {
-      // Créer un nouveau nœud avec les valeurs modifiées
-      const updatedNode: GraphNode = {
-        ...node,
-        label: editedLabel,
-        properties: {
-          ...node.properties,
-          name: editedLabel,
-          description: editedDescription,
-        },
-      };
-      onEdit(updatedNode);
-      setIsEditing(false);
-    }
   };
 
   const PanelContent = () => {
     if (!node) return null;
 
-    // Section Informations (toujours affichée)
-    const InfoSection = () => (
-      <div>
-        <h3 className="font-semibold mb-2">Informations</h3>
-        <div className="space-y-3">
-          {/* Label */}
-          <div>
-            <label className="block text-sm text-muted-foreground mb-1">Label:</label>
-            {isEditing && !renderForm ? (
-              <Input value={editedLabel} onChange={(e) => setEditedLabel(e.target.value)} placeholder="Nom du nœud" className="w-full" />
-            ) : (
-              <span className="text-sm block">{node.label}</span>
-            )}
-          </div>
-
-          {/* Type */}
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Type:</span>
-            <Badge variant="secondary">{node.type}</Badge>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm text-muted-foreground mb-1">Description:</label>
-            {isEditing && !renderForm ? (
-              <Textarea value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} placeholder="Description du nœud" className="w-full min-h-[80px]" />
-            ) : (
-              <span className="text-sm block">{node.properties?.description ? String(node.properties.description) : <span className="text-muted-foreground italic">Non renseigné</span>}</span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-
-    // Si un formulaire personnalisé est fourni, l'utiliser avec la section Info
+    // Si un formulaire est fourni, l'utiliser (il gère tout : Informations + Propriétés)
     if (renderForm) {
       return (
         <div className="space-y-4">
-          <InfoSection />
+          {renderForm(node, isEditing, handleCancelEdit)}
 
-          <div>
-            <h3 className="font-semibold mb-2">Propriétés</h3>
-            {renderForm(node, isEditing, handleCancelEdit)}
-          </div>
-
+          {/* Boutons d'actions en dehors du formulaire */}
           {!isEditing && (
             <div className="pt-2 space-y-2">
               <Button variant="outline" className="w-full" onClick={handleEdit}>
@@ -151,35 +76,39 @@ export const GraphNodePanel: React.FC<GraphNodePanelProps> = ({ node, isOpen, on
               )}
             </div>
           )}
-
-          {isEditing && !renderForm && (
-            <div className="pt-2 space-y-2">
-              <Button variant="default" className="w-full" onClick={handleSaveEdit}>
-                <Save className="h-4 w-4 mr-2" />
-                Enregistrer
-              </Button>
-              <Button variant="outline" className="w-full" onClick={handleCancelEdit}>
-                <X className="h-4 w-4 mr-2" />
-                Annuler
-              </Button>
-            </div>
-          )}
         </div>
       );
     }
 
-    // Affichage par défaut (propriétés)
-
+    // Affichage par défaut (si pas de formulaire fourni)
     return (
-      <div className="space-y-2">
-        <InfoSection />
+      <div className="space-y-4">
+        <div>
+          <h3 className="font-semibold mb-2">Informations</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Label:</span>
+              <span className="text-sm">{node.label}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Type:</span>
+              <Badge variant="secondary">{node.type}</Badge>
+            </div>
+            {node.properties?.description && (
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Description:</span>
+                <span className="text-sm">{String(node.properties.description)}</span>
+              </div>
+            )}
+          </div>
+        </div>
 
         <div>
           <h3 className="font-semibold mb-2">Propriétés</h3>
-          {node.properties && Object.keys(node.properties).length > 0 ? (
+          {node.properties && Object.keys(node.properties).filter((key) => key !== "name" && key !== "description").length > 0 ? (
             <div className="space-y-2">
               {Object.entries(node.properties)
-                .filter(([key]) => key !== "name" && key !== "description") // Exclure name et description
+                .filter(([key]) => key !== "name" && key !== "description")
                 .map(([key, value]) => (
                   <div key={key} className="flex justify-between">
                     <span className="text-sm text-muted-foreground">{key}:</span>
@@ -192,10 +121,10 @@ export const GraphNodePanel: React.FC<GraphNodePanelProps> = ({ node, isOpen, on
           )}
         </div>
 
-        {!isEditing && (onEdit || onDelete) && (
+        {(onEdit || onDelete) && (
           <div className="pt-4 space-y-2">
             {onEdit && (
-              <Button variant="outline" className="w-full" onClick={handleEdit}>
+              <Button variant="outline" className="w-full" onClick={() => onEdit(node)}>
                 <Edit className="h-4 w-4 mr-2" />
                 Modifier
               </Button>
@@ -206,19 +135,6 @@ export const GraphNodePanel: React.FC<GraphNodePanelProps> = ({ node, isOpen, on
                 Supprimer
               </Button>
             )}
-          </div>
-        )}
-
-        {isEditing && (
-          <div className="pt-4 space-y-2">
-            <Button variant="default" className="w-full" onClick={handleSaveEdit}>
-              <Save className="h-4 w-4 mr-2" />
-              Enregistrer
-            </Button>
-            <Button variant="outline" className="w-full" onClick={handleCancelEdit}>
-              <X className="h-4 w-4 mr-2" />
-              Annuler
-            </Button>
           </div>
         )}
       </div>

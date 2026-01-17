@@ -21,7 +21,7 @@ export const createNodes = (
   selectedNodeId: string | null,
   nodeColorMap: Record<string, string>,
   onNodeClick?: (node: GraphNode) => void,
-  onNodeDoubleClick?: (node: GraphNode) => void
+  onNodeDoubleClick?: (node: GraphNode) => void,
 ) => {
   return g
     .append("g")
@@ -31,16 +31,25 @@ export const createNodes = (
     .join("circle")
     .attr("r", nodeRadius)
     .attr("fill", (d) => {
-      if (d.id === selectedNodeId) return SELECTED_NODE_COLOR;
+      // Conserver la couleur du type, même si sélectionné
       return nodeColorMap[d.type || ""] || DEFAULT_NODE_COLOR;
     })
-    .attr("stroke", (d) => (d.id === selectedNodeId ? SELECTED_NODE_STROKE_COLOR : DEFAULT_NODE_STROKE_COLOR))
+    .attr("fill-opacity", (d) => (d.id === selectedNodeId ? 1 : 0.9))
+    .attr("stroke", (d) => {
+      if (d.id === selectedNodeId) {
+        // Utiliser une version plus foncée de la couleur du nœud comme contour
+        const nodeColor = nodeColorMap[d.type || ""] || DEFAULT_NODE_COLOR;
+        return d3.color(nodeColor)?.darker(0.5).toString() || nodeColor;
+      }
+      return DEFAULT_NODE_STROKE_COLOR;
+    })
     .attr("stroke-width", (d) => (d.id === selectedNodeId ? SELECTED_STROKE_WIDTH : DEFAULT_STROKE_WIDTH))
     .style("cursor", "pointer")
     .style("touch-action", "manipulation") // Allow clicks but prevent double-tap zoom
     .style("user-select", "none") // Prevent text selection during drag
     .style("-webkit-user-select", "none")
     .style("-webkit-tap-highlight-color", "transparent") // Remove tap highlight on mobile
+    .style("filter", (d) => (d.id === selectedNodeId ? "drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))" : "none"))
     .on("click", (event, d) => {
       event.stopPropagation();
       if (onNodeClick) onNodeClick(d);
@@ -78,7 +87,7 @@ export const createNodeLabels = (g: d3.Selection<SVGGElement, unknown, null, und
  */
 export const updateNodePositions = (
   node: d3.Selection<d3.BaseType | SVGCircleElement, GraphNode, SVGGElement, unknown>,
-  nodeLabels: d3.Selection<d3.BaseType | SVGTextElement, GraphNode, SVGGElement, unknown> | null
+  nodeLabels: d3.Selection<d3.BaseType | SVGTextElement, GraphNode, SVGGElement, unknown> | null,
 ) => {
   node.attr("cx", (d) => d.x!).attr("cy", (d) => d.y!);
 

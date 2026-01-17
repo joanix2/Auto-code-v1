@@ -55,7 +55,21 @@ class ConceptController(BaseController[Concept, ConceptCreate, ConceptUpdate]):
     async def update(self, id: str, data: ConceptUpdate, current_user: User, db) -> Concept:
         """Update an existing concept"""
         validated_data = await self.validate_update(id, data, current_user, db)
-        return await self.service.update(id, validated_data)
+        # Convert Pydantic model to dict, excluding unset values
+        update_dict = validated_data.model_dump(exclude_unset=True)
+        logger.info(f"🔍 Updating concept {id} with data: {update_dict}")
+        
+        updated_concept = await self.service.update(id, update_dict)
+        
+        if not updated_concept:
+            logger.error(f"❌ service.update returned None for concept {id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Concept {id} not found"
+            )
+        
+        logger.info(f"✅ Successfully updated concept {id}")
+        return updated_concept
 
     async def delete(self, id: str, current_user: User, db) -> bool:
         """Delete a concept"""

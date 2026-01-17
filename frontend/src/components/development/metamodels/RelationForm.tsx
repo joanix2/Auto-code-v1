@@ -2,69 +2,53 @@
  * RelationForm - Formulaire pour éditer les relations (Object Properties)
  */
 import React from "react";
-import { Form } from "@/components/common/Form/Form";
+import { NodeForm, NodeData } from "@/components/common/Form/NodeForm";
 import { TextField } from "@/components/common/Form/Fields/TextField";
 
-export interface RelationData {
+export interface RelationData extends NodeData {
   name: string;
-  description: string;
-  sourceType?: string;
-  targetType?: string;
+  description?: string;
+  sourceType?: string; // Propriété spécifique aux relations
+  targetType?: string; // Propriété spécifique aux relations
 }
 
 /**
- * Formulaire de relation avec nom, description, source et cible
+ * Formulaire de relation
+ * Hérite de NodeForm qui gère automatiquement la section "Informations"
+ * Ce formulaire contient uniquement les propriétés spécifiques : sourceType et targetType
  */
-export class RelationForm extends Form<RelationData> {
+export class RelationForm extends NodeForm<RelationData> {
   /**
-   * Valide les données du formulaire
+   * Validation des champs spécifiques aux relations
    */
-  protected validate(): Record<string, string> {
+  protected validateSpecificFields(data: RelationData): Record<string, string> {
     const errors: Record<string, string> = {};
-    const { name } = this.state.data;
 
-    if (!name || name.trim() === "") {
-      errors.name = "Le nom est requis";
-    } else if (name.length < 2) {
-      errors.name = "Le nom doit contenir au moins 2 caractères";
-    }
+    // sourceType et targetType sont optionnels, pas de validation nécessaire
 
     return errors;
   }
 
   /**
-   * Rendu des champs du formulaire
+   * Rendu des champs spécifiques aux relations
    */
-  protected renderFields(): React.ReactNode {
+  protected renderSpecificFields(): React.ReactNode {
     const { data, errors } = this.state;
     const { edit } = this.props;
 
     return (
       <>
         <TextField
-          name="name"
-          label="Nom de la relation"
-          value={data.name}
+          name="sourceType"
+          label="Type source"
+          value={data.sourceType || ""}
           onChange={this.handleFieldChange}
           edit={edit}
-          required
-          error={errors.name}
-          placeholder="Ex: possède, appartientÀ, contient..."
+          error={errors.sourceType}
+          placeholder="Ex: Utilisateur, Commande..."
         />
 
-        <TextField
-          name="description"
-          label="Description"
-          value={data.description}
-          onChange={this.handleFieldChange}
-          edit={edit}
-          error={errors.description}
-          placeholder="Description de la relation..."
-        />
-
-        <TextField name="sourceType" label="Type source" value={data.sourceType || ""} onChange={this.handleFieldChange} edit={edit} placeholder="Ex: Utilisateur, Commande..." />
-
-        <TextField name="targetType" label="Type cible" value={data.targetType || ""} onChange={this.handleFieldChange} edit={edit} placeholder="Ex: Produit, Adresse..." />
+        <TextField name="targetType" label="Type cible" value={data.targetType || ""} onChange={this.handleFieldChange} edit={edit} error={errors.targetType} placeholder="Ex: Produit, Adresse..." />
       </>
     );
   }

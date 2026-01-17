@@ -2,48 +2,36 @@
  * ConceptForm - Formulaire pour éditer les concepts
  */
 import React from "react";
-import { Form } from "@/components/common/Form/Form";
-import { TextField } from "@/components/common/Form/Fields/TextField";
+import { NodeForm, NodeData } from "@/components/common/Form/NodeForm";
 
-export interface ConceptData {
+export interface ConceptData extends NodeData {
   name: string;
-  description: string;
+  description?: string;
+  // Pas de propriétés spécifiques pour les concepts de base
 }
 
 /**
- * Formulaire de concept avec nom et description
+ * Formulaire de concept
+ * Hérite de NodeForm qui gère automatiquement la section "Informations"
+ * Ce formulaire ne contient que les propriétés spécifiques (pour l'instant aucune)
  */
-export class ConceptForm extends Form<ConceptData> {
+export class ConceptForm extends NodeForm<ConceptData> {
   /**
-   * Valide les données du formulaire
+   * Validation des champs spécifiques au concept
+   * (Pour l'instant, les concepts n'ont pas de champs spécifiques)
    */
-  protected validate(): Record<string, string> {
-    const errors: Record<string, string> = {};
-    const { name } = this.state.data;
-
-    if (!name || name.trim() === "") {
-      errors.name = "Le nom est requis";
-    } else if (name.length < 2) {
-      errors.name = "Le nom doit contenir au moins 2 caractères";
-    }
-
-    return errors;
+  protected validateSpecificFields(data: ConceptData): Record<string, string> {
+    // Pas de validation spécifique pour les concepts
+    return {};
   }
 
   /**
-   * Rendu des champs du formulaire
+   * Rendu des champs spécifiques au concept
+   * (Pour l'instant, les concepts n'ont que les champs de base)
    */
-  protected renderFields(): React.ReactNode {
-    const { data, errors } = this.state;
-    const { edit } = this.props;
-
-    return (
-      <>
-        <TextField name="name" label="Nom du concept" value={data.name} onChange={this.handleFieldChange} edit={edit} required error={errors.name} placeholder="Ex: Utilisateur, Produit..." />
-
-        <TextField name="description" label="Description" value={data.description} onChange={this.handleFieldChange} edit={edit} error={errors.description} placeholder="Description du concept..." />
-      </>
-    );
+  protected renderSpecificFields(): React.ReactNode {
+    // Pas de champs spécifiques pour les concepts de base
+    return null;
   }
 }
 

@@ -34,8 +34,8 @@ class Attribute(Node):
     is_required: bool = Field(default=False, description="Is the attribute required")
     is_unique: bool = Field(default=False, description="Must the value be unique")
     
-    # Parent concept - will be a relationship in Neo4j
-    concept_id: str = Field(..., description="Parent concept ID")
+    # Parent concept - will be a relationship in Neo4j (optional for standalone attributes)
+    concept_id: Optional[str] = Field(default=None, description="Parent concept ID")
     
     # Abstract methods implementation
     def get_node_type(self) -> str:
@@ -59,7 +59,8 @@ class AttributeCreate(BaseModel):
     description: Optional[str] = None
     is_required: bool = False
     is_unique: bool = False
-    concept_id: str
+    concept_id: Optional[str] = None  # Optional - can be linked to concept later
+    graph_id: str  # Required - must belong to a metamodel
 
 
 class AttributeUpdate(BaseModel):

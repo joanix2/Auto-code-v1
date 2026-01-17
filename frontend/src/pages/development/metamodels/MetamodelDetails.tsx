@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Metamodel } from "@/types/metamodel";
 import { metamodelService } from "@/services/metamodelService";
-import { conceptService, ConceptCreate } from "@/services/conceptService";
+import { conceptService, ConceptCreate, type Concept } from "@/services/conceptService";
+import { attributeService, type AttributeCreate as AttributeCreateType, type Attribute } from "@/services/attributeService";
 import { Database, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { GraphViewer, CreateNodeModal } from "@/components/common/GraphViewer";
@@ -37,7 +38,10 @@ export function MetamodelDetails() {
       // Charger les concepts réels depuis l'API
       const concepts = await conceptService.getByMetamodel(id);
 
-      const nodes: GraphNode[] = concepts.map((concept) => ({
+      // Charger les attributs du métamodèle
+      const attributes = await attributeService.getByMetamodel(id);
+
+      const conceptNodes: GraphNode[] = concepts.map((concept) => ({
         id: concept.id,
         label: concept.name,
         type: "concept",
@@ -46,6 +50,23 @@ export function MetamodelDetails() {
           attributes: [],
         },
       }));
+
+      // Créer les nœuds pour les attributs standalone (sans concept_id)
+      const attributeNodes: GraphNode[] = attributes
+        .filter((attr) => !attr.concept_id)
+        .map((attr) => ({
+          id: attr.id,
+          label: attr.name,
+          type: "attribute",
+          properties: {
+            description: attr.description || "",
+            dataType: attr.type || "string",
+            isRequired: attr.is_required || false,
+            isUnique: attr.is_unique || false,
+          },
+        }));
+
+      const nodes: GraphNode[] = [...conceptNodes, ...attributeNodes];
 
       // TODO: Charger les vraies relations entre concepts depuis l'API
       const edges: GraphEdge[] = [];
@@ -116,15 +137,37 @@ export function MetamodelDetails() {
     }
   };
 
-  const handleUpdateConcept = async (conceptData: { name: string; description: string }, nodeId: string) => {
+  const handleUpdateNode = async (nodeData: { name: string; description?: string; [key: string]: unknown }, nodeId: string, nodeType: string) => {
     try {
-      // Mettre à jour le concept via l'API
-      const updatedConcept = await conceptService.update(nodeId, {
-        name: conceptData.name,
-        description: conceptData.description,
-      });
+      let updatedNode: Concept | Attribute;
 
-      console.log("📦 Concept retourné par le backend:", updatedConcept);
+      if (nodeType === "concept") {
+        // Mettre à jour le concept via l'API
+        updatedNode = await conceptService.update(nodeId, {
+          name: nodeData.name,
+          description: nodeData.description || "",
+        });
+      } else if (nodeType === "attribute") {
+        // Mettre à jour l'attribut via l'API
+        const attributeData = nodeData as {
+          name: string;
+          description?: string;
+          dataType?: string;
+          isRequired?: boolean;
+          isUnique?: boolean;
+        };
+        updatedNode = await attributeService.update(nodeId, {
+          name: attributeData.name,
+          description: attributeData.description || "",
+          type: attributeData.dataType || "string",
+          is_required: attributeData.isRequired || false,
+          is_unique: attributeData.isUnique || false,
+        });
+      } else {
+        throw new Error(`Update not implemented for node type: ${nodeType}`);
+      }
+
+      console.log(`📦 ${nodeType} retourné par le backend:`, updatedNode);
 
       // Mettre à jour le nœud dans le graphe local
       setGraphData((prev: GraphData) => ({
@@ -132,10 +175,15 @@ export function MetamodelDetails() {
           node.id === nodeId
             ? {
                 ...node,
-                label: updatedConcept.name,
+                label: updatedNode.name,
                 properties: {
                   ...node.properties,
-                  description: updatedConcept.description || "",
+                  description: updatedNode.description || "",
+                  ...(nodeType === "attribute" && {
+                    dataType: (updatedNode as Attribute).type || "string",
+                    isRequired: (updatedNode as Attribute).is_required || false,
+                    isUnique: (updatedNode as Attribute).is_unique || false,
+                  }),
                 },
               }
             : node,
@@ -144,14 +192,14 @@ export function MetamodelDetails() {
       }));
 
       toast({
-        title: "Concept mis à jour",
-        description: `Le concept "${conceptData.name}" a été mis à jour`,
+        title: `${nodeType === "concept" ? "Concept" : "Attribut"} mis à jour`,
+        description: `${nodeType === "concept" ? "Le concept" : "L'attribut"} "${nodeData.name}" a été mis à jour`,
       });
     } catch (error) {
-      console.error("Error updating concept:", error);
+      console.error(`Error updating ${nodeType}:`, error);
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour le concept",
+        description: `Impossible de mettre à jour ${nodeType === "concept" ? "le concept" : "l'attribut"}`,
         variant: "destructive",
       });
       throw error; // Re-throw pour que le formulaire puisse gérer l'erreur
@@ -166,13 +214,14 @@ export function MetamodelDetails() {
     return (
       <ConceptForm
         key={formKey}
+        nodeType={node.type}
         initialData={{
           name: node.label,
           description: (node.properties?.description as string) || "",
         }}
         edit={isEditing}
         onSubmit={async (data) => {
-          await handleUpdateConcept(data, node.id);
+          await handleUpdateNode(data, node.id, node.type);
           onCancelEdit(); // Sortir du mode édition après la sauvegarde
         }}
         onCancel={onCancelEdit}
@@ -187,14 +236,17 @@ export function MetamodelDetails() {
     return (
       <AttributeForm
         key={formKey}
+        nodeType={node.type}
         initialData={{
           name: node.label,
           description: (node.properties?.description as string) || "",
           dataType: (node.properties?.dataType as string) || "",
+          isRequired: (node.properties?.isRequired as boolean) || false,
+          isUnique: (node.properties?.isUnique as boolean) || false,
         }}
         edit={isEditing}
         onSubmit={async (data) => {
-          await handleUpdateConcept(data, node.id);
+          await handleUpdateNode(data, node.id, node.type);
           onCancelEdit();
         }}
         onCancel={onCancelEdit}
@@ -209,6 +261,7 @@ export function MetamodelDetails() {
     return (
       <RelationForm
         key={formKey}
+        nodeType={node.type}
         initialData={{
           name: node.label,
           description: (node.properties?.description as string) || "",
@@ -217,7 +270,7 @@ export function MetamodelDetails() {
         }}
         edit={isEditing}
         onSubmit={async (data) => {
-          await handleUpdateConcept(data, node.id);
+          await handleUpdateNode(data, node.id, node.type);
           onCancelEdit();
         }}
         onCancel={onCancelEdit}
@@ -236,29 +289,68 @@ export function MetamodelDetails() {
     if (!id) return;
 
     try {
-      // Appeler l'API pour créer le concept
-      const createData: ConceptCreate = {
-        name: nodeData.name,
-        description: nodeData.description,
-        graph_id: id,
-        // Position aléatoire pour commencer (sera mise à jour par l'utilisateur)
-        x_position: Math.random() * 400 + 100,
-        y_position: Math.random() * 400 + 100,
-      };
+      let createdNode: Concept | Attribute;
+      let newNode: GraphNode;
 
-      const createdConcept = await conceptService.create(createData);
+      if (nodeData.type === "concept") {
+        // Create concept
+        const createData: ConceptCreate = {
+          name: nodeData.name,
+          description: nodeData.description,
+          graph_id: id,
+          x_position: Math.random() * 400 + 100,
+          y_position: Math.random() * 400 + 100,
+        };
 
-      // Ajouter le nouveau nœud au graphe local
-      const newNode: GraphNode = {
-        id: createdConcept.id,
-        label: createdConcept.name,
-        type: nodeData.type,
-        properties: {
-          description: createdConcept.description || "",
-          attributes: [],
-        },
-      };
+        createdNode = await conceptService.create(createData);
 
+        newNode = {
+          id: createdNode.id,
+          label: createdNode.name,
+          type: "concept",
+          properties: {
+            description: createdNode.description || "",
+            attributes: [],
+          },
+        };
+      } else if (nodeData.type === "attribute") {
+        // Create attribute
+        // Attribute is created without concept_id (standalone) and can be linked to a concept later
+        const createData: AttributeCreateType = {
+          name: nodeData.name,
+          description: nodeData.description,
+          graph_id: id,
+          type: "string", // Default type
+          is_required: false,
+          is_unique: false,
+          x_position: Math.random() * 400 + 100,
+          y_position: Math.random() * 400 + 100,
+        };
+
+        createdNode = await attributeService.create(createData);
+
+        newNode = {
+          id: createdNode.id,
+          label: createdNode.name,
+          type: "attribute",
+          properties: {
+            description: createdNode.description || "",
+            dataType: (createdNode as Attribute).type || "string",
+            isRequired: (createdNode as Attribute).is_required || false,
+            isUnique: (createdNode as Attribute).is_unique || false,
+          },
+        };
+      } else {
+        // Relation - not implemented yet
+        toast({
+          title: "Non implémenté",
+          description: "La création de relations n'est pas encore implémentée",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Add new node to graph
       setGraphData((prev) => ({
         nodes: [...prev.nodes, newNode],
         edges: prev.edges,
@@ -271,10 +363,10 @@ export function MetamodelDetails() {
 
       setIsCreateNodeOpen(false);
     } catch (error) {
-      console.error("Error creating concept:", error);
+      console.error(`Error creating ${nodeData.type}:`, error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer le concept",
+        description: `Impossible de créer ${nodeData.type === "concept" ? "le concept" : nodeData.type === "attribute" ? "l'attribut" : "la relation"}`,
         variant: "destructive",
       });
     }

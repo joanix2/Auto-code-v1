@@ -110,24 +110,37 @@ class ConceptService(BaseService[Concept]):
         Returns:
             Updated concept or None
         """
+        logger.info(f"🔍 ConceptService.update called with concept_id={concept_id}, update_data={update_data}")
+        
+        # Check if concept exists first
+        existing_concept = await self.get_by_id(concept_id)
+        logger.info(f"🔍 Existing concept: {existing_concept}")
+        
+        if not existing_concept:
+            logger.error(f"❌ Concept {concept_id} not found in database")
+            return None
+        
         # Remove None values
         updates = {k: v for k, v in update_data.items() if v is not None}
         
         if not updates:
-            return await self.get_by_id(concept_id)
+            logger.info(f"ℹ️ No updates provided, returning existing concept")
+            return existing_concept
         
         # Check for duplicate name if name is being updated
         if "name" in updates:
-            concept = await self.get_by_id(concept_id)
-            if concept:
-                existing = await self.concept_repo.get_by_name(concept.metamodel_id, updates["name"])
-                if existing and existing.id != concept_id:
-                    raise ValueError(f"Concept with name '{updates['name']}' already exists in this metamodel")
+            logger.info(f"🔍 Checking for duplicate name: {updates['name']}")
+            existing = await self.concept_repo.get_by_name(existing_concept.metamodel_id, updates["name"])
+            if existing and existing.id != concept_id:
+                raise ValueError(f"Concept with name '{updates['name']}' already exists in this metamodel")
         
+        logger.info(f"🚀 Calling concept_repo.update with id={concept_id}, updates={updates}")
         concept = await self.concept_repo.update(concept_id, updates)
         
         if concept:
-            logger.info(f"Updated concept: {concept_id}")
+            logger.info(f"✅ Updated concept: {concept_id}")
+        else:
+            logger.error(f"❌ concept_repo.update returned None for {concept_id}")
         
         return concept
     

@@ -4,7 +4,7 @@ Attribute Repository - Database operations for attributes
 from typing import Optional, List, Dict, Any
 import logging
 
-from ..base import BaseRepository, convert_neo4j_types
+from ..base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
 from src.models.MDE.attribute import Attribute
 
 logger = logging.getLogger(__name__)
@@ -16,33 +16,113 @@ class AttributeRepository(BaseRepository[Attribute]):
     def __init__(self, db):
         super().__init__(db, Attribute, "Attribute")
 
-    async def create_with_relationship(self, data: Dict[str, Any]) -> Attribute:
+    async def create(self, data: Dict[str, Any]) -> Attribute:
         """
-        Create an attribute and link it to its concept
+        Create a new attribute with HAS_ATTRIBUTE relationship to metamodel
         
         Args:
-            data: Attribute data including concept_id
+            data: Attribute data including graph_id (metamodel ID)
+            
+        Returns:
+            Created attribute
+        """
+        logger.info(f"🔍 Creating attribute: {data.get('name')}")
+        
+        # Prepare data for Neo4j
+        prepared_data = prepare_neo4j_properties(data)
+        
+        # Extract graph_id for relationship creation
+        graph_id = prepared_data.get('graph_id')
+        
+        # Create attribute node and HAS_ATTRIBUTE relationship with metamodel
+        if graph_id:
+            query = f"""
+            // Create attribute node
+            CREATE (a:{self.label} $props)
+            SET a.created_at = datetime()
+            
+            // Find metamodel and create HAS_ATTRIBUTE relationship
+            WITH a
+            MATCH (m:Metamodel {{id: $graph_id}})
+            CREATE (m)-[r:HAS_ATTRIBUTE]->(a)
+            
+            RETURN a
+            """
+            params = {"props": prepared_data, "graph_id": graph_id}
+        else:
+            # Fallback to standard creation without relationship
+            query = f"""
+            CREATE (a:{self.label} $props)
+            SET a.created_at = datetime()
+            RETURN a
+            """
+            params = {"props": prepared_data}
+        
+        result = self.db.execute_query(query, params)
+        
+        if not result:
+            raise ValueError(f"Failed to create {self.label}")
+        
+        node = convert_neo4j_types(result[0]["a"])
+        logger.info(f"✅ Created {self.label} with id={node.get('id')} and HAS_ATTRIBUTE relationship")
+        return self.model(**node)
+
+    async def create_with_relationship(self, data: Dict[str, Any]) -> Attribute:
+        """
+        Create an attribute and link it to its concept AND metamodel
+        
+        Args:
+            data: Attribute data including concept_id and graph_id
             
         Returns:
             Created attribute
         """
         concept_id = data.get("concept_id")
+        graph_id = data.get("graph_id")
+        
         if not concept_id:
-            raise ValueError("concept_id is required")
+            raise ValueError("concept_id is required for create_with_relationship")
+        
+        # Prepare data for Neo4j
+        prepared_data = prepare_neo4j_properties(data)
 
-        query = """
-        MATCH (c:Concept {id: $concept_id})
-        CREATE (a:Attribute $props)
-        SET a.created_at = datetime()
-        CREATE (a)-[:ATTRIBUTE_OF]->(c)
-        RETURN a
-        """
-        result = self.db.execute_query(query, {"concept_id": concept_id, "props": data})
+        # Create attribute with relationships to both concept and metamodel
+        if graph_id:
+            query = """
+            // Create attribute node
+            CREATE (a:Attribute $props)
+            SET a.created_at = datetime()
+            
+            // Link to concept
+            WITH a
+            MATCH (c:Concept {id: $concept_id})
+            CREATE (a)-[:ATTRIBUTE_OF]->(c)
+            
+            // Link to metamodel
+            WITH a
+            MATCH (m:Metamodel {id: $graph_id})
+            CREATE (m)-[:HAS_ATTRIBUTE]->(a)
+            
+            RETURN a
+            """
+            params = {"props": prepared_data, "concept_id": concept_id, "graph_id": graph_id}
+        else:
+            # Only link to concept if no metamodel
+            query = """
+            MATCH (c:Concept {id: $concept_id})
+            CREATE (a:Attribute $props)
+            SET a.created_at = datetime()
+            CREATE (a)-[:ATTRIBUTE_OF]->(c)
+            RETURN a
+            """
+            params = {"props": prepared_data, "concept_id": concept_id}
+        
+        result = self.db.execute_query(query, params)
         if not result:
             raise ValueError("Failed to create Attribute")
         
         node = convert_neo4j_types(result[0]["a"])
-        logger.info(f"Created Attribute with id={node.get('id')} for concept={concept_id}")
+        logger.info(f"✅ Created Attribute with id={node.get('id')} for concept={concept_id}, metamodel={graph_id}")
         return self.model(**node)
 
     async def get_by_concept(self, concept_id: str, skip: int = 0, limit: int = 100) -> List[Attribute]:
@@ -65,6 +145,28 @@ class AttributeRepository(BaseRepository[Attribute]):
         LIMIT $limit
         """
         result = self.db.execute_query(query, {"concept_id": concept_id, "skip": skip, "limit": limit})
+        return [self.model(**convert_neo4j_types(row["a"])) for row in result]
+
+    async def get_by_metamodel(self, metamodel_id: str, skip: int = 0, limit: int = 100) -> List[Attribute]:
+        """
+        Get all attributes for a specific metamodel
+        
+        Args:
+            metamodel_id: Metamodel ID
+            skip: Number to skip
+            limit: Max results
+            
+        Returns:
+            List of attributes
+        """
+        query = """
+        MATCH (m:Metamodel {id: $metamodel_id})-[:HAS_ATTRIBUTE]->(a:Attribute)
+        RETURN a
+        ORDER BY a.created_at ASC
+        SKIP $skip
+        LIMIT $limit
+        """
+        result = self.db.execute_query(query, {"metamodel_id": metamodel_id, "skip": skip, "limit": limit})
         return [self.model(**convert_neo4j_types(row["a"])) for row in result]
 
     async def get_by_name(self, concept_id: str, name: str) -> Optional[Attribute]:

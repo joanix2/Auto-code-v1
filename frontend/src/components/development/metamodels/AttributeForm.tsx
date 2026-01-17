@@ -2,57 +2,82 @@
  * AttributeForm - Formulaire pour éditer les attributs (Data Properties)
  */
 import React from "react";
-import { Form } from "@/components/common/Form/Form";
-import { TextField } from "@/components/common/Form/Fields/TextField";
+import { NodeForm, NodeData } from "@/components/common/Form/NodeForm";
+import { SelectField } from "@/components/common/Form/Fields/SelectField";
+import { BooleanField } from "@/components/common/Form/Fields/BooleanField";
 
-export interface AttributeData {
+export interface AttributeData extends NodeData {
   name: string;
-  description: string;
-  dataType?: string;
+  description?: string;
+  dataType?: string; // Propriété spécifique aux attributs
+  isRequired?: boolean; // L'attribut est-il requis ?
+  isUnique?: boolean; // La valeur doit-elle être unique ?
 }
 
 /**
- * Formulaire d'attribut avec nom, description et type de données
+ * Formulaire d'attribut
+ * Hérite de NodeForm qui gère automatiquement la section "Informations"
+ * Ce formulaire contient uniquement les propriétés spécifiques : dataType
  */
-export class AttributeForm extends Form<AttributeData> {
+export class AttributeForm extends NodeForm<AttributeData> {
   /**
-   * Valide les données du formulaire
+   * Validation des champs spécifiques aux attributs
    */
-  protected validate(): Record<string, string> {
+  protected validateSpecificFields(data: AttributeData): Record<string, string> {
     const errors: Record<string, string> = {};
-    const { name } = this.state.data;
 
-    if (!name || name.trim() === "") {
-      errors.name = "Le nom est requis";
-    } else if (name.length < 2) {
-      errors.name = "Le nom doit contenir au moins 2 caractères";
-    }
+    // dataType est optionnel, pas de validation nécessaire
 
     return errors;
   }
 
   /**
-   * Rendu des champs du formulaire
+   * Rendu des champs spécifiques aux attributs
    */
-  protected renderFields(): React.ReactNode {
+  protected renderSpecificFields(): React.ReactNode {
     const { data, errors } = this.state;
     const { edit } = this.props;
 
+    const dataTypeOptions = [
+      { value: "string", label: "Texte (string)" },
+      { value: "integer", label: "Entier (integer)" },
+      { value: "float", label: "Décimal (float)" },
+      { value: "boolean", label: "Booléen (boolean)" },
+      { value: "date", label: "Date" },
+    ];
+
     return (
       <>
-        <TextField name="name" label="Nom de l'attribut" value={data.name} onChange={this.handleFieldChange} edit={edit} required error={errors.name} placeholder="Ex: email, age, price..." />
-
-        <TextField
-          name="description"
-          label="Description"
-          value={data.description}
+        <SelectField
+          name="dataType"
+          label="Type de données"
+          value={data.dataType || ""}
           onChange={this.handleFieldChange}
           edit={edit}
-          error={errors.description}
-          placeholder="Description de l'attribut..."
+          options={dataTypeOptions}
+          placeholder="Sélectionner un type..."
+          error={errors.dataType}
         />
 
-        <TextField name="dataType" label="Type de données" value={data.dataType || ""} onChange={this.handleFieldChange} edit={edit} placeholder="Ex: string, number, boolean, date..." />
+        <BooleanField
+          name="isRequired"
+          label="Attribut requis"
+          value={data.isRequired || false}
+          onChange={this.handleFieldChange}
+          edit={edit}
+          description="Cet attribut doit avoir une valeur"
+          error={errors.isRequired}
+        />
+
+        <BooleanField
+          name="isUnique"
+          label="Valeur unique"
+          value={data.isUnique || false}
+          onChange={this.handleFieldChange}
+          edit={edit}
+          description="La valeur de cet attribut doit être unique"
+          error={errors.isUnique}
+        />
       </>
     );
   }

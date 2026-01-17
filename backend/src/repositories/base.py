@@ -217,7 +217,10 @@ class BaseRepository(ABC, Generic[T]):
         SET n.updated_at = datetime()
         RETURN n
         """
+        logger.info(f"🔍 Executing update query for {self.label} id={entity_id}, updates={updates}")
         result = self.db.execute_query(query, {"id": entity_id, "updates": updates})
+        logger.info(f"🔍 Update query result: {result}")
+        
         if not result:
             logger.warning(f"{self.label} with id={entity_id} not found for update")
             return None

@@ -52,7 +52,7 @@ export class SelectField extends Field<string> {
     const selectedOption = this.getSelectedOption();
 
     return (
-      <div className={`field-container flex justify-between items-center py-2 ${className || ""}`}>
+      <div className={`field-container flex justify-between items-center ${className || ""}`}>
         <span className="text-sm text-gray-700 font-semibold">{label}:</span>
         <div className="text-right ml-4">
           {selectedOption ? (
