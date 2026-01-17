@@ -27,10 +27,19 @@ interface CreateNodeModalProps {
   initialData?: { name: string; description: string; type: string; [key: string]: unknown };
   title?: string;
   description?: string;
+  // Options spécifiques pour les relations
+  concepts?: Array<{ id: string; label: string }>;
 }
 
-export function CreateNodeModal({ open, onOpenChange, onCreateNode, nodeTypes, defaultType, editMode = false, initialData, title, description }: CreateNodeModalProps) {
-  const [formData, setFormData] = useState({
+export function CreateNodeModal({ open, onOpenChange, onCreateNode, nodeTypes, defaultType, editMode = false, initialData, title, description, concepts = [] }: CreateNodeModalProps) {
+  const [formData, setFormData] = useState<{
+    name: string;
+    description: string;
+    type: string;
+    sourceConceptId?: string;
+    targetConceptId?: string;
+    relationType?: string;
+  }>({
     name: "",
     description: "",
     type: defaultType || nodeTypes[0]?.value || "",
@@ -54,6 +63,16 @@ export function CreateNodeModal({ open, onOpenChange, onCreateNode, nodeTypes, d
 
     if (!formData.name.trim()) {
       return;
+    }
+
+    // Validation spécifique pour les relations
+    if (formData.type === "relation") {
+      if (!formData.relationType || !formData.sourceConceptId || !formData.targetConceptId) {
+        return;
+      }
+      if (formData.sourceConceptId === formData.targetConceptId) {
+        return;
+      }
     }
 
     onCreateNode(formData);
@@ -142,13 +161,80 @@ export function CreateNodeModal({ open, onOpenChange, onCreateNode, nodeTypes, d
                 rows={3}
               />
             </div>
+
+            {/* Champs spécifiques aux relations */}
+            {formData.type === "relation" && (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="relation-type">
+                    Type de relation <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={formData.relationType || ""} onValueChange={(value: string) => setFormData({ ...formData, relationType: value })}>
+                    <SelectTrigger id="relation-type">
+                      <SelectValue placeholder="Sélectionner un type de relation" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="is_a">Is A (Héritage)</SelectItem>
+                      <SelectItem value="has_part">Has Part (Composition)</SelectItem>
+                      <SelectItem value="has_subclass">Has Subclass</SelectItem>
+                      <SelectItem value="part_of">Part Of</SelectItem>
+                      <SelectItem value="other">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="source-concept">
+                    Concept source <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={formData.sourceConceptId || ""} onValueChange={(value: string) => setFormData({ ...formData, sourceConceptId: value })}>
+                    <SelectTrigger id="source-concept">
+                      <SelectValue placeholder="Sélectionner le concept source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {concepts.map((concept) => (
+                        <SelectItem key={concept.id} value={concept.id}>
+                          {concept.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="target-concept">
+                    Concept cible <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={formData.targetConceptId || ""} onValueChange={(value: string) => setFormData({ ...formData, targetConceptId: value })}>
+                    <SelectTrigger id="target-concept">
+                      <SelectValue placeholder="Sélectionner le concept cible" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {concepts
+                        .filter((c) => c.id !== formData.sourceConceptId)
+                        .map((concept) => (
+                          <SelectItem key={concept.id} value={concept.id}>
+                            {concept.label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCancel}>
               Annuler
             </Button>
-            <Button type="submit" disabled={!formData.name.trim()}>
+            <Button
+              type="submit"
+              disabled={
+                !formData.name.trim() ||
+                (formData.type === "relation" && (!formData.relationType || !formData.sourceConceptId || !formData.targetConceptId || formData.sourceConceptId === formData.targetConceptId))
+              }
+            >
               {editMode ? "Enregistrer" : "Créer le nœud"}
             </Button>
           </DialogFooter>

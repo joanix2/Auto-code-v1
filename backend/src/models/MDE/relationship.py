@@ -1,13 +1,12 @@
 """
-Relationship Model - Associations between concepts
-Stored as relationships in Neo4j graph
+Relationship Model - Associations between concepts (Object Properties in ontology)
+Stored as nodes in Neo4j graph with DOMAIN and RANGE edges
 """
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field
 from typing import Optional
 from enum import Enum
 
-from ..graph import Edge
-
+from ..graph import Node
 
 
 class RelationshipType(str, Enum):
@@ -24,108 +23,59 @@ class RelationshipType(str, Enum):
     OTHER = "other"  # custom relationship with user-defined name
 
 
-class Relationship(Edge):
+class Relationship(Node):
     """
-    Relationship - Association between two concepts (an edge in the graph)
-    Stored as a relationship in Neo4j between concept nodes
+    Relationship - Object Property node in ontology
+    Stored as a node in Neo4j with DOMAIN and RANGE edges to concepts
     
-    Inherits from Edge:
-    - description (from Edge)
-    - source_id, target_id (connected nodes)
-    - source_label, target_label (cached labels)
+    Structure:
+    (Metamodel)-[:HAS_RELATION]->(Relationship)
+    (Relationship)-[:DOMAIN]->(SourceConcept)
+    (Relationship)-[:RANGE]->(TargetConcept)
+    
+    Inherits from Node:
+    - id, name, description
+    - x_position, y_position
     - graph_id (parent metamodel)
-    
-    The name is computed based on:
-    - IS_A: "is_a {target_concept_name}"
-    - HAS_SUBCLASS: "has_subclass {target_concept_name}" (inverse of is_a)
-    - HAS_PART: "has_part {target_concept_name}"
-    - PART_OF: "part_of {target_concept_name}" (inverse of has_part)
+    - created_at, updated_at
     """
     type: RelationshipType = Field(..., description="Type of relationship")
     
-    # Backward compatibility - map to Edge properties
+    # Cached IDs and labels from DOMAIN/RANGE edges (for convenience)
+    source_concept_id: Optional[str] = Field(default=None, description="Source concept ID (from DOMAIN edge)")
+    target_concept_id: Optional[str] = Field(default=None, description="Target concept ID (from RANGE edge)")
+    source_label: Optional[str] = Field(default=None, description="Source concept name (cached)")
+    target_label: Optional[str] = Field(default=None, description="Target concept name (cached)")
+    
+    # Backward compatibility aliases
     @property
-    def source_concept_id(self) -> str:
-        """Alias for source_id (backward compatibility)"""
-        return self.source_id
-    
-    @source_concept_id.setter
-    def source_concept_id(self, value: str):
-        """Setter for source_concept_id (backward compatibility)"""
-        self.source_id = value
+    def source_id(self) -> Optional[str]:
+        """Alias for source_concept_id"""
+        return self.source_concept_id
     
     @property
-    def target_concept_id(self) -> str:
-        """Alias for target_id (backward compatibility)"""
-        return self.target_id
-    
-    @target_concept_id.setter
-    def target_concept_id(self, value: str):
-        """Setter for target_concept_id (backward compatibility)"""
-        self.target_id = value
+    def target_id(self) -> Optional[str]:
+        """Alias for target_concept_id"""
+        return self.target_concept_id
     
     @property
     def target_concept_name(self) -> Optional[str]:
-        """Alias for target_label (backward compatibility)"""
+        """Alias for target_label"""
         return self.target_label
-    
-    @target_concept_name.setter
-    def target_concept_name(self, value: Optional[str]):
-        """Setter for target_concept_name (backward compatibility)"""
-        self.target_label = value
     
     @property
     def metamodel_id(self) -> str:
-        """Alias for graph_id (backward compatibility)"""
+        """Alias for graph_id"""
         return self.graph_id
     
-    @metamodel_id.setter
-    def metamodel_id(self, value: str):
-        """Setter for metamodel_id (backward compatibility)"""
-        self.graph_id = value
-    
     # Abstract methods implementation
-    def get_edge_type(self) -> str:
-        """Return the relationship type as string"""
-        return self.type.value
+    def get_node_type(self) -> str:
+        """Return 'relation' as node type"""
+        return "relation"
     
     def get_display_label(self) -> str:
-        """Return the relationship type as display label"""
-        if self.target_label:
-            return f"{self.type.value} {self.target_label}"
-        return self.type.value
-    
-    def is_directed(self) -> bool:
-        """All relationships are directed"""
-        return True
-    
-    @computed_field
-    @property
-    def name(self) -> str:
-        """
-        Compute relationship name based on type and target concept.
-        For OTHER type, uses the stored name from Edge.name field.
-        """
-        # For custom relationships (OTHER), use the stored name from the Edge parent class
-        if self.type == RelationshipType.OTHER:
-            # Access the actual field value from Edge
-            stored_name = self.__dict__.get('name')
-            return stored_name if stored_name else "other"
-        
-        # For standard relationships, compute the name
-        if not self.target_label:
-            return self.type.value
-        
-        if self.type == RelationshipType.IS_A:
-            return f"is_a_{self.target_label}"
-        elif self.type == RelationshipType.HAS_SUBCLASS:
-            return f"has_subclass_{self.target_label}"
-        elif self.type == RelationshipType.HAS_PART:
-            return f"has_part_{self.target_label}"
-        elif self.type == RelationshipType.PART_OF:
-            return f"part_of_{self.target_label}"
-        else:
-            return self.type.value
+        """Return the relationship name as display label"""
+        return self.name
     
     class Config:
         from_attributes = True
@@ -135,22 +85,27 @@ class Relationship(Edge):
 
 class RelationshipCreate(BaseModel):
     """Schema for creating a relationship"""
+    name: str = Field(..., min_length=1, description="Relationship name (e.g., 'has_parent', 'belongs_to')")
     type: RelationshipType
     source_concept_id: str
     target_concept_id: str
-    target_concept_name: Optional[str] = None  # Will be fetched from target concept if not provided
     description: Optional[str] = None
     metamodel_id: str
+    x_position: Optional[float] = None
+    y_position: Optional[float] = None
 
 
 class RelationshipUpdate(BaseModel):
     """Schema for updating a relationship"""
+    name: Optional[str] = Field(None, min_length=1, description="Relationship name")
     type: Optional[RelationshipType] = None
-    target_concept_name: Optional[str] = None
     description: Optional[str] = None
+    x_position: Optional[float] = None
+    y_position: Optional[float] = None
 
 
 class RelationshipResponse(Relationship):
     """Schema for relationship response"""
     pass
+
 

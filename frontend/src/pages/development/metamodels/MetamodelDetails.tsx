@@ -4,6 +4,7 @@ import { Metamodel } from "@/types/metamodel";
 import { metamodelService } from "@/services/metamodelService";
 import { conceptService, ConceptCreate, type Concept } from "@/services/conceptService";
 import { attributeService, type AttributeCreate as AttributeCreateType, type Attribute } from "@/services/attributeService";
+import { relationshipService, type Relationship, type RelationshipCreate } from "@/services/relationshipService";
 import { Database, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { GraphViewer, CreateNodeModal } from "@/components/common/GraphViewer";
@@ -41,6 +42,9 @@ export function MetamodelDetails() {
       // Charger les attributs du métamodèle
       const attributes = await attributeService.getByMetamodel(id);
 
+      // Charger les relations du métamodèle
+      const relationships = await relationshipService.getByMetamodel(id, true);
+
       const conceptNodes: GraphNode[] = concepts.map((concept) => ({
         id: concept.id,
         label: concept.name,
@@ -66,10 +70,16 @@ export function MetamodelDetails() {
           },
         }));
 
-      const nodes: GraphNode[] = [...conceptNodes, ...attributeNodes];
+      // Créer les arêtes pour visualiser les relations
+      const edges: GraphEdge[] = relationships.map((rel) => ({
+        id: `edge-${rel.id}`,
+        source: rel.source_concept_id,
+        target: rel.target_concept_id,
+        label: rel.name, // Utiliser le nom de la relation
+        type: "relation",
+      }));
 
-      // TODO: Charger les vraies relations entre concepts depuis l'API
-      const edges: GraphEdge[] = [];
+      const nodes: GraphNode[] = [...conceptNodes, ...attributeNodes];
 
       setGraphData({ nodes, edges });
     } catch (error) {
@@ -118,6 +128,8 @@ export function MetamodelDetails() {
         await conceptService.delete(node.id);
       } else if (node.type === "attribute") {
         await attributeService.delete(node.id);
+      } else if (node.type === "relation") {
+        await relationshipService.delete(node.id);
       } else {
         throw new Error(`Delete not implemented for node type: ${node.type}`);
       }
@@ -128,7 +140,7 @@ export function MetamodelDetails() {
         edges: prev.edges.filter((e) => e.source !== node.id && e.target !== node.id),
       }));
 
-      const nodeTypeLabel = node.type === "concept" ? "Concept" : node.type === "attribute" ? "Attribut" : "Élément";
+      const nodeTypeLabel = node.type === "concept" ? "Concept" : node.type === "attribute" ? "Attribut" : node.type === "relation" ? "Relation" : "Élément";
 
       toast({
         title: `${nodeTypeLabel} supprimé`,
@@ -140,7 +152,7 @@ export function MetamodelDetails() {
       console.error(`Error deleting ${node.type}:`, error);
       toast({
         title: "Erreur",
-        description: `Impossible de supprimer le ${node.type === "concept" ? "concept" : "nœud"}`,
+        description: `Impossible de supprimer le ${node.type === "concept" ? "concept" : node.type === "attribute" ? "attribut" : "élément"}`,
         variant: "destructive",
       });
     }
@@ -148,7 +160,7 @@ export function MetamodelDetails() {
 
   const handleUpdateNode = async (nodeData: { name: string; description?: string; [key: string]: unknown }, nodeId: string, nodeType: string) => {
     try {
-      let updatedNode: Concept | Attribute;
+      let updatedNode: Concept | Attribute | Relationship;
 
       if (nodeType === "concept") {
         // Mettre à jour le concept via l'API
@@ -172,6 +184,17 @@ export function MetamodelDetails() {
           is_required: attributeData.isRequired || false,
           is_unique: attributeData.isUnique || false,
         });
+      } else if (nodeType === "relation") {
+        // Mettre à jour la relation via l'API
+        const relationData = nodeData as {
+          name: string;
+          description?: string;
+          relationType?: string;
+        };
+        updatedNode = await relationshipService.update(nodeId, {
+          type: relationData.relationType as "is_a" | "has_part" | "has_subclass" | "part_of" | "other",
+          description: relationData.description || "",
+        });
       } else {
         throw new Error(`Update not implemented for node type: ${nodeType}`);
       }
@@ -184,7 +207,7 @@ export function MetamodelDetails() {
           node.id === nodeId
             ? {
                 ...node,
-                label: updatedNode.name,
+                label: nodeType === "relation" ? node.label : (updatedNode as Concept | Attribute).name,
                 properties: {
                   ...node.properties,
                   description: updatedNode.description || "",
@@ -192,6 +215,11 @@ export function MetamodelDetails() {
                     dataType: (updatedNode as Attribute).type || "string",
                     isRequired: (updatedNode as Attribute).is_required || false,
                     isUnique: (updatedNode as Attribute).is_unique || false,
+                  }),
+                  ...(nodeType === "relation" && {
+                    relationType: (updatedNode as Relationship).type || "other",
+                    sourceConceptId: (updatedNode as Relationship).source_concept_id,
+                    targetConceptId: (updatedNode as Relationship).target_concept_id,
                   }),
                 },
               }
@@ -201,14 +229,14 @@ export function MetamodelDetails() {
       }));
 
       toast({
-        title: `${nodeType === "concept" ? "Concept" : "Attribut"} mis à jour`,
-        description: `${nodeType === "concept" ? "Le concept" : "L'attribut"} "${nodeData.name}" a été mis à jour`,
+        title: `${nodeType === "concept" ? "Concept" : nodeType === "attribute" ? "Attribut" : "Relation"} mis à jour`,
+        description: `${nodeType === "concept" ? "Le concept" : nodeType === "attribute" ? "L'attribut" : "La relation"} "${nodeData.name || "sans nom"}" a été mis à jour`,
       });
     } catch (error) {
       console.error(`Error updating ${nodeType}:`, error);
       toast({
         title: "Erreur",
-        description: `Impossible de mettre à jour ${nodeType === "concept" ? "le concept" : "l'attribut"}`,
+        description: `Impossible de mettre à jour ${nodeType === "concept" ? "le concept" : nodeType === "attribute" ? "l'attribut" : "la relation"}`,
         variant: "destructive",
       });
       throw error; // Re-throw pour que le formulaire puisse gérer l'erreur
@@ -265,7 +293,10 @@ export function MetamodelDetails() {
 
   // Fonction de rendu pour les relations (Object Properties)
   const renderRelationForm = (node: GraphNode, isEditing: boolean, onCancelEdit: () => void) => {
-    const formKey = `${node.id}-${node.label}-${node.properties?.description || ""}-${node.properties?.sourceType || ""}-${node.properties?.targetType || ""}`;
+    const formKey = `${node.id}-${node.label}-${node.properties?.description || ""}-${node.properties?.relationType || ""}-${node.properties?.sourceConceptId || ""}-${node.properties?.targetConceptId || ""}`;
+
+    // Récupérer la liste des concepts pour les SelectFields
+    const concepts = graphData.nodes.filter((n) => n.type === "concept").map((n) => ({ id: n.id, label: n.label }));
 
     return (
       <RelationForm
@@ -274,9 +305,11 @@ export function MetamodelDetails() {
         initialData={{
           name: node.label,
           description: (node.properties?.description as string) || "",
-          sourceType: (node.properties?.sourceType as string) || "",
-          targetType: (node.properties?.targetType as string) || "",
+          sourceConceptId: (node.properties?.sourceConceptId as string) || "",
+          targetConceptId: (node.properties?.targetConceptId as string) || "",
+          relationType: (node.properties?.relationType as "is_a" | "has_part" | "has_subclass" | "part_of" | "other") || "other",
         }}
+        concepts={concepts}
         edit={isEditing}
         onSubmit={async (data) => {
           await handleUpdateNode(data, node.id, node.type);
@@ -350,12 +383,70 @@ export function MetamodelDetails() {
           },
         };
       } else {
-        // Relation - not implemented yet
+        // Relation - création de relation entre deux concepts
+        const relationData = nodeData as {
+          name: string;
+          description: string;
+          sourceConceptId?: string;
+          targetConceptId?: string;
+          relationType?: string;
+        };
+
+        if (!relationData.sourceConceptId || !relationData.targetConceptId || !relationData.relationType) {
+          toast({
+            title: "Informations manquantes",
+            description: "Veuillez spécifier le concept source, le concept cible et le type de relation",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const createData: RelationshipCreate = {
+          name: relationData.name, // Le nom de la relation
+          type: relationData.relationType as "is_a" | "has_part" | "has_subclass" | "part_of" | "other",
+          source_concept_id: relationData.sourceConceptId,
+          target_concept_id: relationData.targetConceptId,
+          description: relationData.description,
+          metamodel_id: id,
+        };
+
+        const createdRelation = await relationshipService.create(createData);
+
+        // Créer un nœud pour la relation (pour l'affichage dans le graphe)
+        newNode = {
+          id: createdRelation.id,
+          label: createdRelation.name, // Utiliser le nom de la relation
+          type: "relation",
+          properties: {
+            name: createdRelation.name,
+            description: createdRelation.description || "",
+            relationType: createdRelation.type,
+            sourceConceptId: createdRelation.source_concept_id,
+            targetConceptId: createdRelation.target_concept_id,
+          },
+        };
+
+        // Créer également une arête pour visualiser la relation dans le graphe
+        const newEdge: GraphEdge = {
+          id: `edge-${createdRelation.id}`,
+          source: createdRelation.source_concept_id,
+          target: createdRelation.target_concept_id,
+          label: createdRelation.name, // Utiliser le nom de la relation, pas le type
+          type: "relation",
+        };
+
+        // Ajouter à la fois le nœud et l'arête
+        setGraphData((prev) => ({
+          nodes: [...prev.nodes, newNode],
+          edges: [...prev.edges, newEdge],
+        }));
+
         toast({
-          title: "Non implémenté",
-          description: "La création de relations n'est pas encore implémentée",
-          variant: "destructive",
+          title: "Relation créée",
+          description: `Relation "${createdRelation.type}" créée avec succès`,
         });
+
+        setIsCreateNodeOpen(false);
         return;
       }
 
@@ -481,6 +572,7 @@ export function MetamodelDetails() {
         nodeTypes={nodeTypeConfigs}
         title="Créer un nouveau nœud"
         description="Ajoutez un concept, un attribut ou une relation à votre métamodèle."
+        concepts={graphData.nodes.filter((n) => n.type === "concept").map((n) => ({ id: n.id, label: n.label }))}
       />
     </div>
   );

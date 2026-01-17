@@ -1,7 +1,7 @@
 """
 Relationship Controller - API endpoints for relationships with ontological reasoning
 """
-from fastapi import HTTPException, status
+from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List, Dict, Any, Optional
 import logging
 from uuid import uuid4
@@ -15,8 +15,13 @@ from src.models.MDE.relationship import (
     RelationshipUpdate
 )
 from src.models.user import User
+from src.database import get_db
+from src.utils.auth import get_current_user
 
 logger = logging.getLogger(__name__)
+
+# Router definition
+router = APIRouter(prefix="/api/relationships", tags=["relationships"])
 
 
 class RelationshipController(BaseController[Relationship, RelationshipCreate, RelationshipUpdate]):
@@ -180,3 +185,121 @@ class RelationshipController(BaseController[Relationship, RelationshipCreate, Re
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to infer relationships: {str(e)}"
             )
+
+
+# ============================================================================
+# ROUTES
+# ============================================================================
+
+def get_controller(db = Depends(get_db)) -> RelationshipController:
+    """Factory function to create RelationshipController instance"""
+    from src.repositories.MDE.relationship_repository import RelationshipRepository
+    from src.repositories.MDE.concept_repository import ConceptRepository
+    
+    relationship_repo = RelationshipRepository(db)
+    concept_repo = ConceptRepository(db)
+    service = RelationshipService(relationship_repo, concept_repo)
+    return RelationshipController(service)
+
+
+@router.get("/metamodel/{metamodel_id}", response_model=List[Relationship])
+async def get_relationships_by_metamodel(
+    metamodel_id: str,
+    skip: int = 0,
+    limit: int = 100,
+    include_inverse: bool = True,
+    controller: RelationshipController = Depends(get_controller)
+):
+    """Get all relationships for a specific metamodel"""
+    return await controller.get_by_metamodel(metamodel_id, skip, limit, include_inverse)
+
+
+@router.get("/concept/{concept_id}")
+async def get_relationships_by_concept(
+    concept_id: str,
+    direction: str = "both",
+    controller: RelationshipController = Depends(get_controller)
+):
+    """Get all relationships for a specific concept"""
+    return await controller.get_by_concept(concept_id, direction)
+
+
+@router.get("/{relationship_id}", response_model=Relationship)
+async def get_relationship(
+    relationship_id: str,
+    controller: RelationshipController = Depends(get_controller)
+):
+    """Get relationship by ID"""
+    relationship = await controller.service.get_by_id(relationship_id)
+    if not relationship:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Relationship not found"
+        )
+    return relationship
+
+
+@router.post("/", response_model=Relationship, status_code=status.HTTP_201_CREATED)
+async def create_relationship(
+    relationship_data: RelationshipCreate,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db),
+    controller: RelationshipController = Depends(get_controller)
+):
+    """Create a new relationship (automatically creates inverse)"""
+    logger.info(f"Creating relationship: {relationship_data.type} from {relationship_data.source_concept_id} to {relationship_data.target_concept_id}")
+    return await controller.create(relationship_data, current_user, db)
+
+
+@router.put("/{relationship_id}", response_model=Relationship)
+async def update_relationship(
+    relationship_id: str,
+    updates: RelationshipUpdate,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db),
+    controller: RelationshipController = Depends(get_controller)
+):
+    """Update a relationship"""
+    validated_updates = await controller.validate_update(relationship_id, updates, current_user, db)
+    if validated_updates:
+        return await controller.service.update(relationship_id, validated_updates)
+    
+    # If no updates, return current relationship
+    relationship = await controller.service.get_by_id(relationship_id)
+    if not relationship:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Relationship not found"
+        )
+    return relationship
+
+
+@router.delete("/{relationship_id}")
+async def delete_relationship(
+    relationship_id: str,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db),
+    controller: RelationshipController = Depends(get_controller)
+):
+    """Delete a relationship"""
+    await controller.validate_delete(relationship_id, current_user, db)
+    success = await controller.service.delete(relationship_id)
+    
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Relationship not found"
+        )
+    
+    return {"message": "Relationship deleted successfully"}
+
+
+@router.post("/metamodel/{metamodel_id}/infer")
+async def infer_relationships(
+    metamodel_id: str,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db),
+    controller: RelationshipController = Depends(get_controller)
+):
+    """Infer new relationships using ontological reasoning"""
+    return await controller.infer_relationships(metamodel_id, current_user, db)
