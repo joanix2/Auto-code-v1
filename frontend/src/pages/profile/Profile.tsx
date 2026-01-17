@@ -117,7 +117,7 @@ function Profile() {
         </Alert>
       )}
 
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-2 sm:space-y-6">
         {/* Profile Information */}
         <Card>
           <CardHeader>
@@ -127,7 +127,7 @@ function Profile() {
             </CardTitle>
             <CardDescription>Your personal account information</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
                 <AvatarImage src={getProfilePictureUrl()} alt={user?.username} />
@@ -177,7 +177,7 @@ function Profile() {
             </CardTitle>
             <CardDescription>Connect your GitHub account to sync repositories and issues</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-3">
                 <Github className="h-5 w-5 text-gray-600" />

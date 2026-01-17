@@ -47,7 +47,7 @@ export abstract class BaseService<TEntity extends BaseEntity, TCreate = Partial<
    * Update an entity
    */
   async update(id: string, data: TUpdate): Promise<TEntity> {
-    return apiService.patch<TEntity>(`${this.basePath}/${id}`, data);
+    return apiService.put<TEntity>(`${this.basePath}/${id}`, data);
   }
 
   /**

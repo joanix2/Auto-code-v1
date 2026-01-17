@@ -9,7 +9,7 @@ import { Issues } from "./pages/development/issues/Issues";
 import IssueDetails from "./pages/development/issues/IssueDetails";
 import { Messages } from "./pages/development/messages/Messages";
 import { Metamodels } from "./pages/development/metamodels/Metamodels";
-import { MetamodelDetail } from "./pages/development/metamodels/MetamodelDetail";
+import { MetamodelDetails } from "./pages/development/metamodels/MetamodelDetails";
 import { MetamodelForm } from "./pages/development/metamodels/MetamodelForm";
 import Profile from "./pages/profile/Profile";
 import { NotFound } from "./pages/NotFound";
@@ -128,7 +128,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
-                  <MetamodelDetail />
+                  <MetamodelDetails />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }

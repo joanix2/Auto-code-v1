@@ -72,7 +72,7 @@ class ConceptRepository(BaseRepository[Concept]):
         Get all concepts for a specific metamodel
         
         Args:
-            metamodel_id: Metamodel ID
+            metamodel_id: Metamodel ID (graph_id)
             skip: Number to skip
             limit: Max results
             
@@ -80,7 +80,7 @@ class ConceptRepository(BaseRepository[Concept]):
             List of concepts
         """
         query = """
-        MATCH (c:Concept {metamodel_id: $metamodel_id})
+        MATCH (c:Concept {graph_id: $metamodel_id})
         RETURN c
         ORDER BY c.created_at DESC
         SKIP $skip
@@ -94,14 +94,14 @@ class ConceptRepository(BaseRepository[Concept]):
         Get concept by name within a metamodel
         
         Args:
-            metamodel_id: Metamodel ID
+            metamodel_id: Metamodel ID (graph_id)
             name: Concept name
             
         Returns:
             Concept or None
         """
         query = """
-        MATCH (c:Concept {metamodel_id: $metamodel_id, name: $name})
+        MATCH (c:Concept {graph_id: $metamodel_id, name: $name})
         RETURN c
         """
         result = self.db.execute_query(query, {"metamodel_id": metamodel_id, "name": name})
@@ -175,3 +175,31 @@ class ConceptRepository(BaseRepository[Concept]):
         """
         result = self.db.execute_query(query, {"metamodel_id": metamodel_id})
         return result[0]["count"] if result else 0
+
+    async def delete(self, entity_id: str) -> bool:
+        """
+        Delete a concept and all its relationships
+        
+        Uses DETACH DELETE to automatically remove all relationships
+        before deleting the node.
+        
+        Args:
+            entity_id: Concept ID
+            
+        Returns:
+            True if deleted, False if not found
+        """
+        query = f"""
+        MATCH (c:{self.label} {{id: $id}})
+        DETACH DELETE c
+        RETURN count(c) as deleted
+        """
+        result = self.db.execute_query(query, {"id": entity_id})
+        deleted = result[0]["deleted"] > 0
+        
+        if deleted:
+            logger.info(f"Deleted {self.label} with id={entity_id} and all its relationships")
+        else:
+            logger.warning(f"{self.label} with id={entity_id} not found for deletion")
+        
+        return deleted

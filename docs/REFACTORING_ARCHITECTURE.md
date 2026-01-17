@@ -974,7 +974,7 @@ export abstract class BaseCardList<T extends { id: string }> extends React.Compo
     const filteredItems = this.filterItems();
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-2">
         {/* Header with search and sync */}
         <div className="flex gap-3">
           <div className="relative flex-1">

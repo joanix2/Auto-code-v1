@@ -112,7 +112,7 @@ export function Messages() {
       )}
 
       {/* Messages Container */}
-      <div className="space-y-3 sm:space-y-4">
+      <div className="space-y-3 sm:space-y-2">
         {/* Messages List */}
         <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto pr-2">
           {loading && messages.length === 0 ? (

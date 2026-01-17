@@ -103,7 +103,7 @@ export function Dashboard() {
             <CardDescription>Aperçu de la progression</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Taux de complétion</span>
                 <span className="text-sm text-muted-foreground">{stats.issues > 0 ? Math.round(((stats.issues - stats.openIssues - stats.inProgressIssues) / stats.issues) * 100) : 0}%</span>

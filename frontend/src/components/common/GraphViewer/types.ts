@@ -46,4 +46,10 @@ export interface GraphViewerProps {
   className?: string;
   onEditNode?: (node: GraphNode) => void;
   onDeleteNode?: (node: GraphNode) => void;
+  /**
+   * Map de formulaires par type de nœud
+   * Clé: type du nœud (ex: "concept", "attribute")
+   * Valeur: fonction qui retourne le formulaire React pour ce type
+   */
+  forms?: Record<string, (node: GraphNode, isEditing: boolean, onCancelEdit: () => void) => React.ReactNode>;
 }

@@ -40,7 +40,7 @@ export function AssignToCopilotDialog({ open, onOpenChange, onConfirm, issueName
           <DialogDescription>GitHub Copilot va automatiquement créer une Pull Request pour résoudre cette issue.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-2 py-4">
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>

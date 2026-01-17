@@ -29,6 +29,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   className = "",
   onEditNode,
   onDeleteNode,
+  forms,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,6 +44,18 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   // State pour le panel de propriétés du nœud
   const [selectedNodeData, setSelectedNodeData] = useState<GraphNode | null>(null);
   const [showNodePanel, setShowNodePanel] = useState(false);
+
+  // Synchroniser selectedNodeData avec les changements dans data.nodes
+  useEffect(() => {
+    if (selectedNodeData) {
+      // Trouver le nœud mis à jour dans les nouvelles données
+      const updatedNode = data.nodes.find((node) => node.id === selectedNodeData.id);
+      if (updatedNode) {
+        setSelectedNodeData(updatedNode);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.nodes]); // Se déclenche quand data.nodes change
 
   // Handlers de zoom qui utilisent la référence stockée
   const handleZoomInClick = () => {
@@ -245,6 +258,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
           }}
           onEdit={onEditNode}
           onDelete={onDeleteNode}
+          renderForm={selectedNodeData && forms && selectedNodeData.type ? forms[selectedNodeData.type] : undefined}
         />
 
         {/* Empty state */}

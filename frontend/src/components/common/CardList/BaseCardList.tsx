@@ -56,7 +56,7 @@ export abstract class BaseCardList<T extends { id: string }> extends React.Compo
     const filteredItems = this.filterItems();
 
     return (
-      <div className="relative space-y-3 sm:space-y-4">
+      <div className="relative space-y-3 sm:space-y-2">
         {/* Header with search, create button and sync */}
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <div className="flex gap-2 flex-1">

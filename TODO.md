@@ -86,14 +86,20 @@ DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les
 
 ✅ on veux pouvoir visualiser les noeuds et les arrêtes sous la forme d'un graphe orienté avec de la physique entre les noeuds
 
-créer les classes :
+✅ créer les classes :
 
 - metamodel.py
 - attribute.py
 - concept.py
 - relationship.py
 
-créer les controllers
+✅ créer les controllers
+
+ajouter un champ pour le type du noeud
+
+modifier un noeud (fix refresh)
+
+supprimer un noeud
 
 créer l'interface de création de meta-model
 
