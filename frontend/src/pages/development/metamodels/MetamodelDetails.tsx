@@ -113,7 +113,14 @@ export function MetamodelDetails() {
 
   const handleDeleteNode = async (node: GraphNode) => {
     try {
-      await conceptService.delete(node.id);
+      // Appeler le bon service en fonction du type de nœud
+      if (node.type === "concept") {
+        await conceptService.delete(node.id);
+      } else if (node.type === "attribute") {
+        await attributeService.delete(node.id);
+      } else {
+        throw new Error(`Delete not implemented for node type: ${node.type}`);
+      }
 
       // Retirer le nœud du graphe local
       setGraphData((prev: GraphData) => ({
@@ -121,17 +128,19 @@ export function MetamodelDetails() {
         edges: prev.edges.filter((e) => e.source !== node.id && e.target !== node.id),
       }));
 
+      const nodeTypeLabel = node.type === "concept" ? "Concept" : node.type === "attribute" ? "Attribut" : "Élément";
+
       toast({
-        title: "Concept supprimé",
-        description: `Le concept "${node.label}" a été supprimé`,
+        title: `${nodeTypeLabel} supprimé`,
+        description: `Le ${nodeTypeLabel.toLowerCase()} "${node.label}" a été supprimé`,
       });
 
       setSelectedNode(null);
     } catch (error) {
-      console.error("Error deleting concept:", error);
+      console.error(`Error deleting ${node.type}:`, error);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer le concept",
+        description: `Impossible de supprimer le ${node.type === "concept" ? "concept" : "nœud"}`,
         variant: "destructive",
       });
     }

@@ -178,4 +178,15 @@ async def delete_concept(
     controller: ConceptController = Depends(get_controller)
 ):
     """Delete a concept"""
-    return await controller.delete(concept_id, current_user, db)
+    logger.info(f"🗑️ DELETE request for concept {concept_id}")
+    deleted = await controller.delete(concept_id, current_user, db)
+    
+    if not deleted:
+        logger.error(f"❌ Failed to delete concept {concept_id} - not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Concept {concept_id} not found"
+        )
+    
+    logger.info(f"✅ Successfully deleted concept {concept_id}")
+    return {"message": "Concept deleted successfully", "id": concept_id}

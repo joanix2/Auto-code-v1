@@ -29,10 +29,10 @@ class MetamodelService(BaseService[Metamodel]):
         logger.info(f"🔍 Service: Getting metamodel by ID: {entity_id}")
         return await self.repository.get_by_id(entity_id)
     
-    async def get_all(self, filters: Optional[Dict[str, Any]] = None) -> List[Metamodel]:
-        """Get all metamodels with optional filters"""
-        logger.info(f"🔍 Service: Getting all metamodels with filters: {filters}")
-        return await self.repository.get_all()
+    async def get_all(self, skip: int = 0, limit: int = 100) -> List[Metamodel]:
+        """Get all metamodels with optional pagination"""
+        logger.info(f"🔍 Service: Getting all metamodels (skip={skip}, limit={limit})")
+        return await self.repository.get_all(skip, limit)
     
     async def update(self, entity_id: str, update_data: Dict[str, Any]) -> Optional[Metamodel]:
         """Update metamodel"""

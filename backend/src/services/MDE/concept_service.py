@@ -63,27 +63,17 @@ class ConceptService(BaseService[Concept]):
         """Get concept by ID"""
         return await self.concept_repo.get_by_id(concept_id)
     
-    async def get_all(self, filters: Optional[Dict[str, Any]] = None) -> List[Concept]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> List[Concept]:
         """
-        Get all concepts with optional filters
+        Get all concepts with pagination
         
         Args:
-            filters: Optional filters (metamodel_id, skip, limit)
+            skip: Number of concepts to skip
+            limit: Maximum number of concepts to return
             
         Returns:
             List of concepts
         """
-        if not filters:
-            filters = {}
-        
-        skip = filters.get("skip", 0)
-        limit = filters.get("limit", 100)
-        
-        # Filter by metamodel
-        if "metamodel_id" in filters:
-            return await self.concept_repo.get_by_metamodel(filters["metamodel_id"], skip, limit)
-        
-        # No filters - get all
         return await self.concept_repo.get_all(skip, limit)
     
     async def get_by_metamodel(
@@ -158,16 +148,25 @@ class ConceptService(BaseService[Concept]):
         Returns:
             True if deleted
         """
+        logger.info(f"🔍 ConceptService.delete called for concept_id={concept_id}")
+        
         # Get concept first to get metamodel_id
         concept = await self.get_by_id(concept_id)
+        logger.info(f"🔍 Concept found: {concept}")
+        
         if not concept:
+            logger.warning(f"⚠️ Concept {concept_id} not found")
             return False
         
         # Delete concept (repository should handle cascade delete of attributes and relationships)
+        logger.info(f"🗑️ Calling concept_repo.delete for {concept_id}")
         deleted = await self.concept_repo.delete(concept_id)
+        logger.info(f"🔍 Delete result: {deleted}")
         
         if deleted:
-            logger.info(f"Deleted concept: {concept_id}")
+            logger.info(f"✅ Deleted concept: {concept_id}")
+        else:
+            logger.error(f"❌ Failed to delete concept: {concept_id}")
         
         return deleted
     

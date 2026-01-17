@@ -68,27 +68,17 @@ class AttributeService(BaseService[Attribute]):
         """Get attribute by ID"""
         return await self.attribute_repo.get_by_id(attribute_id)
     
-    async def get_all(self, filters: Optional[Dict[str, Any]] = None) -> List[Attribute]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> List[Attribute]:
         """
-        Get all attributes with optional filters
+        Get all attributes with pagination
         
         Args:
-            filters: Optional filters (concept_id, skip, limit)
+            skip: Number of attributes to skip
+            limit: Maximum number of attributes to return
             
         Returns:
             List of attributes
         """
-        if not filters:
-            filters = {}
-        
-        skip = filters.get("skip", 0)
-        limit = filters.get("limit", 100)
-        
-        # Filter by concept
-        if "concept_id" in filters:
-            return await self.attribute_repo.get_by_concept(filters["concept_id"], skip, limit)
-        
-        # No filters - get all
         return await self.attribute_repo.get_all(skip, limit)
     
     async def get_by_concept(

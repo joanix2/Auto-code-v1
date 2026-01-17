@@ -240,16 +240,20 @@ class BaseRepository(ABC, Generic[T]):
         """
         query = f"""
         MATCH (n:{self.label} {{id: $id}})
-        DELETE n
-        RETURN count(n) as deleted
+        WITH n, count(n) as node_count
+        DETACH DELETE n
+        RETURN node_count as deleted
         """
+        logger.info(f"🗑️ Attempting to delete {self.label} with id={entity_id}")
         result = self.db.execute_query(query, {"id": entity_id})
-        deleted = result[0]["deleted"] > 0
+        logger.info(f"🔍 Delete query result: {result}")
+        
+        deleted = result and len(result) > 0 and result[0]["deleted"] > 0
         
         if deleted:
-            logger.info(f"Deleted {self.label} with id={entity_id}")
+            logger.info(f"✅ Deleted {self.label} with id={entity_id}")
         else:
-            logger.warning(f"{self.label} with id={entity_id} not found for deletion")
+            logger.warning(f"⚠️ {self.label} with id={entity_id} not found for deletion")
         
         return deleted
 

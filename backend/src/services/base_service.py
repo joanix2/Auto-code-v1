@@ -41,12 +41,13 @@ class BaseService(ABC, Generic[T]):
         pass
     
     @abstractmethod
-    async def get_all(self, filters: Optional[Dict[str, Any]] = None) -> List[T]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> List[T]:
         """
-        Get all entities with optional filters
+        Get all entities with pagination
         
         Args:
-            filters: Optional filters
+            skip: Number of entities to skip (pagination)
+            limit: Maximum number of entities to return
             
         Returns:
             List of entities
