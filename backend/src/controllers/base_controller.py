@@ -1,5 +1,8 @@
 """
-Base Controller - Abstract class for CRUD + Sync operations
+Base Controllers - Abstract classes for CRUD operations
+
+- BaseController: Basic CRUD operations (for MDE models, etc.)
+- GitHubSyncController: CRUD + GitHub synchronization (for repositories, issues)
 """
 from abc import ABC, abstractmethod
 from fastapi import HTTPException, status
@@ -7,7 +10,6 @@ from typing import List, Optional, TypeVar, Generic, Dict, Any
 import logging
 
 from ..models.user import User
-from ..repositories.base import BaseRepository
 
 T = TypeVar('T')  # Model type
 TCreate = TypeVar('TCreate')  # Create schema type
@@ -18,64 +20,37 @@ logger = logging.getLogger(__name__)
 
 class BaseController(ABC, Generic[T, TCreate, TUpdate]):
     """
-    Abstract base controller with CRUD + Sync operations
+    Abstract base controller with basic CRUD operations
+    
+    Use this for models that don't need GitHub synchronization (MDE models, etc.)
     
     Provides:
     - CRUD operations (Create, Read, Update, Delete)
-    - Sync from GitHub
     - Common validation and error handling
     """
     
-    def __init__(self, repository: BaseRepository[T]):
-        self.repository = repository
+    def __init__(self, service):
+        """
+        Args:
+            service: Service layer instance (handles business logic)
+        """
+        self.service = service
     
     @abstractmethod
-    def get_resource_name(self) -> str:
-        """Return the name of the resource (e.g., 'repository', 'issue')"""
-        pass
-    
-    @abstractmethod
-    def get_resource_name_plural(self) -> str:
-        """Return the plural name of the resource (e.g., 'repositories', 'issues')"""
-        pass
-    
-    @abstractmethod
-    async def generate_id(self, data: Dict[str, Any]) -> str:
-        """Generate a unique ID for the resource"""
-        pass
-    
-    @abstractmethod
-    async def validate_create(self, data: TCreate, current_user: User, db) -> Dict[str, Any]:
+    async def validate_create(self, data: TCreate, current_user: User, db) -> TCreate:
         """
         Validate and prepare data for creation
-        Returns: Dict with validated data ready for repository
+        Returns: Validated data
         Raises: HTTPException if validation fails
         """
         pass
     
     @abstractmethod
-    async def validate_update(self, resource_id: str, updates: TUpdate, current_user: User, db) -> Optional[Dict[str, Any]]:
+    async def validate_update(self, id: str, data: TUpdate, current_user: User, db) -> TUpdate:
         """
-        Validate update operation. Can return modified update data if needed (e.g., after GitHub sync).
-        Returns: None or Dict with validated/modified update data
+        Validate update operation
+        Returns: Validated update data
         Raises: HTTPException if validation fails
-        """
-        pass
-    
-    @abstractmethod
-    async def validate_delete(self, resource_id: str, current_user: User, db) -> T:
-        """
-        Validate delete operation
-        Returns: The resource to delete
-        Raises: HTTPException if validation fails
-        """
-        pass
-    
-    @abstractmethod
-    async def sync_from_github(self, github_token: str, current_user: User, **kwargs) -> List[T]:
-        """
-        Sync resources from GitHub
-        Returns: List of synced resources
         """
         pass
     
@@ -94,25 +69,22 @@ class BaseController(ABC, Generic[T, TCreate, TUpdate]):
             Created resource
         """
         try:
-            # Validate and prepare data
+            # Validate
             validated_data = await self.validate_create(data, current_user, db)
             
-            # Generate ID
-            validated_data["id"] = await self.generate_id(validated_data)
-            
-            # Create resource
-            resource = await self.repository.create(validated_data)
-            logger.info(f"Created {self.get_resource_name()} {resource.id}")
+            # Create via service
+            resource = await self.service.create(validated_data)
+            logger.info(f"Created resource {resource.id if hasattr(resource, 'id') else ''}")
             
             return resource
             
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"{self.get_resource_name().capitalize()} creation error: {str(e)}")
+            logger.error(f"Creation error: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to create {self.get_resource_name()}: {str(e)}"
+                detail=f"Failed to create resource: {str(e)}"
             )
     
     async def get_by_id(self, resource_id: str, current_user: User, db) -> T:
@@ -127,12 +99,12 @@ class BaseController(ABC, Generic[T, TCreate, TUpdate]):
         Returns:
             Resource
         """
-        resource = await self.repository.get_by_id(resource_id)
+        resource = await self.service.get_by_id(resource_id)
         
         if not resource:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"{self.get_resource_name().capitalize()} not found"
+                detail="Resource not found"
             )
         
         return resource
@@ -158,7 +130,7 @@ class BaseController(ABC, Generic[T, TCreate, TUpdate]):
         Returns:
             List of resources
         """
-        resources = await self.repository.get_all(skip, limit)
+        resources = await self.service.get_all(skip, limit)
         return resources
     
     async def update(
@@ -181,28 +153,22 @@ class BaseController(ABC, Generic[T, TCreate, TUpdate]):
             Updated resource
         """
         try:
-            # Validate update (may return modified data after GitHub sync)
+            # Validate
             validated_updates = await self.validate_update(resource_id, updates, current_user, db)
             
-            # Use validated data if returned, otherwise use original updates
-            update_data = validated_updates if validated_updates is not None else updates.dict(exclude_unset=True)
+            # Update via service
+            updated_resource = await self.service.update(resource_id, validated_updates)
             
-            # Update resource
-            updated_resource = await self.repository.update(
-                resource_id,
-                update_data
-            )
-            
-            logger.info(f"Updated {self.get_resource_name()} {resource_id}")
+            logger.info(f"Updated resource {resource_id}")
             return updated_resource
             
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"{self.get_resource_name().capitalize()} update error: {str(e)}")
+            logger.error(f"Update error: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to update {self.get_resource_name()}: {str(e)}"
+                detail=f"Failed to update resource: {str(e)}"
             )
     
     async def delete(self, resource_id: str, current_user: User, db) -> Dict[str, str]:
@@ -218,11 +184,103 @@ class BaseController(ABC, Generic[T, TCreate, TUpdate]):
             Success message
         """
         try:
-            # Validate delete
+            # Delete via service
+            deleted = await self.service.delete(resource_id)
+            
+            if deleted:
+                logger.info(f"Deleted resource {resource_id}")
+                return {"message": "Resource deleted successfully"}
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to delete resource"
+                )
+                
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Deletion error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to delete resource: {str(e)}"
+            )
+
+
+class GitHubSyncController(BaseController[T, TCreate, TUpdate]):
+    """
+    Abstract controller with CRUD + GitHub synchronization
+    
+    Use this for models that need GitHub synchronization (repositories, issues)
+    
+    Extends BaseController with:
+    - GitHub synchronization
+    - Resource name management
+    - ID generation
+    """
+    
+    @abstractmethod
+    def get_resource_name(self) -> str:
+        """Return the name of the resource (e.g., 'repository', 'issue')"""
+        pass
+    
+    @abstractmethod
+    def get_resource_name_plural(self) -> str:
+        """Return the plural name of the resource (e.g., 'repositories', 'issues')"""
+        pass
+    
+    @abstractmethod
+    async def generate_id(self, data: Dict[str, Any]) -> str:
+        """Generate a unique ID for the resource"""
+        pass
+    
+    @abstractmethod
+    async def validate_delete(self, resource_id: str, current_user: User, db) -> T:
+        """
+        Validate delete operation
+        Returns: The resource to delete
+        Raises: HTTPException if validation fails
+        """
+        pass
+    
+    @abstractmethod
+    async def sync_from_github(self, github_token: str, current_user: User, **kwargs) -> List[T]:
+        """
+        Sync resources from GitHub
+        Returns: List of synced resources
+        """
+        pass
+    
+    # Override create to add ID generation
+    async def create(self, data: TCreate, current_user: User, db) -> T:
+        """Create with ID generation"""
+        try:
+            validated_data = await self.validate_create(data, current_user, db)
+            
+            # Convert to dict and add ID
+            data_dict = validated_data.dict() if hasattr(validated_data, 'dict') else dict(validated_data)
+            data_dict["id"] = await self.generate_id(data_dict)
+            
+            resource = await self.service.create(data_dict)
+            logger.info(f"Created {self.get_resource_name()} {resource.id}")
+            
+            return resource
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"{self.get_resource_name().capitalize()} creation error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to create {self.get_resource_name()}: {str(e)}"
+            )
+    
+    # Override delete to use validate_delete
+    async def delete(self, resource_id: str, current_user: User, db) -> Dict[str, str]:
+        """Delete with validation"""
+        try:
             resource = await self.validate_delete(resource_id, current_user, db)
             
-            # Delete resource
-            deleted = await self.repository.delete(resource_id)
+            deleted = await self.service.delete(resource_id)
             
             if deleted:
                 logger.info(f"Deleted {self.get_resource_name()} {resource_id}")

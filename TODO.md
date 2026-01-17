@@ -42,6 +42,8 @@ bug fix : les ticket en attente de validation passent en open (même chose pour 
 
 plus de relations en base
 
+les controller doivent avoir un double héritage, sychro github et base controller
+
 deployement et url
 
 # Infra
