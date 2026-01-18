@@ -1,6 +1,7 @@
 """
 Attribute Service - Business logic for attributes
 """
+import src.models.MDE.metamodel
 from typing import Optional, List, Dict, Any
 import logging
 from uuid import uuid4
@@ -8,7 +9,7 @@ from uuid import uuid4
 from src.services.base_service import BaseService
 from src.repositories.MDE.attribute_repository import AttributeRepository
 from src.repositories.MDE.concept_repository import ConceptRepository
-from src.models.MDE.attribute import Attribute, AttributeCreate, AttributeUpdate
+from src.models.MDE.metamodel.attribute import Attribute, AttributeCreate, AttributeUpdate
 
 logger = logging.getLogger(__name__)
 

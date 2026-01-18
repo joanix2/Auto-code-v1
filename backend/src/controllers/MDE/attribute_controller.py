@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from ..base_controller import BaseController
 from src.services.MDE.attribute_service import AttributeService
-from src.models.MDE.attribute import Attribute, AttributeCreate, AttributeUpdate
+from src.models.MDE.metamodel.attribute import Attribute, AttributeCreate, AttributeUpdate
 from src.models.user import User
 from src.database import get_db
 from src.utils.auth import get_current_user

@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from ..base_controller import BaseController
 from src.services.MDE.relationship_service import RelationshipService
-from src.models.MDE.relationship import (
+from src.models.MDE.metamodel.relationship import (
     Relationship,
     RelationshipType,
     RelationshipCreate,

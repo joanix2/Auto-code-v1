@@ -17,30 +17,46 @@ export interface SelectOption {
 export interface SelectFieldProps extends Omit<FieldProps<string>, "value" | "onChange"> {
   /**
    * Valeur actuelle du champ
+   * Peut être null si aucune option n'est sélectionnée
    */
-  value: string;
+  value: string | null;
 
   /**
    * Callback appelé lors du changement de valeur
    */
-  onChange: (name: string, value: string) => void;
+  onChange: (name: string, value: string | null) => void;
 
   /**
    * Options disponibles
    */
   options: SelectOption[];
+
+  /**
+   * Permettre la sélection d'une valeur vide (null)
+   * Si true, affiche une option "Non sélectionné" en première position
+   */
+  allowNull?: boolean;
+
+  /**
+   * Label pour l'option null/vide
+   * Par défaut: "Sélectionner..."
+   */
+  nullLabel?: string;
 }
 
 /**
  * Champ de sélection qui affiche un badge en lecture et un select en édition
  */
-export class SelectField extends Field<string> {
+export class SelectField extends Field<string | null> {
   declare props: SelectFieldProps;
 
   /**
    * Trouve l'option sélectionnée
    */
   private getSelectedOption(): SelectOption | undefined {
+    if (!this.props.value) {
+      return undefined;
+    }
     return this.props.options.find((opt) => opt.value === this.props.value);
   }
 
@@ -71,7 +87,7 @@ export class SelectField extends Field<string> {
    * Rendu en mode édition : affiche un select
    */
   protected renderEditMode(): React.ReactNode {
-    const { label, value, placeholder, disabled, required, error, className, options } = this.props;
+    const { label, value, placeholder, disabled, required, error, className, options, allowNull = false, nullLabel = "Sélectionner..." } = this.props;
 
     return (
       <div className={`field-container ${className || ""}`}>
@@ -80,15 +96,19 @@ export class SelectField extends Field<string> {
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
         <select
-          value={value}
-          onChange={(e) => this.handleChange(e.target.value)}
+          value={value || ""}
+          onChange={(e) => {
+            const newValue = e.target.value === "" ? null : e.target.value;
+            this.handleChange(newValue);
+          }}
           disabled={disabled}
           required={required}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
-          {placeholder && (
-            <option value="" disabled>
-              {placeholder}
+          {/* Option vide si allowNull est true ou si c'est le placeholder */}
+          {(allowNull || placeholder) && (
+            <option value="" disabled={!allowNull}>
+              {placeholder || nullLabel}
             </option>
           )}
           {options.map((option) => (

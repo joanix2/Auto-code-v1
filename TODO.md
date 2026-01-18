@@ -97,11 +97,30 @@ DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les
 
 ✅ créer les controllers
 
-ajouter un champ pour le type du noeud
+✅ ajouter un champ pour le type du noeud
 
-modifier un noeud (fix refresh)
+✅ modifier un noeud (fix refresh)
 
-supprimer un noeud
+✅ supprimer un noeud
+
+✅ supprimer concept source / concept cible (remplacé par système de liens génériques)
+
+✅ ajouter les type de lien possible entre les noeuds (ex: domain [Relation -> Concept], range [Relation -> Concept])
+
+✅ metamodel controller renvoie les liens possibles avec les contraintes
+
+✅ c'est interprété par graphe view
+
+✅ bouton pour passer en mode création de lien
+
+✅ créer un lien entre deux noeuds en cliquant sur un noeud source puis un noeud cible
+
+✅ popup pour choisir le type du lien avec plusieurs options disponibles
+
+🔄 À faire : Implémenter la persistance des edges créés via GraphViewer
+🔄 À faire : Créer les edges DOMAIN/RANGE via le système click-to-click
+
+ajouter la possiblité de calculé le nom
 
 créer l'interface de création de meta-model
 

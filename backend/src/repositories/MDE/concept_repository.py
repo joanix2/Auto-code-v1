@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Any
 import logging
 
 from ..base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
-from src.models.MDE.concept import Concept
+from src.models.MDE.metamodel.concept import Concept
 
 logger = logging.getLogger(__name__)
 

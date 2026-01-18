@@ -6,32 +6,31 @@ from .user import User, UserCreate, UserUpdate, UserPublic
 from .repository import Repository, RepositoryCreate, RepositoryUpdate
 from .issue import Issue, IssueCreate, IssueUpdate, IssueStatus, IssuePriority, IssueType
 from .message import Message, MessageCreate, MessageUpdate, MessageAuthorType
-from .MDE.metamodel import (
+from .MDE import (
     Metamodel, 
     MetamodelCreate, 
     MetamodelUpdate, 
     MetamodelResponse,
-    MetamodelStatus
-)
-from .MDE.concept import (
+    MetamodelStatus,
     Concept,
     ConceptCreate,
     ConceptUpdate,
-    ConceptResponse
-)
-from .MDE.attribute import (
+    ConceptResponse,
     Attribute,
     AttributeCreate,
     AttributeUpdate,
     AttributeResponse,
-    AttributeType
-)
-from .MDE.relationship import (
+    AttributeType,
     Relationship,
     RelationshipCreate,
     RelationshipUpdate,
     RelationshipResponse,
-    RelationshipType
+    RelationshipType,
+    MetamodelEdge,
+    MetamodelEdgeType,
+    MetamodelEdgeCreate,
+    MetamodelEdgeUpdate,
+    MetamodelEdgeResponse
 )
 
 __all__ = [

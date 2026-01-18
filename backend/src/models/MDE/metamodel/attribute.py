@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from enum import Enum
 
-from ..graph import Node
+from ...graph import Node
 
 
 

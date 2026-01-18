@@ -5,7 +5,7 @@ Simplified for Neo4j graph database
 from pydantic import BaseModel, Field
 from typing import Optional
 
-from ..graph import Node
+from ...graph import Node
 
 
 class Concept(Node):

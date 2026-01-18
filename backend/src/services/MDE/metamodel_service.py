@@ -1,6 +1,10 @@
 from typing import List, Optional, Dict, Any
 from src.services.base_service import BaseService
 from src.repositories.MDE.metamodel_repository import MetamodelRepository
+from src.repositories.MDE.concept_repository import ConceptRepository
+from src.repositories.MDE.attribute_repository import AttributeRepository
+from src.repositories.MDE.relationship_repository import RelationshipRepository
+from src.repositories.MDE.metamodel_edge_repository import MetamodelEdgeRepository
 from src.models.MDE.metamodel import Metamodel, MetamodelCreate, MetamodelUpdate
 import logging
 
@@ -8,14 +12,29 @@ logger = logging.getLogger(__name__)
 
 
 class MetamodelService(BaseService[Metamodel]):
-    def __init__(self, repository: MetamodelRepository):
+    def __init__(
+        self, 
+        repository: MetamodelRepository,
+        concept_repository: Optional[ConceptRepository] = None,
+        attribute_repository: Optional[AttributeRepository] = None,
+        relationship_repository: Optional[RelationshipRepository] = None,
+        edge_repository: Optional[MetamodelEdgeRepository] = None
+    ):
         """
         Initialize metamodel service
         
         Args:
             repository: MetamodelRepository instance
+            concept_repository: ConceptRepository instance (optional)
+            attribute_repository: AttributeRepository instance (optional)
+            relationship_repository: RelationshipRepository instance (optional)
+            edge_repository: MetamodelEdgeRepository instance (optional)
         """
         self.repository = repository
+        self.concept_repository = concept_repository
+        self.attribute_repository = attribute_repository
+        self.relationship_repository = relationship_repository
+        self.edge_repository = edge_repository
 
     # Implementation of BaseService interface
     
@@ -70,3 +89,63 @@ class MetamodelService(BaseService[Metamodel]):
         """Change metamodel status to deprecated"""
         logger.info(f"⚠️ Service: Deprecating metamodel: {metamodel_id}")
         return await self.update(metamodel_id, {"status": "deprecated"})
+
+    async def get_metamodel_with_graph(self, metamodel_id: str) -> Dict[str, Any]:
+        """
+        Get a complete metamodel with all its nodes and edges as a graph structure
+        
+        Returns a dictionary containing:
+        - graph: The metamodel as a graph dict (using to_graph_dict())
+        - nodes: List of all nodes with their graph representation
+        - edges: List of all edges with their graph representation
+        
+        Args:
+            metamodel_id: ID of the metamodel
+            
+        Returns:
+            Dict with keys: graph, nodes, edges
+        """
+        logger.info(f"📊 Service: Getting complete metamodel graph: {metamodel_id}")
+        
+        # Récupérer le metamodel
+        metamodel = await self.get_by_id(metamodel_id)
+        if not metamodel:
+            raise ValueError(f"Metamodel {metamodel_id} not found")
+        
+        nodes = []
+        edges = []
+        
+        # Récupérer les Concepts
+        if self.concept_repository:
+            concepts = await self.concept_repository.get_by_metamodel(metamodel_id)
+            nodes.extend([c.to_graph_dict() for c in concepts])
+            logger.info(f"  ✓ Found {len(concepts)} concepts")
+        
+        # Récupérer les Attributs standalone (sans concept_id)
+        if self.attribute_repository:
+            attributes = await self.attribute_repository.get_by_metamodel(metamodel_id)
+            standalone_attrs = [a for a in attributes if not a.concept_id]
+            nodes.extend([a.to_graph_dict() for a in standalone_attrs])
+            logger.info(f"  ✓ Found {len(standalone_attrs)} standalone attributes")
+        
+        # Récupérer les Relations
+        if self.relationship_repository:
+            relationships = await self.relationship_repository.get_by_metamodel(metamodel_id)
+            nodes.extend([r.to_graph_dict() for r in relationships])
+            logger.info(f"  ✓ Found {len(relationships)} relationships")
+        
+        # Récupérer les Edges
+        if self.edge_repository:
+            metamodel_edges = await self.edge_repository.get_by_metamodel(metamodel_id)
+            edges = [e.to_graph_dict() for e in metamodel_edges]
+            logger.info(f"  ✓ Found {len(edges)} edges")
+        
+        # Construire le résultat avec la représentation graphe du metamodel
+        result = {
+            "graph": metamodel.to_graph_dict(),  # Utilise to_graph_dict() du Graph
+            "nodes": nodes,  # Chaque node utilise to_graph_dict()
+            "edges": edges   # Chaque edge utilise to_graph_dict()
+        }
+        
+        logger.info(f"✅ Complete graph: {len(nodes)} nodes, {len(edges)} edges")
+        return result

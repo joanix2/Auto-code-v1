@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as d3 from "d3";
 import { GraphViewerProps, GraphNode, GraphEdge } from "./types";
 import { DEFAULT_NODE_RADIUS, ZOOM_IN_FACTOR, ZOOM_OUT_FACTOR, FIT_TO_SCREEN_PADDING } from "./constants";
@@ -10,6 +10,9 @@ import { createNodes, createNodeLabels, updateNodePositions, addDragBehavior } f
 import { createZoomBehavior } from "./zoom";
 import { ZoomControls } from "./ZoomControls";
 import { GraphNodePanel } from "./GraphNodePanel";
+import { EdgeTypeSelector } from "./EdgeTypeSelector";
+import { Link } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const GraphViewer: React.FC<GraphViewerProps> = ({
   data,
@@ -30,6 +33,8 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   onEditNode,
   onDeleteNode,
   forms,
+  edgeTypeConstraints = [],
+  onCreateEdge,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,6 +50,19 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   const [selectedNodeData, setSelectedNodeData] = useState<GraphNode | null>(null);
   const [showNodePanel, setShowNodePanel] = useState(false);
 
+  // State pour le mode création de lien
+  const [isEdgeModeActive, setIsEdgeModeActive] = useState(false);
+  const [edgeDragState, setEdgeDragState] = useState<{
+    sourceNode: GraphNode | null;
+    targetNode: GraphNode | null;
+    isDrawing: boolean;
+  }>({
+    sourceNode: null,
+    targetNode: null,
+    isDrawing: false,
+  });
+  const [showEdgeTypeSelector, setShowEdgeTypeSelector] = useState(false);
+
   // Synchroniser selectedNodeData avec les changements dans data.nodes
   useEffect(() => {
     if (selectedNodeData) {
@@ -56,6 +74,45 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.nodes]); // Se déclenche quand data.nodes change
+
+  // Obtenir les types de liens disponibles entre deux nœuds
+  const getAvailableEdgeTypes = useCallback(
+    (sourceNode: GraphNode | null, targetNode: GraphNode | null) => {
+      if (!sourceNode || !targetNode || !edgeTypeConstraints.length) return [];
+
+      return edgeTypeConstraints.filter((constraint) => constraint.sourceNodeType === sourceNode.type && constraint.targetNodeType === targetNode.type);
+    },
+    [edgeTypeConstraints],
+  );
+
+  // Handler pour la sélection d'un type de lien
+  const handleEdgeTypeSelected = useCallback(
+    (edgeType: string) => {
+      if (edgeDragState.sourceNode && edgeDragState.targetNode && onCreateEdge) {
+        onCreateEdge(edgeDragState.sourceNode.id, edgeDragState.targetNode.id, edgeType);
+      }
+      // Reset l'état
+      setEdgeDragState({
+        sourceNode: null,
+        targetNode: null,
+        isDrawing: false,
+      });
+    },
+    [edgeDragState.sourceNode, edgeDragState.targetNode, onCreateEdge],
+  );
+
+  // Toggle le mode création de lien
+  const toggleEdgeMode = useCallback(() => {
+    setIsEdgeModeActive(!isEdgeModeActive);
+    if (isEdgeModeActive) {
+      // Réinitialiser l'état si on désactive le mode
+      setEdgeDragState({
+        sourceNode: null,
+        targetNode: null,
+        isDrawing: false,
+      });
+    }
+  }, [isEdgeModeActive]);
 
   // Handlers de zoom qui utilisent la référence stockée
   const handleZoomInClick = () => {
@@ -213,9 +270,62 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
 
     // Create nodes and node labels
     const handleInternalNodeClick = (node: GraphNode) => {
-      setSelectedNodeData(node);
-      setShowNodePanel(true);
-      if (onNodeClick) onNodeClick(node);
+      // Si le mode création de lien est actif
+      if (isEdgeModeActive) {
+        if (!edgeDragState.sourceNode) {
+          // Premier clic : définir le nœud source
+          setEdgeDragState({
+            sourceNode: node,
+            targetNode: null,
+            isDrawing: false,
+          });
+        } else if (edgeDragState.sourceNode.id !== node.id) {
+          // Deuxième clic : définir le nœud cible et ouvrir le sélecteur
+          const availableTypes = getAvailableEdgeTypes(edgeDragState.sourceNode, node);
+
+          if (availableTypes.length === 0) {
+            // Aucun type de lien disponible
+            console.warn(`Aucun type de lien disponible entre ${edgeDragState.sourceNode.type} et ${node.type}`);
+            // Reset
+            setEdgeDragState({
+              sourceNode: null,
+              targetNode: null,
+              isDrawing: false,
+            });
+          } else if (availableTypes.length === 1) {
+            // Un seul type disponible : créer directement
+            if (onCreateEdge) {
+              onCreateEdge(edgeDragState.sourceNode.id, node.id, availableTypes[0].edgeType);
+            }
+            // Reset
+            setEdgeDragState({
+              sourceNode: null,
+              targetNode: null,
+              isDrawing: false,
+            });
+          } else {
+            // Plusieurs types disponibles : ouvrir le sélecteur
+            setEdgeDragState({
+              sourceNode: edgeDragState.sourceNode,
+              targetNode: node,
+              isDrawing: false,
+            });
+            setShowEdgeTypeSelector(true);
+          }
+        } else {
+          // Clic sur le même nœud : annuler
+          setEdgeDragState({
+            sourceNode: null,
+            targetNode: null,
+            isDrawing: false,
+          });
+        }
+      } else {
+        // Mode normal : afficher le panel
+        setSelectedNodeData(node);
+        setShowNodePanel(true);
+        if (onNodeClick) onNodeClick(node);
+      }
     };
 
     const node = createNodes(g, data.nodes, nodeRadius, selectedNodeId, nodeColorMap, handleInternalNodeClick, onNodeDoubleClick);
@@ -238,7 +348,25 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     return () => {
       simulation.stop();
     };
-  }, [data, dimensions, selectedNodeId, nodeColorMap, edgeColorMap, showLabels, enableZoom, enableDrag, nodeRadius, onNodeClick, onNodeDoubleClick, onEdgeClick, onBackgroundClick]);
+  }, [
+    data,
+    dimensions,
+    selectedNodeId,
+    nodeColorMap,
+    edgeColorMap,
+    showLabels,
+    enableZoom,
+    enableDrag,
+    nodeRadius,
+    onNodeClick,
+    onNodeDoubleClick,
+    onEdgeClick,
+    onBackgroundClick,
+    isEdgeModeActive,
+    edgeDragState.sourceNode,
+    onCreateEdge,
+    getAvailableEdgeTypes,
+  ]);
 
   return (
     <div className={`relative h-full w-full ${className}`}>
@@ -247,6 +375,16 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
 
         {/* Zoom Controls */}
         {enableZoom && <ZoomControls onZoomIn={handleZoomInClick} onZoomOut={handleZoomOutClick} onFitToScreen={handleFitToScreenClick} onReset={handleResetZoomClick} />}
+
+        {/* Edge Mode Toggle Button */}
+        {edgeTypeConstraints.length > 0 && onCreateEdge && (
+          <div className="absolute top-4 right-4 z-10">
+            <Button variant={isEdgeModeActive ? "default" : "outline"} size="sm" onClick={toggleEdgeMode} className="flex items-center gap-2">
+              <Link className="h-4 w-4" />
+              {isEdgeModeActive ? "Mode lien activé" : "Créer un lien"}
+            </Button>
+          </div>
+        )}
 
         {/* Node Properties Panel */}
         <GraphNodePanel
@@ -259,6 +397,16 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
           onEdit={onEditNode}
           onDelete={onDeleteNode}
           renderForm={selectedNodeData && forms && selectedNodeData.type ? forms[selectedNodeData.type] : undefined}
+        />
+
+        {/* Edge Type Selector */}
+        <EdgeTypeSelector
+          open={showEdgeTypeSelector}
+          onOpenChange={setShowEdgeTypeSelector}
+          sourceNode={edgeDragState.sourceNode}
+          targetNode={edgeDragState.targetNode}
+          availableEdgeTypes={getAvailableEdgeTypes(edgeDragState.sourceNode, edgeDragState.targetNode)}
+          onSelectEdgeType={handleEdgeTypeSelected}
         />
 
         {/* Empty state */}

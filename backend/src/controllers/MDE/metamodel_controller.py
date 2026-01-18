@@ -265,3 +265,104 @@ async def deprecate_metamodel(
 ):
     """Deprecate a metamodel (change status to 'deprecated')"""
     return await controller.deprecate_metamodel(metamodel_id)
+
+
+@router.get("/{metamodel_id}/edge-constraints", response_model=List[Dict[str, str]])
+async def get_edge_constraints(
+    metamodel_id: str,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db)
+):
+    """
+    Get edge type constraints for a metamodel
+    Returns the list of possible edge types between node types
+    """
+    # Pour l'instant, retourner des contraintes hardcodées pour les métamodèles
+    # Plus tard, ces contraintes pourront être stockées en base de données
+    
+    constraints = [
+        {
+            "edgeType": "domain",
+            "sourceNodeType": "relation",
+            "targetNodeType": "concept",
+            "label": "Domain",
+            "description": "Définit le concept de domaine d'une relation"
+        },
+        {
+            "edgeType": "range",
+            "sourceNodeType": "relation",
+            "targetNodeType": "concept",
+            "label": "Range",
+            "description": "Définit le concept de portée d'une relation"
+        },
+        {
+            "edgeType": "has_attribute",
+            "sourceNodeType": "concept",
+            "targetNodeType": "attribute",
+            "label": "Has Attribute",
+            "description": "Lie un attribut à un concept"
+        },
+        {
+            "edgeType": "subclass_of",
+            "sourceNodeType": "concept",
+            "targetNodeType": "concept",
+            "label": "Subclass Of",
+            "description": "Relation de sous-classe entre concepts"
+        }
+    ]
+    
+    return constraints
+
+
+@router.get("/{metamodel_id}/graph", response_model=Dict[str, Any])
+async def get_metamodel_graph(
+    metamodel_id: str,
+    current_user: User = Depends(get_current_user),
+    db = Depends(get_db)
+):
+    """
+    Get complete metamodel graph with all nodes and edges
+    
+    Returns:
+    - graph: Metamodel graph information (metrics, types, etc.)
+    - nodes: List of all nodes (Concepts, Attributes, Relations)
+    - edges: List of all edges (DOMAIN, RANGE, HAS_ATTRIBUTE, SUBCLASS_OF)
+    """
+    logger.info(f"📊 Getting complete graph for metamodel: {metamodel_id}")
+    
+    # Créer le service avec tous les repositories
+    from ...repositories.MDE.concept_repository import ConceptRepository
+    from ...repositories.MDE.attribute_repository import AttributeRepository
+    from ...repositories.MDE.relationship_repository import RelationshipRepository
+    from ...repositories.MDE.metamodel_edge_repository import MetamodelEdgeRepository
+    
+    metamodel_repo = MetamodelRepository(db)
+    concept_repo = ConceptRepository(db)
+    attribute_repo = AttributeRepository(db)
+    relationship_repo = RelationshipRepository(db)
+    edge_repo = MetamodelEdgeRepository(db)
+    
+    service = MetamodelService(
+        repository=metamodel_repo,
+        concept_repository=concept_repo,
+        attribute_repository=attribute_repo,
+        relationship_repository=relationship_repo,
+        edge_repository=edge_repo
+    )
+    
+    try:
+        graph_data = await service.get_metamodel_with_graph(metamodel_id)
+        logger.info(f"✅ Graph retrieved: {len(graph_data['nodes'])} nodes, {len(graph_data['edges'])} edges")
+        return graph_data
+    except ValueError as e:
+        logger.error(f"❌ Error getting graph: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"❌ Unexpected error getting graph: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve metamodel graph: {str(e)}"
+        )

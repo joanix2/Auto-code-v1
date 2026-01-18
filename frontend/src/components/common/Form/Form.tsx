@@ -18,6 +18,12 @@ export interface FormProps<T = Record<string, unknown>> {
   edit: boolean;
 
   /**
+   * Mode création ou modification
+   * true = création (POST), false = modification (PUT)
+   */
+  isCreation?: boolean;
+
+  /**
    * Callback appelé lors de la soumission du formulaire
    */
   onSubmit?: (data: T) => void | Promise<void>;

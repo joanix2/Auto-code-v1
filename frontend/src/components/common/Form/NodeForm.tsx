@@ -47,6 +47,12 @@ export interface NodeFormProps<T extends NodeData> extends FormProps<T> {
    * Type de nœud (pour affichage uniquement)
    */
   nodeType?: string;
+
+  /**
+   * Callback appelé quand le type de nœud change
+   * Permet au parent de réagir au changement de type
+   */
+  onTypeChange?: (newType: string) => void;
 }
 
 /**
@@ -60,17 +66,50 @@ export abstract class NodeForm<T extends NodeData> extends Form<T> {
   declare props: NodeFormProps<T>;
 
   /**
+   * Détermine si c'est une création (nouveau nœud) ou une modification (nœud existant)
+   */
+  protected isCreation(): boolean {
+    // Utiliser la prop isCreation du parent Form
+    return this.props.isCreation === true;
+  }
+
+  /**
+   * Gère le changement de type et notifie le parent
+   */
+  protected handleTypeChange = (name: string, value: unknown) => {
+    // Appeler handleFieldChange du parent pour mettre à jour l'état
+    this.handleFieldChange(name, value);
+
+    // Si c'est le champ "type" et qu'un callback est fourni, le notifier
+    // Accepter à la fois string et null
+    if (name === "type" && this.props.onTypeChange) {
+      if (typeof value === "string") {
+        this.props.onTypeChange(value);
+      } else if (value === null && this.props.onTypeChange) {
+        // Si la valeur est null, on peut notifier avec une chaîne vide ou ne pas notifier
+        // Pour l'instant, on ne notifie pas pour éviter les erreurs
+      }
+    }
+  };
+
+  /**
    * Validation commune pour les nœuds
    * Vérifie que le nom est renseigné et valide
    */
   protected validateNode(data: T): Record<string, string> {
     const errors: Record<string, string> = {};
+    const isCreation = this.isCreation();
 
     // Validation du nom (obligatoire)
     if (!data.name || data.name.trim().length === 0) {
-      errors.name = "Le nom est obligatoire";
+      errors.name = isCreation ? "Le nom est obligatoire pour créer un nœud" : "Le nom ne peut pas être vide";
     } else if (data.name.trim().length < 2) {
-      errors.name = "Le nom doit contenir au moins 2 caractères";
+      errors.name = isCreation ? "Le nom doit contenir au moins 2 caractères" : "Le nom doit contenir au moins 2 caractères";
+    }
+
+    // Validation du type (obligatoire en création)
+    if (isCreation && (!data.type || data.type.trim().length === 0)) {
+      errors.type = "Veuillez sélectionner un type de nœud";
     }
 
     return errors;
@@ -101,6 +140,7 @@ export abstract class NodeForm<T extends NodeData> extends Form<T> {
   protected renderInformationSection(): React.ReactNode {
     const { data, errors } = this.state;
     const { edit, nodeType } = this.props;
+    const isCreation = this.isCreation();
 
     // Options pour le SelectField du type (liste de tous les types possibles)
     const typeOptions = [
@@ -113,23 +153,40 @@ export abstract class NodeForm<T extends NodeData> extends Form<T> {
       <div>
         <h3 className="font-semibold mb-2">Informations</h3>
         <div className="space-y-3">
-          {/* Label */}
-          <TextField name="name" label="Label" value={data.name} onChange={this.handleFieldChange} edit={edit} required error={errors.name} placeholder="Nom du nœud" />
+          {/* Type - Editable seulement en mode création */}
+          <SelectField
+            name="type"
+            label="Type de nœud"
+            value={data.type || nodeType || null}
+            onChange={this.handleTypeChange} // ✅ Utiliser handleTypeChange pour notifier le parent
+            edit={edit && isCreation === true} // Editable seulement si edit=true ET isCreation=true
+            options={typeOptions}
+            error={errors.type}
+            placeholder={isCreation ? "Choisissez le type de nœud" : undefined}
+          />
 
-          {/* Type - SelectField en lecture seule */}
-          {nodeType && (
-            <SelectField
-              name="type"
-              label="Type"
-              value={nodeType}
-              onChange={() => {}} // Pas de changement possible
-              edit={false} // Toujours en mode lecture
-              options={typeOptions}
-            />
-          )}
+          {/* Label */}
+          <TextField
+            name="name"
+            label="Label"
+            value={data.name}
+            onChange={this.handleFieldChange}
+            edit={edit}
+            required
+            error={errors.name}
+            placeholder={isCreation ? "Entrez le nom du nouveau nœud" : "Nom du nœud"}
+          />
 
           {/* Description */}
-          <TextAreaField name="description" label="Description" value={data.description || ""} onChange={this.handleFieldChange} edit={edit} placeholder="Description du nœud" rows={3} />
+          <TextAreaField
+            name="description"
+            label="Description"
+            value={data.description || ""}
+            onChange={this.handleFieldChange}
+            edit={edit}
+            placeholder={isCreation ? "Décrivez le nouveau nœud (optionnel)" : "Description du nœud"}
+            rows={3}
+          />
         </div>
       </div>
     );
@@ -158,6 +215,35 @@ export abstract class NodeForm<T extends NodeData> extends Form<T> {
           </div>
         )}
       </>
+    );
+  }
+
+  /**
+   * Surcharge le rendu des boutons d'action avec des labels contextuels
+   */
+  protected renderActions(): JSX.Element | null {
+    const { edit, showActions = true } = this.props;
+    const { isSubmitting } = this.state;
+    const isCreation = this.isCreation();
+
+    if (!showActions || !edit) {
+      return null;
+    }
+
+    return (
+      <div className="flex justify-end gap-3 mt-6">
+        <button
+          type="button"
+          onClick={this.handleCancel}
+          disabled={isSubmitting}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+        >
+          Annuler
+        </button>
+        <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50">
+          {isSubmitting ? (isCreation ? "Création..." : "Enregistrement...") : isCreation ? "Créer" : "Enregistrer"}
+        </button>
+      </div>
     );
   }
 }

@@ -8,7 +8,7 @@ from uuid import uuid4
 from src.services.base_service import BaseService
 from src.repositories.MDE.relationship_repository import RelationshipRepository
 from src.repositories.MDE.concept_repository import ConceptRepository
-from src.models.MDE.relationship import (
+from src.models.MDE.metamodel.relationship import (
     Relationship,
     RelationshipType,
     RelationshipCreate,
@@ -41,7 +41,13 @@ class RelationshipService(BaseService[Relationship]):
     
     async def create(self, data: Dict[str, Any]) -> Relationship:
         """
-        Create a relationship with ontological reasoning
+        Create a relationship with or without ontological reasoning
+        
+        Si source_concept_id et target_concept_id sont fournis, crée une relation complète
+        avec les edges DOMAIN/RANGE et le raisonnement ontologique.
+        
+        Sinon, crée uniquement le noeud Relationship sans connexions.
+        Les connexions seront ajoutées via le système d'edges.
         
         Args:
             data: Relationship creation data (dict)
@@ -53,23 +59,36 @@ class RelationshipService(BaseService[Relationship]):
         relationship_data = {**data}
         relationship_data["id"] = str(uuid4())
         
-        # Get target concept name if not provided
-        if not relationship_data.get("target_concept_name"):
-            target_concept_id = data.get("target_concept_id")
-            target_concept = await self.concept_repo.get_by_id(target_concept_id)
-            if target_concept:
-                relationship_data["target_concept_name"] = target_concept.name
+        # Vérifier si on a les connexions source/target
+        has_connections = bool(data.get("source_concept_id") and data.get("target_concept_id"))
         
-        # Create the relationship
-        relationship = await self.relationship_repo.create_with_concepts(relationship_data)
-        
-        logger.info(
-            f"Created relationship: {relationship.name} "
-            f"({relationship.source_concept_id} → {relationship.target_concept_id})"
-        )
-        
-        # Apply ontological reasoning - create inverse relationship
-        await self._create_inverse_relationship(relationship)
+        if has_connections:
+            # Mode complet avec DOMAIN/RANGE edges et raisonnement ontologique
+            # Get target concept name if not provided
+            if not relationship_data.get("target_concept_name"):
+                target_concept_id = data.get("target_concept_id")
+                target_concept = await self.concept_repo.get_by_id(target_concept_id)
+                if target_concept:
+                    relationship_data["target_concept_name"] = target_concept.name
+            
+            # Create the relationship with concepts
+            relationship = await self.relationship_repo.create_with_concepts(relationship_data)
+            
+            logger.info(
+                f"Created relationship: {relationship.name} "
+                f"({relationship.source_concept_id} → {relationship.target_concept_id})"
+            )
+            
+            # Apply ontological reasoning - create inverse relationship
+            await self._create_inverse_relationship(relationship)
+        else:
+            # Mode standalone : juste le noeud, sans connexions
+            relationship = await self.relationship_repo.create_standalone(relationship_data)
+            
+            logger.info(
+                f"Created standalone relationship node: {relationship.name} "
+                f"(id={relationship.id})"
+            )
         
         return relationship
     

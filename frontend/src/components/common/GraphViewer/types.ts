@@ -28,6 +28,17 @@ export interface GraphData {
   edges: GraphEdge[];
 }
 
+/**
+ * Type de lien possible entre deux types de nœuds
+ */
+export interface EdgeTypeConstraint {
+  edgeType: string;
+  sourceNodeType: string;
+  targetNodeType: string;
+  label: string;
+  description?: string;
+}
+
 export interface GraphViewerProps {
   data: GraphData;
   width?: number;
@@ -51,5 +62,13 @@ export interface GraphViewerProps {
    * Clé: type du nœud (ex: "concept", "attribute")
    * Valeur: fonction qui retourne le formulaire React pour ce type
    */
-  forms?: Record<string, (node: GraphNode, isEditing: boolean, onCancelEdit: () => void) => React.ReactNode>;
+  forms?: Record<string, (node: GraphNode, isEditing: boolean, onCancelEdit: () => void, onTypeChange?: (newType: string) => void) => React.ReactNode>;
+  /**
+   * Types de liens possibles avec contraintes
+   */
+  edgeTypeConstraints?: EdgeTypeConstraint[];
+  /**
+   * Callback appelé quand un lien est créé
+   */
+  onCreateEdge?: (sourceNodeId: string, targetNodeId: string, edgeType: string) => void;
 }

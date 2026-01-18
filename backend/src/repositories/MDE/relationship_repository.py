@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Any
 import logging
 
 from ..base import BaseRepository, convert_neo4j_types
-from src.models.MDE.relationship import Relationship, RelationshipType
+from src.models.MDE.metamodel.relationship import Relationship, RelationshipType
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,63 @@ class RelationshipRepository(BaseRepository[Relationship]):
             normalized["graph_id"] = normalized["metamodel_id"]
             
         return normalized
+
+    async def create_standalone(self, data: Dict[str, Any]) -> Relationship:
+        """
+        Create a relationship node without DOMAIN/RANGE connections
+        
+        Les connexions DOMAIN/RANGE seront créées séparément via le système d'edges.
+        Cette méthode crée uniquement le noeud Relationship.
+        
+        Structure in Neo4j:
+        (Metamodel)-[:HAS_RELATION]->(Relationship:Node)
+        
+        Args:
+            data: Relationship data including name, type, description
+            
+        Returns:
+            Created relationship
+        """
+        metamodel_id = data.get("metamodel_id")
+        name = data.get("name")
+        
+        if not metamodel_id:
+            raise ValueError("metamodel_id is required")
+        if not name:
+            raise ValueError("name is required")
+
+        # Prepare relationship node data
+        rel_data = {
+            "id": data.get("id"),
+            "name": name,
+            "type": data.get("type"),
+            "description": data.get("description"),
+            "graph_id": metamodel_id,
+            "x_position": data.get("x_position"),
+            "y_position": data.get("y_position"),
+        }
+
+        # Create Relationship node
+        query = """
+        MATCH (metamodel:Metamodel {id: $metamodel_id})
+        CREATE (r:Relationship $props)
+        SET r.created_at = datetime()
+        CREATE (metamodel)-[:HAS_RELATION]->(r)
+        RETURN r
+        """
+        result = self.db.execute_query(
+            query, 
+            {
+                "metamodel_id": metamodel_id,
+                "props": rel_data
+            }
+        )
+        if not result:
+            raise ValueError("Failed to create Relationship")
+        
+        node = convert_neo4j_types(result[0]["r"])
+        logger.info(f"Created standalone Relationship '{node.get('name')}' (id={node.get('id')})")
+        return self.model(**self._normalize_relationship_data(node))
 
     async def create_with_concepts(self, data: Dict[str, Any]) -> Relationship:
         """

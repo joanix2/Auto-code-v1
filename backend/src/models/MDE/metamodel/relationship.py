@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from enum import Enum
 
-from ..graph import Node
+from ...graph import Node
 
 
 class RelationshipType(str, Enum):
@@ -84,11 +84,15 @@ class Relationship(Node):
 # API Schemas
 
 class RelationshipCreate(BaseModel):
-    """Schema for creating a relationship"""
+    """Schema for creating a relationship
+    
+    Note: source_concept_id et target_concept_id sont optionnels car les connexions
+    se font via les edges DOMAIN/RANGE dans le graphe Neo4j
+    """
     name: str = Field(..., min_length=1, description="Relationship name (e.g., 'has_parent', 'belongs_to')")
     type: RelationshipType
-    source_concept_id: str
-    target_concept_id: str
+    source_concept_id: Optional[str] = None
+    target_concept_id: Optional[str] = None
     description: Optional[str] = None
     metamodel_id: str
     x_position: Optional[float] = None

@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 import logging
 
 from src.controllers.base_controller import BaseController
-from src.models.MDE.concept import Concept, ConceptCreate, ConceptUpdate
+from src.models.MDE.metamodel.concept import Concept, ConceptCreate, ConceptUpdate
 from src.models.user import User
 from src.services.MDE.concept_service import ConceptService
 from src.repositories.MDE.concept_repository import ConceptRepository

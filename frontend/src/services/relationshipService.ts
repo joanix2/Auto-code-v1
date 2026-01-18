@@ -23,8 +23,8 @@ export interface Relationship {
 export interface RelationshipCreate {
   name: string; // Nom de la relation (obligatoire)
   type: "is_a" | "has_part" | "has_subclass" | "part_of" | "other";
-  source_concept_id: string;
-  target_concept_id: string;
+  source_concept_id?: string; // Optionnel - les connexions se font via les edges DOMAIN/RANGE
+  target_concept_id?: string; // Optionnel - les connexions se font via les edges DOMAIN/RANGE
   description?: string;
   metamodel_id: string;
   x_position?: number;
