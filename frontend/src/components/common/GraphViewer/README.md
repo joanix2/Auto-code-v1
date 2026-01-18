@@ -1,172 +1,133 @@
-# GraphViewer - Architecture modulaire
+# GraphViewer - Architecture
 
-## 📁 Structure des fichiers
+Composant de visualisation de graphes avec D3.js et React.
+
+## 📁 Structure
 
 ```
 GraphViewer/
-├── index.ts              # Exports publics
-├── GraphViewer.tsx       # Composant principal
-├── types.ts              # Types TypeScript
-├── constants.ts          # Constantes de configuration
-├── hooks.ts              # Custom React hooks
-├── simulation.ts         # Configuration D3 force simulation
-├── nodes.ts              # Logique des nœuds (création, update, drag)
-├── edges.ts              # Logique des arêtes (création, update)
-├── markers.ts            # Création des arrow markers SVG
-├── zoom.ts               # Gestion du zoom/pan
-└── ZoomControls.tsx      # Composant UI contrôles zoom
+├── GraphViewer.tsx          # Composant principal (orchestration)
+├── index.ts                 # Exports publics
+├── types.ts                 # Types TypeScript
+│
+├── behaviors/               # Comportements D3 (drag, etc.)
+│   ├── dragBehavior.ts      # Drag avec mode lien
+│   └── index.ts
+│
+├── components/              # Composants UI React
+│   ├── CreateNodeModal.tsx  # Modal création nœud
+│   ├── EdgeTypeSelector.tsx # Sélecteur type de lien
+│   ├── GraphNodePanel.tsx   # Panneau propriétés nœud
+│   ├── GraphToolbar.tsx     # Barre d'outils (prompt LLM)
+│   └── ZoomControls.tsx     # Boutons zoom
+│
+├── handlers/                # Gestionnaires d'événements
+│   ├── backgroundHandlers.ts # Clicks sur fond
+│   ├── nodeHandlers.ts       # Clicks sur nœuds
+│   └── index.ts
+│
+├── hooks/                   # Hooks React personnalisés
+│   ├── useDimensions.ts     # Dimensions responsives
+│   ├── useEdgeMode.ts       # Mode création lien
+│   ├── useGraphState.ts     # État global du graphe
+│   ├── useZoomControls.ts   # Contrôles zoom
+│   └── index.ts
+│
+└── utils/                   # Utilitaires D3 purs
+    ├── constants.ts         # Constantes (couleurs, forces, etc.)
+    ├── edges.ts             # Création/update liens
+    ├── markers.ts           # Flèches SVG
+    ├── nodes.ts             # Création/update nœuds
+    ├── simulation.ts        # Configuration force simulation
+    └── index.ts
 ```
 
-## 📦 Modules
+## 🎯 Principes d'organisation
 
-### `types.ts`
+### **behaviors/** - Comportements D3
 
-Définit tous les types TypeScript :
+Modules qui créent des comportements D3 (drag, zoom, etc.) réutilisables.
 
-- `GraphNode` : Structure d'un nœud
-- `GraphEdge` : Structure d'une arête
-- `SimulationEdge` : Edge après simulation D3
-- `GraphData` : Données du graphe (nodes + edges)
-- `GraphViewerProps` : Props du composant principal
+- Retournent des behaviors D3 configurés
+- Utilisent `event.on()` pour les closures
 
-### `constants.ts`
+### **components/** - Composants UI
 
-Centralise toutes les constantes :
+Composants React purs pour l'interface utilisateur.
 
-- Tailles et distances (nodeRadius, linkDistance, etc.)
-- Couleurs par défaut
-- Facteurs de zoom
-- Tailles de police
+- Composants contrôlés (props + callbacks)
+- Pas de logique D3
 
-### `hooks.ts`
+### **handlers/** - Gestionnaires d'événements
 
-Custom hooks React :
+Fonctions factory qui créent des handlers d'événements.
 
-- `useDimensions()` : Calcul responsive des dimensions du container
+- Fonctions pures
+- Retournent des handlers configurés
 
-### `simulation.ts`
+### **hooks/** - Hooks React
 
-Configuration D3 force simulation :
+Custom hooks pour la gestion d'état et effets.
 
-- `createSimulation()` : Initialise la simulation avec toutes les forces
+- `useGraphState`: État centralisé (refs, state)
+- `useZoomControls`: Logique zoom + behavior
+- `useEdgeMode`: Logique mode lien
+- `useDimensions`: Calcul dimensions responsive
 
-### `nodes.ts`
+### **utils/** - Utilitaires D3
 
-Gestion des nœuds :
+Fonctions utilitaires pures pour manipuler D3.
 
-- `createNodes()` : Crée les éléments SVG circle
-- `createNodeLabels()` : Crée les labels des nœuds
-- `updateNodePositions()` : Met à jour les positions (tick)
-- `addDragBehavior()` : Ajoute le comportement drag & drop
+- `constants`: Toutes les constantes du projet
+- `edges`: Création et mise à jour des liens
+- `markers`: Création des marqueurs SVG (flèches)
+- `nodes`: Création et mise à jour des nœuds
+- `simulation`: Configuration de la force simulation
 
-### `edges.ts`
+## 🔄 Flux de données
 
-Gestion des arêtes :
-
-- `createEdges()` : Crée les éléments SVG line
-- `createEdgeLabels()` : Crée les labels des arêtes
-- `updateEdgePositions()` : Met à jour les positions (tick)
-
-### `markers.ts`
-
-Création des markers SVG :
-
-- `createArrowMarkers()` : Crée les flèches pour les arêtes orientées
-
-### `zoom.ts`
-
-Gestion du zoom/pan :
-
-- `createZoomBehavior()` : Configure D3 zoom
-- `handleZoomIn()` : Zoom avant
-- `handleZoomOut()` : Zoom arrière
-- `handleResetZoom()` : Reset zoom
-- `handleFitToScreen()` : Ajuste le zoom pour afficher tout le graphe
-
-### `ZoomControls.tsx`
-
-Composant UI des contrôles de zoom :
-
-- 4 boutons : Zoom In, Zoom Out, Fit to Screen, Reset
-
-## 🎯 Utilisation
-
-```tsx
-import { GraphViewer } from "@/components/common/GraphViewer";
-import type { GraphData, GraphNode, GraphEdge } from "@/components/common/GraphViewer";
-
-const data: GraphData = {
-  nodes: [
-    { id: "1", label: "Node 1", type: "concept" },
-    { id: "2", label: "Node 2", type: "concept" },
-  ],
-  edges: [{ id: "e1", source: "1", target: "2", label: "relation", type: "association" }],
-};
-
-<GraphViewer
-  data={data}
-  nodeRadius={30}
-  onNodeClick={(node) => console.log("Clicked:", node)}
-  nodeColorMap={{ concept: "#3b82f6" }}
-  edgeColorMap={{ association: "#6366f1" }}
-  enableZoom={true}
-  enableDrag={true}
-  showLabels={true}
-/>;
+```
+GraphViewer.tsx (orchestration)
+    ↓
+hooks/ (état + logique)
+    ↓
+behaviors/ + handlers/ (événements)
+    ↓
+utils/ (rendu D3)
+    ↓
+components/ (UI React)
 ```
 
-## ✨ Avantages de la segmentation
+## 📦 Imports recommandés
 
-1. **Maintenabilité** : Chaque module a une responsabilité unique
-2. **Testabilité** : Fonctions pures facilement testables
-3. **Réutilisabilité** : Modules utilisables indépendamment
-4. **Lisibilité** : Code organisé et documenté
-5. **Extensibilité** : Facile d'ajouter de nouvelles fonctionnalités
-6. **Performance** : Imports sélectifs possibles
+```typescript
+// Depuis l'extérieur
+import { GraphViewer, type GraphViewerProps } from "@/components/common/GraphViewer";
 
-## 🔧 Personnalisation
-
-### Modifier les constantes
-
-Éditez `constants.ts` pour changer les valeurs par défaut :
-
-```ts
-export const DEFAULT_NODE_RADIUS = 25; // au lieu de 20
-export const ZOOM_IN_FACTOR = 1.5; // au lieu de 1.3
+// Dans GraphViewer.tsx
+import { useGraphState, useZoomControls } from "./hooks";
+import { createDragBehavior } from "./behaviors";
+import { createNodeClickHandler } from "./handlers";
+import { createNodes, createEdges, DEFAULT_NODE_RADIUS } from "./utils";
 ```
 
-### Ajouter une nouvelle force
+## 🎨 Avantages de cette structure
 
-Dans `simulation.ts` :
+✅ **Séparation des responsabilités** - Chaque dossier a un rôle clair
+✅ **Réutilisabilité** - Modules indépendants et testables
+✅ **Maintenabilité** - Facile de trouver et modifier le code
+✅ **Scalabilité** - Facile d'ajouter de nouvelles features
+✅ **Lisibilité** - Import propres depuis `./utils`, `./hooks`, etc.
 
-```ts
-.force("x", d3.forceX().strength(0.1))
-.force("y", d3.forceY().strength(0.1))
-```
+## 🐛 Debug
 
-### Personnaliser les nœuds
+Le mode lien (edge creation) a des logs de debug dans `behaviors/dragBehavior.ts` :
 
-Modifiez `createNodes()` dans `nodes.ts` pour changer le rendu.
+- 🎯 Start/End drag
+- 📍 Source node
+- 🖱️ Mouse position
+- 📏 Line created
+- 🔄 Dragging
+- 🗑️ Cleanup
 
-## 📝 Types de nœuds/arêtes personnalisés
-
-Les types sont définis dans `types.ts`. Vous pouvez étendre avec vos propres propriétés :
-
-```ts
-interface MyCustomNode extends GraphNode {
-  customProperty: string;
-  metadata: Record<string, unknown>;
-}
-```
-
-## 🎨 Thèmes
-
-Utilisez `nodeColorMap` et `edgeColorMap` pour appliquer des couleurs selon les types :
-
-```tsx
-nodeColorMap={{
-  concept: "#3b82f6",    // Bleu
-  attribute: "#10b981",  // Vert
-  entity: "#f59e0b"      // Orange
-}}
-```
+Pour tester : Activer "Mode Lien" → Drag un nœud → Vérifier console F12

@@ -1,19 +1,15 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
-import { GraphViewerProps, GraphNode, GraphEdge } from "./types";
-import { DEFAULT_NODE_RADIUS, ZOOM_IN_FACTOR, ZOOM_OUT_FACTOR, FIT_TO_SCREEN_PADDING } from "./constants";
-import { useDimensions } from "./hooks";
-import { createArrowMarkers } from "./markers";
-import { createSimulation } from "./simulation";
-import { createEdges, createEdgeLabels, updateEdgePositions } from "./edges";
-import { createNodes, createNodeLabels, updateNodePositions, addDragBehavior } from "./nodes";
-import { createZoomBehavior } from "./zoom";
-import { ZoomControls } from "./ZoomControls";
-import { GraphNodePanel } from "./GraphNodePanel";
-import { EdgeTypeSelector } from "./EdgeTypeSelector";
-import { GraphToolbar } from "./GraphToolbar";
-import { Link } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { GraphViewerProps, GraphNode } from "./types";
+import { useDimensions, useGraphState, useZoomControls, useEdgeMode } from "./hooks";
+import { createNodeClickHandler, createBackgroundHandlers } from "./handlers";
+import { createDragBehavior } from "./behaviors";
+import { createZoomBehavior } from "./hooks/useZoomControls";
+import { ZoomControls } from "./components/ZoomControls";
+import { GraphNodePanel } from "./components/GraphNodePanel";
+import { EdgeTypeSelector } from "./components/EdgeTypeSelector";
+import { GraphToolbar } from "./components/GraphToolbar";
+import { DEFAULT_NODE_RADIUS, createArrowMarkers, createSimulation, createEdges, createEdgeLabels, updateEdgePositions, createNodes, createNodeLabels, updateNodePositions } from "./utils";
 
 export const GraphViewer: React.FC<GraphViewerProps> = ({
   data,
@@ -41,155 +37,72 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dimensions = useDimensions(containerRef, width, height);
-  const [transform, setTransform] = useState(d3.zoomIdentity);
-  const transformRef = useRef(d3.zoomIdentity);
-  const simulationRef = useRef<d3.Simulation<GraphNode, GraphEdge> | null>(null);
-  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
-  const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
   const clickThreshold = 5; // pixels
 
-  // State pour le panel de propriétés du nœud
-  const [selectedNodeData, setSelectedNodeData] = useState<GraphNode | null>(null);
-  const [showNodePanel, setShowNodePanel] = useState(false);
+  // Utiliser les hooks personnalisés
+  const state = useGraphState();
+  const {
+    transformRef,
+    simulationRef,
+    zoomBehaviorRef,
+    dragStartPosRef,
+    selectedNodeData,
+    setSelectedNodeData,
+    showNodePanel,
+    setShowNodePanel,
+    isEdgeModeActive,
+    setIsEdgeModeActive,
+    edgeDragState,
+    setEdgeDragState,
+    showEdgeTypeSelector,
+    setShowEdgeTypeSelector,
+    prompt,
+    setPrompt,
+    setTransform,
+  } = state;
 
-  // State pour le mode création de lien
-  const [isEdgeModeActive, setIsEdgeModeActive] = useState(false);
-  const [edgeDragState, setEdgeDragState] = useState<{
-    sourceNode: GraphNode | null;
-    targetNode: GraphNode | null;
-    isDrawing: boolean;
-  }>({
-    sourceNode: null,
-    targetNode: null,
-    isDrawing: false,
+  // Hook pour la gestion du mode lien
+  const {
+    getAvailableEdgeTypes,
+    toggleEdgeMode,
+    handleEdgeTypeSelected: baseHandleEdgeTypeSelected,
+  } = useEdgeMode({
+    isEdgeModeActive,
+    setIsEdgeModeActive,
+    edgeDragState,
+    setEdgeDragState,
+    edgeTypeConstraints,
   });
-  const [showEdgeTypeSelector, setShowEdgeTypeSelector] = useState(false);
 
-  // State pour la barre d'outils
-  const [prompt, setPrompt] = useState("");
+  // Hook pour les contrôles de zoom
+  const { handleZoomIn, handleZoomOut, handleReset, handleFitToScreen } = useZoomControls({
+    svgRef,
+    zoomBehaviorRef,
+    dimensions,
+    nodes: data.nodes,
+    nodeRadius,
+    setTransform,
+  });
 
   const handleSendPrompt = () => {
     if (!prompt.trim()) return;
-
-    // TODO: Envoyer le prompt au LLM pour modification du graphe
     console.log("Prompt LLM:", prompt);
-
-    // Réinitialiser le prompt après envoi
     setPrompt("");
+  };
+
+  const handleEdgeTypeSelected = (edgeType: string) => {
+    baseHandleEdgeTypeSelected(edgeType, onCreateEdge);
   };
 
   // Synchroniser selectedNodeData avec les changements dans data.nodes
   useEffect(() => {
     if (selectedNodeData) {
-      // Trouver le nœud mis à jour dans les nouvelles données
       const updatedNode = data.nodes.find((node) => node.id === selectedNodeData.id);
       if (updatedNode) {
         setSelectedNodeData(updatedNode);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.nodes]); // Se déclenche quand data.nodes change
-
-  // Obtenir les types de liens disponibles entre deux nœuds
-  const getAvailableEdgeTypes = useCallback(
-    (sourceNode: GraphNode | null, targetNode: GraphNode | null) => {
-      if (!sourceNode || !targetNode || !edgeTypeConstraints.length) return [];
-
-      return edgeTypeConstraints.filter((constraint) => constraint.sourceNodeType === sourceNode.type && constraint.targetNodeType === targetNode.type);
-    },
-    [edgeTypeConstraints],
-  );
-
-  // Handler pour la sélection d'un type de lien
-  const handleEdgeTypeSelected = useCallback(
-    (edgeType: string) => {
-      if (edgeDragState.sourceNode && edgeDragState.targetNode && onCreateEdge) {
-        onCreateEdge(edgeDragState.sourceNode.id, edgeDragState.targetNode.id, edgeType);
-      }
-      // Reset l'état
-      setEdgeDragState({
-        sourceNode: null,
-        targetNode: null,
-        isDrawing: false,
-      });
-    },
-    [edgeDragState.sourceNode, edgeDragState.targetNode, onCreateEdge],
-  );
-
-  // Toggle le mode création de lien
-  const toggleEdgeMode = useCallback(() => {
-    setIsEdgeModeActive(!isEdgeModeActive);
-    if (isEdgeModeActive) {
-      // Réinitialiser l'état si on désactive le mode
-      setEdgeDragState({
-        sourceNode: null,
-        targetNode: null,
-        isDrawing: false,
-      });
-    }
-  }, [isEdgeModeActive]);
-
-  // Handlers de zoom qui utilisent la référence stockée
-  const handleZoomInClick = () => {
-    if (!svgRef.current || !zoomBehaviorRef.current) return;
-    const svg = d3.select(svgRef.current);
-    const currentTransform = d3.zoomTransform(svgRef.current);
-    const centerX = dimensions.width / 2;
-    const centerY = dimensions.height / 2;
-
-    // Calculate new transform centered on the viewport center
-    const point = [(centerX - currentTransform.x) / currentTransform.k, (centerY - currentTransform.y) / currentTransform.k];
-    const newK = currentTransform.k * ZOOM_IN_FACTOR;
-    const newTransform = d3.zoomIdentity.translate(centerX - point[0] * newK, centerY - point[1] * newK).scale(newK);
-
-    svg.transition().duration(300).call(zoomBehaviorRef.current.transform, newTransform);
-  };
-
-  const handleZoomOutClick = () => {
-    if (!svgRef.current || !zoomBehaviorRef.current) return;
-    const svg = d3.select(svgRef.current);
-    const currentTransform = d3.zoomTransform(svgRef.current);
-    const centerX = dimensions.width / 2;
-    const centerY = dimensions.height / 2;
-
-    // Calculate new transform centered on the viewport center
-    const point = [(centerX - currentTransform.x) / currentTransform.k, (centerY - currentTransform.y) / currentTransform.k];
-    const newK = currentTransform.k * ZOOM_OUT_FACTOR;
-    const newTransform = d3.zoomIdentity.translate(centerX - point[0] * newK, centerY - point[1] * newK).scale(newK);
-
-    svg.transition().duration(300).call(zoomBehaviorRef.current.transform, newTransform);
-  };
-
-  const handleResetZoomClick = () => {
-    if (!svgRef.current || !zoomBehaviorRef.current) return;
-    const svg = d3.select(svgRef.current);
-    svg.transition().duration(300).call(zoomBehaviorRef.current.transform, d3.zoomIdentity);
-    setTransform(d3.zoomIdentity);
-  };
-
-  const handleFitToScreenClick = () => {
-    if (!svgRef.current || !zoomBehaviorRef.current || !data.nodes.length) return;
-
-    const svg = d3.select(svgRef.current);
-    const bounds = {
-      minX: Math.min(...data.nodes.map((n) => n.x || 0)),
-      maxX: Math.max(...data.nodes.map((n) => n.x || 0)),
-      minY: Math.min(...data.nodes.map((n) => n.y || 0)),
-      maxY: Math.max(...data.nodes.map((n) => n.y || 0)),
-    };
-
-    const graphWidth = bounds.maxX - bounds.minX + nodeRadius * 4;
-    const graphHeight = bounds.maxY - bounds.minY + nodeRadius * 4;
-    const scale = Math.min(dimensions.width / graphWidth, dimensions.height / graphHeight, 1) * FIT_TO_SCREEN_PADDING;
-
-    const translateX = (dimensions.width - (bounds.minX + bounds.maxX) * scale) / 2;
-    const translateY = (dimensions.height - (bounds.minY + bounds.maxY) * scale) / 2;
-
-    const newTransform = d3.zoomIdentity.translate(translateX, translateY).scale(scale);
-
-    svg.transition().duration(300).call(zoomBehaviorRef.current.transform, newTransform);
-    setTransform(newTransform);
-  };
+  }, [data.nodes, selectedNodeData, setSelectedNodeData]);
 
   // D3 Graph rendering
   useEffect(() => {
@@ -283,72 +196,48 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     const link = createEdges(g, data.edges, edgeColorMap, onEdgeClick);
     const edgeLabels = createEdgeLabels(g, data.edges, showLabels);
 
-    // Create nodes and node labels
-    const handleInternalNodeClick = (node: GraphNode) => {
-      // Si le mode création de lien est actif
-      if (isEdgeModeActive) {
-        if (!edgeDragState.sourceNode) {
-          // Premier clic : définir le nœud source
-          setEdgeDragState({
-            sourceNode: node,
-            targetNode: null,
-            isDrawing: false,
-          });
-        } else if (edgeDragState.sourceNode.id !== node.id) {
-          // Deuxième clic : définir le nœud cible et ouvrir le sélecteur
-          const availableTypes = getAvailableEdgeTypes(edgeDragState.sourceNode, node);
+    // Créer un groupe pour le nœud fantôme et la ligne temporaire en mode lien
+    // DOIT être créé APRÈS les edges mais AVANT les nodes pour être visible au-dessus des edges
+    let tempGroup = g.select<SVGGElement>("g.temp-edge-group");
+    if (tempGroup.empty()) {
+      tempGroup = g.append("g").attr("class", "temp-edge-group");
+      console.log("🆕 Created new temp group");
+    } else {
+      // Nettoyer le contenu existant
+      tempGroup.selectAll("*").remove();
+      console.log("♻️ Reusing existing temp group");
+    }
 
-          if (availableTypes.length === 0) {
-            // Aucun type de lien disponible
-            console.warn(`Aucun type de lien disponible entre ${edgeDragState.sourceNode.type} et ${node.type}`);
-            // Reset
-            setEdgeDragState({
-              sourceNode: null,
-              targetNode: null,
-              isDrawing: false,
-            });
-          } else if (availableTypes.length === 1) {
-            // Un seul type disponible : créer directement
-            if (onCreateEdge) {
-              onCreateEdge(edgeDragState.sourceNode.id, node.id, availableTypes[0].edgeType);
-            }
-            // Reset
-            setEdgeDragState({
-              sourceNode: null,
-              targetNode: null,
-              isDrawing: false,
-            });
-          } else {
-            // Plusieurs types disponibles : ouvrir le sélecteur
-            setEdgeDragState({
-              sourceNode: edgeDragState.sourceNode,
-              targetNode: node,
-              isDrawing: false,
-            });
-            setShowEdgeTypeSelector(true);
-          }
-        } else {
-          // Clic sur le même nœud : annuler
-          setEdgeDragState({
-            sourceNode: null,
-            targetNode: null,
-            isDrawing: false,
-          });
-        }
-      } else {
-        // Mode normal : afficher le panel
-        setSelectedNodeData(node);
-        setShowNodePanel(true);
-        if (onNodeClick) onNodeClick(node);
-      }
-    };
+    // Create nodes and node labels
+    const handleInternalNodeClick = createNodeClickHandler({
+      isEdgeModeActive,
+      edgeDragState,
+      setEdgeDragState,
+      setShowEdgeTypeSelector,
+      setSelectedNodeData,
+      setShowNodePanel,
+      getAvailableEdgeTypes,
+      onCreateEdge,
+      onNodeClick,
+    });
 
     const node = createNodes(g, data.nodes, nodeRadius, selectedNodeId, nodeColorMap, handleInternalNodeClick, onNodeDoubleClick);
     const nodeLabels = createNodeLabels(g, data.nodes, nodeRadius, selectedNodeId, showLabels);
 
-    // Add drag behavior
+    // Add drag behavior with edge mode support
     if (enableDrag) {
-      addDragBehavior(node, simulation);
+      const drag = createDragBehavior({
+        isEdgeModeActive,
+        tempGroup,
+        simulation,
+        nodeRadius,
+        data,
+        setEdgeDragState,
+        getAvailableEdgeTypes,
+        setShowEdgeTypeSelector,
+      });
+
+      node.call(drag);
     }
 
     // Update positions on simulation tick
@@ -378,9 +267,19 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     onEdgeClick,
     onBackgroundClick,
     isEdgeModeActive,
-    edgeDragState.sourceNode,
+    edgeDragState,
     onCreateEdge,
     getAvailableEdgeTypes,
+    setEdgeDragState,
+    setShowEdgeTypeSelector,
+    setSelectedNodeData,
+    setShowNodePanel,
+    setTransform,
+    transformRef,
+    simulationRef,
+    zoomBehaviorRef,
+    dragStartPosRef,
+    clickThreshold,
   ]);
 
   return (
@@ -389,7 +288,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
         <svg ref={svgRef} width={dimensions.width} height={dimensions.height} className="bg-gray-50" style={{ touchAction: "none" }} />
 
         {/* Zoom Controls */}
-        {enableZoom && <ZoomControls onZoomIn={handleZoomInClick} onZoomOut={handleZoomOutClick} onFitToScreen={handleFitToScreenClick} onReset={handleResetZoomClick} />}
+        {enableZoom && <ZoomControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onFitToScreen={handleFitToScreen} onReset={handleReset} />}
 
         {/* Node Properties Panel */}
         <GraphNodePanel

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { GraphNode } from "./types";
+import { GraphNode } from "../types";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, X, Save } from "lucide-react";

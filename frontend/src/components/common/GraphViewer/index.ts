@@ -1,10 +1,10 @@
 // GraphViewer exports
 export { GraphViewer } from "./GraphViewer";
-export { GraphNodePanel } from "./GraphNodePanel";
-export { CreateNodeModal } from "./CreateNodeModal";
-export { EdgeTypeSelector } from "./EdgeTypeSelector";
-export { GraphToolbar } from "./GraphToolbar";
+export { GraphNodePanel } from "./components/GraphNodePanel";
+export { CreateNodeModal } from "./components/CreateNodeModal";
+export { EdgeTypeSelector } from "./components/EdgeTypeSelector";
+export { GraphToolbar } from "./components/GraphToolbar";
 export type { GraphNode, GraphEdge, GraphData, GraphViewerProps, EdgeTypeConstraint } from "./types";
-export type { GraphNodePanelProps } from "./GraphNodePanel";
-export type { NodeTypeConfig } from "./CreateNodeModal";
+export type { GraphNodePanelProps } from "./components/GraphNodePanel";
+export type { NodeTypeConfig } from "./components/CreateNodeModal";
 export { default as GraphViewerDefault } from "./GraphViewer";
