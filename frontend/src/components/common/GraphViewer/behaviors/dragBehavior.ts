@@ -61,7 +61,7 @@ export function createDragBehavior({
 
         console.log("👻 Creating ghost node with type:", targetNodeType, "color:", nodeColor);
 
-        // Créer le nœud fantôme avec le style du type cible
+        // Créer le nœud fantôme avec le style du type cible (INVISIBLE)
         const ghostRadius = nodeRadius * 0.7; // 70% de la taille normale
         tempNode = tempGroup
           .append("circle")
@@ -69,13 +69,10 @@ export function createDragBehavior({
           .attr("cx", d.x!)
           .attr("cy", d.y!)
           .attr("r", ghostRadius)
-          .attr("fill", nodeColor) // Couleur du type cible
-          .attr("fill-opacity", 0.6) // Semi-transparent pour montrer que c'est temporaire
-          .attr("stroke", "#fff")
-          .attr("stroke-width", 2)
-          .attr("stroke-dasharray", "4,2") // Pointillés pour indiquer que c'est temporaire
+          .attr("fill", nodeColor)
+          .attr("fill-opacity", 0) // INVISIBLE: opacité à 0
+          .attr("stroke", "none") // Pas de bordure
           .style("pointer-events", "none")
-          .style("filter", "drop-shadow(0 0 4px rgba(0, 0, 0, 0.3))")
           .raise(); // Au-dessus de tout
 
         console.log("👻 Ghost node attributes:", {
@@ -86,18 +83,8 @@ export function createDragBehavior({
           stroke: tempNode.attr("stroke"),
         });
 
-        // Ajouter un label temporaire
-        const tempLabel = tempGroup
-          .append("text")
-          .attr("class", "temp-label")
-          .attr("x", d.x!)
-          .attr("y", d.y! + ghostRadius + 12)
-          .attr("text-anchor", "middle")
-          .attr("font-size", 10)
-          .attr("fill", "#666")
-          .attr("opacity", 0.7)
-          .text(`→ ${targetNodeType || "?"}`)
-          .style("pointer-events", "none");
+        // Note: Le label temporaire est supprimé pour une interface plus minimaliste
+        // Seule la ligne avec la flèche est affichée
 
         // Dessiner la ligne temporaire DANS le groupe transformé
         tempLine = tempGroup
@@ -130,8 +117,7 @@ export function createDragBehavior({
           y2: tempLine.attr("y2"),
           stroke: tempLine.attr("stroke"),
         });
-        console.log("👻 Ghost node created:", tempNode.node(), "Radius:", ghostRadius);
-        console.log("🏷️ Label created:", tempLabel.node());
+        console.log("👻 Ghost node created (invisible):", tempNode.node(), "Radius:", ghostRadius);
         console.log("🎨 TempGroup children:", tempGroup.node()?.childNodes.length);
 
         // CRITIQUE: Élever le groupe ENTIER au-dessus de tous les autres éléments
@@ -167,12 +153,7 @@ export function createDragBehavior({
         tempLine.attr("x2", graphX).attr("y2", graphY);
         tempNode.attr("cx", graphX).attr("cy", graphY);
 
-        // Mettre à jour le label aussi
-        const ghostRadius = nodeRadius * 0.7;
-        tempGroup
-          .select("text.temp-label")
-          .attr("x", graphX)
-          .attr("y", graphY + ghostRadius + 12);
+        // Note: Le label n'est plus mis à jour car il a été supprimé
       } else if (!isEdgeModeActive) {
         // MODE NORMAL: Déplacer le nœud
         d.fx = event.x;
