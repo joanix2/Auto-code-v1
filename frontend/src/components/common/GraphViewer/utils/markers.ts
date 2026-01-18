@@ -33,4 +33,19 @@ export const createArrowMarkers = (svg: d3.Selection<SVGSVGElement, unknown, nul
     .append("path")
     .attr("d", "M0,-5L10,0L0,5")
     .attr("fill", "#3b82f6");
+
+  // Temporary edge arrow (inherits color from stroke)
+  defs
+    .append("marker")
+    .attr("id", "arrowhead-temp")
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 10) // Pointe exactement à la position x2/y2 de la ligne
+    .attr("refY", 0)
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill", "#999") // Gris comme les edges normaux
+    .attr("stroke", "none");
 };

@@ -110,7 +110,11 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     if (!data.nodes.length) return;
 
     const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
+
+    // Instead of removing everything, selectively remove only graph elements
+    // This preserves the temp-edge-group during drag operations
+    svg.selectAll(".graph-container").remove();
+    svg.selectAll("defs").remove();
 
     // Create container group for zoom/pan (MUST be created first)
     const g = svg.append("g").attr("class", "graph-container");
@@ -132,6 +136,12 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     const zoom = createZoomBehavior(svg, g, (newTransform) => {
       transformRef.current = newTransform;
       setTransform(newTransform);
+
+      // Synchroniser le tempGroup avec la transformation
+      const tempGroup = svg.select<SVGGElement>("g.temp-edge-group");
+      if (!tempGroup.empty()) {
+        tempGroup.attr("transform", newTransform.toString());
+      }
     });
     zoomBehaviorRef.current = zoom;
 
@@ -197,16 +207,19 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     const edgeLabels = createEdgeLabels(g, data.edges, showLabels);
 
     // Créer un groupe pour le nœud fantôme et la ligne temporaire en mode lien
-    // DOIT être créé APRÈS les edges mais AVANT les nodes pour être visible au-dessus des edges
-    let tempGroup = g.select<SVGGElement>("g.temp-edge-group");
+    // IMPORTANT: Créer dans SVG (pas dans g) pour survivre aux re-renders
+    // Mais appliquer la même transformation que g pour que les coordonnées correspondent
+    let tempGroup = svg.select<SVGGElement>("g.temp-edge-group");
     if (tempGroup.empty()) {
-      tempGroup = g.append("g").attr("class", "temp-edge-group");
-      console.log("🆕 Created new temp group");
+      tempGroup = svg.append("g").attr("class", "temp-edge-group");
+      console.log("🆕 Created new temp group in SVG");
     } else {
-      // Nettoyer le contenu existant
-      tempGroup.selectAll("*").remove();
-      console.log("♻️ Reusing existing temp group");
+      console.log("♻️ Reusing existing temp group from SVG");
     }
+
+    // Synchroniser la transformation du tempGroup avec celle de g
+    const currentTransform = transformRef.current;
+    tempGroup.attr("transform", currentTransform.toString());
 
     // Create nodes and node labels
     const handleInternalNodeClick = createNodeClickHandler({
@@ -232,6 +245,8 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
         simulation,
         nodeRadius,
         data,
+        nodeColorMap,
+        svgElement: svgRef.current,
         setEdgeDragState,
         getAvailableEdgeTypes,
         setShowEdgeTypeSelector,
