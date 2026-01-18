@@ -14,7 +14,7 @@ export function NavigationMenu({ onNavigate, className }: NavigationMenuProps) {
   const location = useLocation();
 
   return (
-    <nav className={className}>
+    <nav className={cn("overflow-y-auto overflow-x-hidden", className)}>
       {navigation.map((item) => {
         // Item avec sous-menu (Accordion)
         if (item.children && item.children.length > 0) {
@@ -26,7 +26,7 @@ export function NavigationMenu({ onNavigate, className }: NavigationMenuProps) {
                 <AccordionTrigger
                   className={cn(
                     "group flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors hover:no-underline",
-                    hasActiveChild ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    hasActiveChild ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
                   )}
                 >
                   <div className="flex items-center flex-1">
@@ -45,7 +45,7 @@ export function NavigationMenu({ onNavigate, className }: NavigationMenuProps) {
                           onClick={onNavigate}
                           className={cn(
                             isChildActive ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-                            "group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                            "group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
                           )}
                         >
                           <child.icon className={cn(isChildActive ? "text-white" : "text-gray-400 group-hover:text-gray-500", "mr-3 flex-shrink-0 h-4 w-4")} aria-hidden="true" />
@@ -69,7 +69,7 @@ export function NavigationMenu({ onNavigate, className }: NavigationMenuProps) {
             onClick={onNavigate}
             className={cn(
               isActive ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-              "group flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors"
+              "group flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors",
             )}
           >
             <item.icon className={cn(isActive ? "text-white" : "text-gray-400 group-hover:text-gray-500", "mr-3 flex-shrink-0 h-5 w-5")} aria-hidden="true" />

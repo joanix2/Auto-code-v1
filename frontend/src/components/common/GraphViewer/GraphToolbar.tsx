@@ -1,19 +1,27 @@
 import React from "react";
-import { Plus, Link, Search } from "lucide-react";
+import { Plus, Link, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface GraphToolbarProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
+  prompt: string;
+  onPromptChange: (prompt: string) => void;
+  onSendPrompt: () => void;
   onAddNode: () => void;
   isEdgeMode: boolean;
   onToggleEdgeMode: () => void;
   className?: string;
 }
 
-export const GraphToolbar: React.FC<GraphToolbarProps> = ({ searchQuery, onSearchChange, onAddNode, isEdgeMode, onToggleEdgeMode, className = "" }) => {
+export const GraphToolbar: React.FC<GraphToolbarProps> = ({ prompt, onPromptChange, onSendPrompt, onAddNode, isEdgeMode, onToggleEdgeMode, className = "" }) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      onSendPrompt();
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -25,10 +33,12 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({ searchQuery, onSearc
       )}
     >
       <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto">
-        {/* Champ de recherche - largeur maximale sur desktop, réduit sur mobile */}
+        {/* Champ de prompt - largeur maximale sur desktop, réduit sur mobile */}
         <div className="relative flex-1 min-w-[150px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input type="text" placeholder="Rechercher un nœud..." value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} className="pl-9 h-9" />
+          <Input type="text" placeholder="Demandez à l'IA de modifier le graphe..." value={prompt} onChange={(e) => onPromptChange(e.target.value)} onKeyDown={handleKeyDown} className="pr-10 h-9" />
+          <Button onClick={onSendPrompt} variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" disabled={!prompt.trim()}>
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Bouton Ajouter un nœud - texte complet sur desktop, icône seulement sur mobile */}

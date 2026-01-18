@@ -21,11 +21,13 @@ export function Sidebar({ mobileMenuOpen = false, onMobileMenuChange }: SidebarP
 
       {/* Mobile Drawer */}
       <Sheet open={mobileMenuOpen} onOpenChange={onMobileMenuChange}>
-        <SheetContent side="left" className="w-64 p-0">
-          <SheetHeader className="border-b p-4">
+        <SheetContent side="left" className="w-64 p-0 flex flex-col">
+          <SheetHeader className="border-b p-4 flex-shrink-0">
             <SheetTitle>Navigation</SheetTitle>
           </SheetHeader>
-          <NavigationMenu onNavigate={() => onMobileMenuChange?.(false)} className="flex-1 px-2 py-4 space-y-1" />
+          <div className="flex-1 overflow-y-auto">
+            <NavigationMenu onNavigate={() => onMobileMenuChange?.(false)} className="px-2 py-4 space-y-1" />
+          </div>
         </SheetContent>
       </Sheet>
     </>

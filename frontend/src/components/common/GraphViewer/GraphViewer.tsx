@@ -66,7 +66,17 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   const [showEdgeTypeSelector, setShowEdgeTypeSelector] = useState(false);
 
   // State pour la barre d'outils
-  const [searchQuery, setSearchQuery] = useState("");
+  const [prompt, setPrompt] = useState("");
+
+  const handleSendPrompt = () => {
+    if (!prompt.trim()) return;
+
+    // TODO: Envoyer le prompt au LLM pour modification du graphe
+    console.log("Prompt LLM:", prompt);
+
+    // Réinitialiser le prompt après envoi
+    setPrompt("");
+  };
 
   // Synchroniser selectedNodeData avec les changements dans data.nodes
   useEffect(() => {
@@ -411,8 +421,8 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
           </div>
         )}
 
-        {/* Graph Toolbar - Barre d'outils en bas */}
-        <GraphToolbar searchQuery={searchQuery} onSearchChange={setSearchQuery} onAddNode={() => onAddNode?.()} isEdgeMode={isEdgeModeActive} onToggleEdgeMode={toggleEdgeMode} />
+        {/* Graph Toolbar - Barre de prompt LLM en bas */}
+        <GraphToolbar prompt={prompt} onPromptChange={setPrompt} onSendPrompt={handleSendPrompt} onAddNode={() => onAddNode?.()} isEdgeMode={isEdgeModeActive} onToggleEdgeMode={toggleEdgeMode} />
       </div>
     </div>
   );

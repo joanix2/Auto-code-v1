@@ -34,6 +34,9 @@
 
     --radius: 0.5rem;
 
+    /* Header height variables - responsive */
+    --header-height: 56px; /* Mobile: py-2 (8px) + h-7 (28px) + borders ≈ 56px */
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -160,6 +163,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Responsive header height variables */
+@media (min-width: 768px) {
+  :root {
+    --header-height: 73px; /* md: py-4 (16px) + h-10 (40px) + borders ≈ 73px */
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-height: 89px; /* lg: py-6 (24px) + h-10 (40px) + borders ≈ 89px */
+  }
+}
+
 /* Hide Scrollbar but keep functionality */
 .scrollbar-hide {
   -ms-overflow-style: none; /* IE and Edge */

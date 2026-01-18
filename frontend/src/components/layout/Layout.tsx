@@ -21,7 +21,7 @@ export function Layout({ children, user, onSignOut }: LayoutProps) {
       {/* Header - Toute la largeur */}
       <Header user={user} onSignOut={onSignOut} onMenuClick={() => setMobileMenuOpen(true)} />
 
-      <div className="flex h-[calc(100vh-65px)] md:h-[calc(100vh-89px)] overflow-hidden">
+      <div className="flex h-screen-minus-header overflow-hidden">
         {/* Sidebar (Desktop + Mobile Drawer) */}
         <Sidebar mobileMenuOpen={mobileMenuOpen} onMobileMenuChange={setMobileMenuOpen} />
 
