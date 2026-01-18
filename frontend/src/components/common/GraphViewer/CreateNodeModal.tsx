@@ -94,13 +94,13 @@ export function CreateNodeModal({ open, onOpenChange, onCreateNode, nodeTypes, d
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{title || (editMode ? "Modifier le nœud" : "Créer un nouveau nœud")}</DialogTitle>
           <DialogDescription>{description || (editMode ? "Modifiez les propriétés du nœud." : "Ajoutez un nœud à votre graphe.")}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 overflow-y-auto flex-1">
           {/* Afficher le formulaire spécifique au type si renderForm est fourni */}
           {renderForm ? renderForm(currentNode, true, handleCancel, handleTypeChange) : <div className="text-sm text-muted-foreground">Aucun formulaire disponible pour ce type de nœud.</div>}
         </div>

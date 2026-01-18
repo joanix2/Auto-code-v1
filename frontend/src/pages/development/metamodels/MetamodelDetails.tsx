@@ -616,6 +616,7 @@ export function MetamodelDetails() {
           forms={nodeForms}
           edgeTypeConstraints={edgeConstraints}
           onCreateEdge={handleCreateEdge}
+          onAddNode={() => setIsCreateNodeOpen(true)}
           className="w-full h-full"
         />
       ) : (
@@ -626,11 +627,6 @@ export function MetamodelDetails() {
           </div>
         </div>
       )}
-
-      {/* Bouton flottant pour créer un nœud */}
-      <Button onClick={() => setIsCreateNodeOpen(true)} className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50" size="icon">
-        <Plus className="h-6 w-6" />
-      </Button>
 
       {/* Modale de création de nœud */}
       <CreateNodeModal

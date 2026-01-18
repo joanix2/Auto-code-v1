@@ -146,13 +146,13 @@ export const GraphNodePanel: React.FC<GraphNodePanelProps> = ({ node, isOpen, on
       {/* Mobile: Dialog (Popup centré) - Only render on mobile */}
       {isMobile && (
         <Dialog open={isOpen && !!node} onOpenChange={onClose}>
-          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
             {node && (
               <>
                 <DialogHeader>
                   <DialogTitle>Propriétés du nœud</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
+                <div className="mt-4 overflow-y-auto flex-1">
                   <PanelContent />
                 </div>
               </>

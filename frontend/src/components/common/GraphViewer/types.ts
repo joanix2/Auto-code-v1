@@ -71,4 +71,8 @@ export interface GraphViewerProps {
    * Callback appelé quand un lien est créé
    */
   onCreateEdge?: (sourceNodeId: string, targetNodeId: string, edgeType: string) => void;
+  /**
+   * Callback appelé quand l'utilisateur veut ajouter un nœud
+   */
+  onAddNode?: () => void;
 }

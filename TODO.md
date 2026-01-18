@@ -128,6 +128,14 @@ DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les
 ✅ Nettoyage backward compatibility (Concept, Relationship)
 ✅ Relations utilisent graph_id au lieu de metamodel_id
 ✅ Relations n'ont plus de champs source_concept_id/target_concept_id (connexions via edges DOMAIN/RANGE)
+✅ Fix bug label Attribute (nom seul sans type)
+
+✅ Créer GraphToolbar - barre d'outils en bas du graphe
+✅ Champ de recherche avec largeur max (responsive)
+✅ Bouton "Ajouter un nœud" (texte complet desktop, icône + mobile)
+✅ Bouton "Mode Lien" pour activer/désactiver le mode création d'edges
+✅ Overflow horizontal pour mobile
+✅ Intégration dans GraphViewer avec callback onAddNode
 
 🔄 À faire : Créer les edges DOMAIN/RANGE via le système click-to-click
 🔄 À faire : Implémenter la persistance en base des edges créés via GraphViewer
@@ -137,6 +145,8 @@ problème de mise à jour des relations
 ajouter la possiblité de calculé le nom
 
 ajouter un scroll dans les modales
+
+ajouter un historique pour annuler la dernière action
 
 créer l'interface de création de meta-model
 

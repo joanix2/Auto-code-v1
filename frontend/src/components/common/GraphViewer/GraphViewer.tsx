@@ -11,6 +11,7 @@ import { createZoomBehavior } from "./zoom";
 import { ZoomControls } from "./ZoomControls";
 import { GraphNodePanel } from "./GraphNodePanel";
 import { EdgeTypeSelector } from "./EdgeTypeSelector";
+import { GraphToolbar } from "./GraphToolbar";
 import { Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -35,6 +36,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   forms,
   edgeTypeConstraints = [],
   onCreateEdge,
+  onAddNode,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -62,6 +64,9 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     isDrawing: false,
   });
   const [showEdgeTypeSelector, setShowEdgeTypeSelector] = useState(false);
+
+  // State pour la barre d'outils
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Synchroniser selectedNodeData avec les changements dans data.nodes
   useEffect(() => {
@@ -376,16 +381,6 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
         {/* Zoom Controls */}
         {enableZoom && <ZoomControls onZoomIn={handleZoomInClick} onZoomOut={handleZoomOutClick} onFitToScreen={handleFitToScreenClick} onReset={handleResetZoomClick} />}
 
-        {/* Edge Mode Toggle Button */}
-        {edgeTypeConstraints.length > 0 && onCreateEdge && (
-          <div className="absolute top-4 right-4 z-10">
-            <Button variant={isEdgeModeActive ? "default" : "outline"} size="sm" onClick={toggleEdgeMode} className="flex items-center gap-2">
-              <Link className="h-4 w-4" />
-              {isEdgeModeActive ? "Mode lien activé" : "Créer un lien"}
-            </Button>
-          </div>
-        )}
-
         {/* Node Properties Panel */}
         <GraphNodePanel
           node={selectedNodeData}
@@ -415,6 +410,9 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
             <p>No data to display</p>
           </div>
         )}
+
+        {/* Graph Toolbar - Barre d'outils en bas */}
+        <GraphToolbar searchQuery={searchQuery} onSearchChange={setSearchQuery} onAddNode={() => onAddNode?.()} isEdgeMode={isEdgeModeActive} onToggleEdgeMode={toggleEdgeMode} />
       </div>
     </div>
   );
