@@ -11,6 +11,7 @@ from .MDE import (
     MetamodelCreate, 
     MetamodelUpdate, 
     MetamodelResponse,
+    MetamodelGraphResponse,
     MetamodelStatus,
     Concept,
     ConceptCreate,
@@ -63,6 +64,7 @@ __all__ = [
     "MetamodelCreate",
     "MetamodelUpdate",
     "MetamodelResponse",
+    "MetamodelGraphResponse",
     "MetamodelStatus",
     # Concept
     "Concept",

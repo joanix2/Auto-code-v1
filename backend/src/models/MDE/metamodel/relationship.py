@@ -3,7 +3,7 @@ Relationship Model - Associations between concepts (Object Properties in ontolog
 Stored as nodes in Neo4j graph with DOMAIN and RANGE edges
 """
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Dict, Any
 from enum import Enum
 
 from ...graph import Node
@@ -41,33 +41,6 @@ class Relationship(Node):
     """
     type: RelationshipType = Field(..., description="Type of relationship")
     
-    # Cached IDs and labels from DOMAIN/RANGE edges (for convenience)
-    source_concept_id: Optional[str] = Field(default=None, description="Source concept ID (from DOMAIN edge)")
-    target_concept_id: Optional[str] = Field(default=None, description="Target concept ID (from RANGE edge)")
-    source_label: Optional[str] = Field(default=None, description="Source concept name (cached)")
-    target_label: Optional[str] = Field(default=None, description="Target concept name (cached)")
-    
-    # Backward compatibility aliases
-    @property
-    def source_id(self) -> Optional[str]:
-        """Alias for source_concept_id"""
-        return self.source_concept_id
-    
-    @property
-    def target_id(self) -> Optional[str]:
-        """Alias for target_concept_id"""
-        return self.target_concept_id
-    
-    @property
-    def target_concept_name(self) -> Optional[str]:
-        """Alias for target_label"""
-        return self.target_label
-    
-    @property
-    def metamodel_id(self) -> str:
-        """Alias for graph_id"""
-        return self.graph_id
-    
     # Abstract methods implementation
     def get_node_type(self) -> str:
         """Return 'relation' as node type"""
@@ -76,6 +49,16 @@ class Relationship(Node):
     def get_display_label(self) -> str:
         """Return the relationship name as display label"""
         return self.name
+    
+    def to_graph_dict(self):
+        """
+        Override to include relationship-specific properties
+        """
+        base_dict = super().to_graph_dict()
+        base_dict.update({
+            "relationType": self.type.value,  # Type de relation (is_a, has_part, etc.)
+        })
+        return base_dict
     
     class Config:
         from_attributes = True
@@ -86,15 +69,12 @@ class Relationship(Node):
 class RelationshipCreate(BaseModel):
     """Schema for creating a relationship
     
-    Note: source_concept_id et target_concept_id sont optionnels car les connexions
-    se font via les edges DOMAIN/RANGE dans le graphe Neo4j
+    Les connexions aux concepts se font via les edges DOMAIN/RANGE dans le graphe Neo4j
     """
     name: str = Field(..., min_length=1, description="Relationship name (e.g., 'has_parent', 'belongs_to')")
     type: RelationshipType
-    source_concept_id: Optional[str] = None
-    target_concept_id: Optional[str] = None
     description: Optional[str] = None
-    metamodel_id: str
+    graph_id: str  # ID du metamodel parent
     x_position: Optional[float] = None
     y_position: Optional[float] = None
 

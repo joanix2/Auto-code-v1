@@ -8,7 +8,7 @@ import uuid
 
 from ..base_controller import BaseController
 from ...models.user import User
-from ...models import Metamodel, MetamodelCreate, MetamodelUpdate
+from ...models import Metamodel, MetamodelCreate, MetamodelUpdate, MetamodelGraphResponse
 from ...services.MDE.metamodel_service import MetamodelService
 from ...repositories.MDE.metamodel_repository import MetamodelRepository
 from ...utils.auth import get_current_user
@@ -314,7 +314,7 @@ async def get_edge_constraints(
     return constraints
 
 
-@router.get("/{metamodel_id}/graph", response_model=Dict[str, Any])
+@router.get("/{metamodel_id}/graph", response_model=MetamodelGraphResponse)
 async def get_metamodel_graph(
     metamodel_id: str,
     current_user: User = Depends(get_current_user),
@@ -324,7 +324,7 @@ async def get_metamodel_graph(
     Get complete metamodel graph with all nodes and edges
     
     Returns:
-    - graph: Metamodel graph information (metrics, types, etc.)
+    - metamodel: Complete Metamodel object with all fields
     - nodes: List of all nodes (Concepts, Attributes, Relations)
     - edges: List of all edges (DOMAIN, RANGE, HAS_ATTRIBUTE, SUBCLASS_OF)
     """

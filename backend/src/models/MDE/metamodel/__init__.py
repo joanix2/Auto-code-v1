@@ -1,7 +1,7 @@
 """
 Metamodel package - Contains all metamodel-related models
 """
-from .metamodel import Metamodel, MetamodelCreate, MetamodelUpdate, MetamodelResponse, MetamodelWithDetails, MetamodelStatus
+from .metamodel import Metamodel, MetamodelCreate, MetamodelUpdate, MetamodelResponse, MetamodelWithDetails, MetamodelGraphResponse, MetamodelStatus
 from .concept import Concept, ConceptCreate, ConceptUpdate, ConceptResponse
 from .attribute import Attribute, AttributeCreate, AttributeUpdate, AttributeResponse
 from .relationship import Relationship, RelationshipType, RelationshipCreate, RelationshipUpdate, RelationshipResponse
@@ -14,6 +14,7 @@ __all__ = [
     "MetamodelUpdate",
     "MetamodelResponse",
     "MetamodelWithDetails",
+    "MetamodelGraphResponse",
     "MetamodelStatus",
     # Concept
     "Concept",

@@ -45,18 +45,7 @@ class MetamodelService extends BaseService<Metamodel, MetamodelCreate, Metamodel
    * Get complete metamodel graph with all nodes and edges
    */
   async getGraph(id: string): Promise<{
-    graph: {
-      id: string;
-      name: string;
-      description?: string;
-      type: string;
-      node_types: string[];
-      edge_types: string[];
-      metrics: { nodes: number; edges: number };
-      owner_id?: string;
-      created_at: string;
-      updated_at?: string;
-    };
+    metamodel: Metamodel; // Objet Metamodel complet
     nodes: Array<{
       id: string;
       name: string;
@@ -67,6 +56,13 @@ class MetamodelService extends BaseService<Metamodel, MetamodelCreate, Metamodel
       y?: number;
       created_at: string;
       updated_at?: string;
+      // Propriétés spécifiques aux Attributes
+      dataType?: string; // Type de données (string, integer, etc.)
+      isRequired?: boolean; // Attribut requis
+      isUnique?: boolean; // Valeur unique
+      concept_id?: string; // ID du concept parent
+      // Propriétés spécifiques aux Relations
+      relationType?: string; // Type de relation (is_a, has_part, etc.)
     }>;
     edges: Array<{
       id: string;

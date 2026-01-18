@@ -8,12 +8,8 @@ export interface Relationship {
   id: string;
   name: string; // Nom de la relation (obligatoire)
   type: "is_a" | "has_part" | "has_subclass" | "part_of" | "other";
-  source_concept_id: string;
-  target_concept_id: string;
-  source_label?: string;
-  target_label?: string;
   description?: string;
-  metamodel_id: string;
+  graph_id: string; // ID du metamodel parent
   x_position?: number;
   y_position?: number;
   created_at: string;
@@ -23,15 +19,13 @@ export interface Relationship {
 export interface RelationshipCreate {
   name: string; // Nom de la relation (obligatoire)
   type: "is_a" | "has_part" | "has_subclass" | "part_of" | "other";
-  source_concept_id?: string; // Optionnel - les connexions se font via les edges DOMAIN/RANGE
-  target_concept_id?: string; // Optionnel - les connexions se font via les edges DOMAIN/RANGE
   description?: string;
-  metamodel_id: string;
+  graph_id: string; // ID du metamodel parent
   x_position?: number;
   y_position?: number;
 }
 
-export type RelationshipUpdate = Partial<Omit<RelationshipCreate, "source_concept_id" | "target_concept_id" | "metamodel_id">>;
+export type RelationshipUpdate = Partial<Omit<RelationshipCreate, "graph_id">>;
 
 class RelationshipService extends BaseService<Relationship, RelationshipCreate, RelationshipUpdate> {
   protected basePath = "/api/relationships";

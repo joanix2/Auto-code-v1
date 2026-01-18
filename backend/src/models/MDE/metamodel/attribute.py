@@ -3,7 +3,7 @@ Attribute Model - Properties of concepts
 Stored as separate nodes in Neo4j linked to concepts
 """
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Dict, Any
 from enum import Enum
 
 from ...graph import Node
@@ -43,8 +43,21 @@ class Attribute(Node):
         return "attribute"
     
     def get_display_label(self) -> str:
-        """Return the attribute name and type as display label"""
-        return f"{self.name}: {self.type.value}"
+        """Return the attribute name as display label"""
+        return self.name
+    
+    def to_graph_dict(self):
+        """
+        Override to include attribute-specific properties
+        """
+        base_dict = super().to_graph_dict()
+        base_dict.update({
+            "dataType": self.type.value,  # Type de données (string, integer, etc.)
+            "isRequired": self.is_required,  # Attribut requis
+            "isUnique": self.is_unique,  # Valeur unique
+            "concept_id": self.concept_id,  # ID du concept parent (optionnel)
+        })
+        return base_dict
     
     class Config:
         from_attributes = True

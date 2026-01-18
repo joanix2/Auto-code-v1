@@ -95,7 +95,7 @@ class MetamodelService(BaseService[Metamodel]):
         Get a complete metamodel with all its nodes and edges as a graph structure
         
         Returns a dictionary containing:
-        - graph: The metamodel as a graph dict (using to_graph_dict())
+        - metamodel: The complete Metamodel object (not a dict)
         - nodes: List of all nodes with their graph representation
         - edges: List of all edges with their graph representation
         
@@ -103,7 +103,7 @@ class MetamodelService(BaseService[Metamodel]):
             metamodel_id: ID of the metamodel
             
         Returns:
-            Dict with keys: graph, nodes, edges
+            Dict with keys: metamodel, nodes, edges
         """
         logger.info(f"📊 Service: Getting complete metamodel graph: {metamodel_id}")
         
@@ -140,9 +140,9 @@ class MetamodelService(BaseService[Metamodel]):
             edges = [e.to_graph_dict() for e in metamodel_edges]
             logger.info(f"  ✓ Found {len(edges)} edges")
         
-        # Construire le résultat avec la représentation graphe du metamodel
+        # Construire le résultat avec l'objet Metamodel complet
         result = {
-            "graph": metamodel.to_graph_dict(),  # Utilise to_graph_dict() du Graph
+            "metamodel": metamodel,  # Retourner l'objet complet, pas to_graph_dict()
             "nodes": nodes,  # Chaque node utilise to_graph_dict()
             "edges": edges   # Chaque edge utilise to_graph_dict()
         }

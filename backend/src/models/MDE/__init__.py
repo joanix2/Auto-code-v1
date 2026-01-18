@@ -1,7 +1,7 @@
 """
 MDE (Model-Driven Engineering) models
 """
-from .metamodel.metamodel import Metamodel, MetamodelCreate, MetamodelUpdate, MetamodelResponse, MetamodelWithDetails, MetamodelStatus
+from .metamodel.metamodel import Metamodel, MetamodelCreate, MetamodelUpdate, MetamodelResponse, MetamodelWithDetails, MetamodelGraphResponse, MetamodelStatus
 from .metamodel.concept import Concept, ConceptCreate, ConceptUpdate, ConceptResponse
 from .metamodel.attribute import Attribute, AttributeCreate, AttributeUpdate, AttributeResponse, AttributeType
 from .metamodel.relationship import Relationship, RelationshipCreate, RelationshipUpdate, RelationshipResponse, RelationshipType
@@ -14,6 +14,7 @@ __all__ = [
     "MetamodelUpdate",
     "MetamodelResponse",
     "MetamodelWithDetails",
+    "MetamodelGraphResponse",
     "MetamodelStatus",
     # Concept
     "Concept",

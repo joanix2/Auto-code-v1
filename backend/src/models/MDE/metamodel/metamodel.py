@@ -125,3 +125,12 @@ class MetamodelWithDetails(Metamodel):
     class Config:
         from_attributes = True
 
+
+class MetamodelGraphResponse(BaseModel):
+    """Response schema for metamodel graph endpoint"""
+    metamodel: Metamodel = Field(..., description="Complete metamodel object")
+    nodes: List[Dict[str, Any]] = Field(default_factory=list, description="List of all nodes (concepts, attributes, relationships)")
+    edges: List[Dict[str, Any]] = Field(default_factory=list, description="List of all edges (domain, range, has_attribute, subclass_of)")
+    
+    class Config:
+        from_attributes = True

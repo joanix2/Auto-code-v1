@@ -117,14 +117,26 @@ DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les
 
 ✅ popup pour choisir le type du lien avec plusieurs options disponibles
 
-🔄 Plus necessaire dans la graphe view
-INFO: 127.0.0.1:59484 - "GET /api/metamodels/98047745-c4e0-40a0-8541-93ce2415d7f7 HTTP/1.1" 200 OK
+✅ récupération du graphe complet (nodes + edges) via endpoint unique /api/metamodels/{id}/graph
+✅ endpoint /graph retourne maintenant un objet Metamodel complet au lieu d'un dictionnaire partiel
+✅ frontend adapté pour utiliser graphData.metamodel au lieu de graphData.graph
 
-🔄 récupérer les propriétés d'une node
+✅ récupérer les propriétés d'une node (surcharge de to_graph_dict() pour chaque type)
+✅ Attribute.to_graph_dict() inclut dataType, isRequired, isUnique, concept_id
+✅ Relationship.to_graph_dict() inclut relationType (sans source/target - connexions via edges)
+✅ Frontend transforme et passe toutes les propriétés spécifiques au GraphViewer
+✅ Nettoyage backward compatibility (Concept, Relationship)
+✅ Relations utilisent graph_id au lieu de metamodel_id
+✅ Relations n'ont plus de champs source_concept_id/target_concept_id (connexions via edges DOMAIN/RANGE)
+
 🔄 À faire : Créer les edges DOMAIN/RANGE via le système click-to-click
 🔄 À faire : Implémenter la persistance en base des edges créés via GraphViewer
 
+problème de mise à jour des relations
+
 ajouter la possiblité de calculé le nom
+
+ajouter un scroll dans les modales
 
 créer l'interface de création de meta-model
 

@@ -35,14 +35,11 @@ export function MetamodelDetails() {
     try {
       setLoading(true);
 
-      // Charger le metamodel de base
-      const data = await metamodelService.getById(id);
-      setMetamodel(data);
-
-      // Charger le graphe complet (nodes + edges) depuis la nouvelle route
+      // Charger le graphe complet (nodes + edges + metamodel details) depuis la nouvelle route optimisée
       const graphData = await metamodelService.getGraph(id);
 
-      // Charger les contraintes de liens
+      // Extraire les détails du metamodel depuis la réponse
+      setMetamodel(graphData.metamodel); // Charger les contraintes de liens
       const constraints = await metamodelService.getEdgeConstraints(id);
       setEdgeConstraints(constraints);
 
@@ -54,6 +51,12 @@ export function MetamodelDetails() {
         properties: {
           description: node.description || "",
           ...(node.x && node.y ? { x_position: node.x, y_position: node.y } : {}),
+          // Propriétés spécifiques aux Attributes
+          ...(node.dataType ? { dataType: node.dataType } : {}),
+          ...(node.isRequired !== undefined ? { isRequired: node.isRequired } : {}),
+          ...(node.isUnique !== undefined ? { isUnique: node.isUnique } : {}),
+          // Propriétés spécifiques aux Relations
+          ...(node.relationType ? { relationType: node.relationType } : {}),
         },
       }));
 
@@ -241,12 +244,13 @@ export function MetamodelDetails() {
             name: relationData.name,
             type: relationData.relationType as "is_a" | "has_part" | "has_subclass" | "part_of" | "other",
             description: relationData.description || "",
-            metamodel_id: id,
+            graph_id: id,
             x_position: Math.random() * 400 + 100,
             y_position: Math.random() * 400 + 100,
           });
         } else {
           updatedNode = await relationshipService.update(nodeId, {
+            name: relationData.name,
             type: relationData.relationType as "is_a" | "has_part" | "has_subclass" | "part_of" | "other",
             description: relationData.description || "",
           });
@@ -273,8 +277,6 @@ export function MetamodelDetails() {
             }),
             ...(nodeType === "relation" && {
               relationType: (updatedNode as Relationship).type || "other",
-              sourceConceptId: (updatedNode as Relationship).source_concept_id,
-              targetConceptId: (updatedNode as Relationship).target_concept_id,
             }),
           },
         };
@@ -301,8 +303,6 @@ export function MetamodelDetails() {
                     }),
                     ...(nodeType === "relation" && {
                       relationType: (updatedNode as Relationship).type || "other",
-                      sourceConceptId: (updatedNode as Relationship).source_concept_id,
-                      targetConceptId: (updatedNode as Relationship).target_concept_id,
                     }),
                   },
                 }
@@ -476,71 +476,44 @@ export function MetamodelDetails() {
           },
         };
       } else {
-        // Relation - création de relation entre deux concepts
+        // Relation - noeud simple (les connexions se font via edges DOMAIN/RANGE)
         const relationData = nodeData as {
           name: string;
           description: string;
-          sourceConceptId?: string;
-          targetConceptId?: string;
           relationType?: string;
         };
 
-        if (!relationData.sourceConceptId || !relationData.targetConceptId || !relationData.relationType) {
+        if (!relationData.relationType) {
           toast({
             title: "Informations manquantes",
-            description: "Veuillez spécifier le concept source, le concept cible et le type de relation",
+            description: "Veuillez spécifier le type de relation",
             variant: "destructive",
           });
           return;
         }
 
         const createData: RelationshipCreate = {
-          name: relationData.name, // Le nom de la relation
+          name: relationData.name,
           type: relationData.relationType as "is_a" | "has_part" | "has_subclass" | "part_of" | "other",
-          source_concept_id: relationData.sourceConceptId,
-          target_concept_id: relationData.targetConceptId,
           description: relationData.description,
-          metamodel_id: id,
+          graph_id: id,
+          x_position: Math.random() * 400 + 100,
+          y_position: Math.random() * 400 + 100,
         };
 
         const createdRelation = await relationshipService.create(createData);
 
-        // Créer un nœud pour la relation (pour l'affichage dans le graphe)
+        // Créer un nœud pour la relation
         newNode = {
           id: createdRelation.id,
-          label: createdRelation.name, // Utiliser le nom de la relation
+          label: createdRelation.name,
           type: "relation",
           properties: {
             name: createdRelation.name,
             description: createdRelation.description || "",
             relationType: createdRelation.type,
-            sourceConceptId: createdRelation.source_concept_id,
-            targetConceptId: createdRelation.target_concept_id,
           },
         };
-
-        // Créer également une arête pour visualiser la relation dans le graphe
-        const newEdge: GraphEdge = {
-          id: `edge-${createdRelation.id}`,
-          source: createdRelation.source_concept_id,
-          target: createdRelation.target_concept_id,
-          label: createdRelation.name, // Utiliser le nom de la relation, pas le type
-          type: "relation",
-        };
-
-        // Ajouter à la fois le nœud et l'arête
-        setGraphData((prev) => ({
-          nodes: [...prev.nodes, newNode],
-          edges: [...prev.edges, newEdge],
-        }));
-
-        toast({
-          title: "Relation créée",
-          description: `Relation "${createdRelation.type}" créée avec succès`,
-        });
-
-        setIsCreateNodeOpen(false);
-        return;
       }
 
       // Add new node to graph
