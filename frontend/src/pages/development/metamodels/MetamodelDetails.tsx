@@ -34,65 +34,43 @@ export function MetamodelDetails() {
 
     try {
       setLoading(true);
+
+      // Charger le metamodel de base
       const data = await metamodelService.getById(id);
       setMetamodel(data);
 
-      // Charger les concepts réels depuis l'API
-      const concepts = await conceptService.getByMetamodel(id);
-
-      // Charger les attributs du métamodèle
-      const attributes = await attributeService.getByMetamodel(id);
-
-      // Charger les relations du métamodèle
-      const relationships = await relationshipService.getByMetamodel(id, true);
+      // Charger le graphe complet (nodes + edges) depuis la nouvelle route
+      const graphData = await metamodelService.getGraph(id);
 
       // Charger les contraintes de liens
       const constraints = await metamodelService.getEdgeConstraints(id);
       setEdgeConstraints(constraints);
 
-      const conceptNodes: GraphNode[] = concepts.map((concept) => ({
-        id: concept.id,
-        label: concept.name,
-        type: "concept",
+      // Transformer les nodes du backend au format GraphNode
+      const nodes = graphData.nodes.map((node) => ({
+        id: node.id,
+        label: node.label || node.name,
+        type: node.type as "concept" | "attribute" | "relation",
         properties: {
-          description: concept.description || "",
-          attributes: [],
+          description: node.description || "",
+          ...(node.x && node.y ? { x_position: node.x, y_position: node.y } : {}),
         },
       }));
 
-      // Créer les nœuds pour les attributs standalone (sans concept_id)
-      const attributeNodes: GraphNode[] = attributes
-        .filter((attr) => !attr.concept_id)
-        .map((attr) => ({
-          id: attr.id,
-          label: attr.name,
-          type: "attribute",
-          properties: {
-            description: attr.description || "",
-            dataType: attr.type || "string",
-            isRequired: attr.is_required || false,
-            isUnique: attr.is_unique || false,
-          },
-        }));
-
-      // Créer les nœuds pour les relations (dans le metamodel, les relations SONT des noeuds)
-      const relationNodes: GraphNode[] = relationships.map((rel) => ({
-        id: rel.id,
-        label: rel.name,
-        type: "relation",
-        properties: {
-          description: rel.description || "",
-          relationType: rel.type || "other",
-        },
+      // Transformer les edges du backend au format GraphEdge
+      const edges = graphData.edges.map((edge) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        label: edge.label,
+        type: edge.type,
       }));
-
-      // Pas d'edges pour le moment - juste les noeuds
-      const edges: GraphEdge[] = [];
-
-      const nodes: GraphNode[] = [...conceptNodes, ...attributeNodes, ...relationNodes];
 
       setGraphData({ nodes, edges });
+
+      console.log(`📊 Graphe chargé: ${nodes.length} noeuds, ${edges.length} edges`);
     } catch (error) {
+      console.error("Error loading metamodel:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger le métamodèle.",

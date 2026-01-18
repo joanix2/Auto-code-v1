@@ -117,8 +117,12 @@ DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les
 
 ✅ popup pour choisir le type du lien avec plusieurs options disponibles
 
-🔄 À faire : Implémenter la persistance des edges créés via GraphViewer
+🔄 Plus necessaire dans la graphe view
+INFO: 127.0.0.1:59484 - "GET /api/metamodels/98047745-c4e0-40a0-8541-93ce2415d7f7 HTTP/1.1" 200 OK
+
+🔄 récupérer les propriétés d'une node
 🔄 À faire : Créer les edges DOMAIN/RANGE via le système click-to-click
+🔄 À faire : Implémenter la persistance en base des edges créés via GraphViewer
 
 ajouter la possiblité de calculé le nom
 
