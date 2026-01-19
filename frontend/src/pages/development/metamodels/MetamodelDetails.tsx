@@ -8,13 +8,14 @@ import { relationshipService, type Relationship, type RelationshipCreate } from 
 import { edgeService } from "@/services/edgeService";
 import { Database, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { GraphViewer, CreateNodeModal, type EdgeType } from "@/components/common/GraphViewer";
+import { GraphViewer, CreateNodeModal } from "@/components/common/GraphViewer";
 import type { GraphData, GraphNode, GraphEdge, CreateNodeModalNodeTypeConfig } from "@/components/common/GraphViewer";
 import { Button } from "@/components/ui/button";
 import { ConceptForm } from "@/components/development/metamodels/ConceptForm";
 import { AttributeForm } from "@/components/development/metamodels/AttributeForm";
 import { RelationForm } from "@/components/development/metamodels/RelationForm";
 import { CONCEPT_TYPE, ATTRIBUTE_TYPE, RELATION_TYPE, NODE_TYPES, type NodeTypeId } from "./types";
+import { M3EdgeType } from "@/types/m3";
 
 export function MetamodelDetails() {
   const { id } = useParams<{ id: string }>();
@@ -23,7 +24,7 @@ export function MetamodelDetails() {
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [isCreateNodeOpen, setIsCreateNodeOpen] = useState(false);
-  const [edgeConstraints, setEdgeConstraints] = useState<EdgeType[]>([]);
+  const [edgeConstraints, setEdgeConstraints] = useState<M3EdgeType[]>([]);
 
   // Sample graph data - À remplacer par les vraies données du métamodèle
   const [graphData, setGraphData] = useState<GraphData>({
@@ -53,13 +54,15 @@ export function MetamodelDetails() {
     try {
       setLoading(true);
 
-      // Charger le graphe complet (nodes + edges + metamodel details) depuis la nouvelle route optimisée
+      // Charger le graphe complet (nodes + edges + metamodel details + edgeConstraints) depuis la route optimisée
       const graphData = await metamodelService.getGraph(id);
 
       // Extraire les détails du metamodel depuis la réponse
-      setMetamodel(graphData.metamodel); // Charger les contraintes de liens
-      const constraints = await metamodelService.getEdgeConstraints(id);
-      setEdgeConstraints(constraints);
+      setMetamodel(graphData.metamodel);
+
+      // Les contraintes arrivent directement au format M3 (avec arrays sourceNodeTypes/targetNodeTypes)
+      // Le GraphViewer utilise maintenant directement ce format
+      setEdgeConstraints(graphData.edgeConstraints);
 
       // Transformer les nodes du backend au format GraphNode
       const nodes = graphData.nodes.map((node) => ({

@@ -1,7 +1,10 @@
 import { BaseService } from "./base.service";
 import { Metamodel, MetamodelCreate, MetamodelUpdate } from "@/types/metamodel";
-import { EdgeType } from "@/components/common/GraphViewer";
 import { apiService } from "./api.service";
+import { M3EdgeType } from "@/types/m3";
+
+// Re-export for convenience
+export type { M3EdgeType } from "@/types/m3";
 
 class MetamodelService extends BaseService<Metamodel, MetamodelCreate, MetamodelUpdate> {
   protected basePath = "/api/metamodels";
@@ -32,13 +35,6 @@ class MetamodelService extends BaseService<Metamodel, MetamodelCreate, Metamodel
    */
   async deprecate(id: string): Promise<Metamodel> {
     return apiService.post<Metamodel>(`${this.basePath}/${id}/deprecate`);
-  }
-
-  /**
-   * Get edge type constraints for a metamodel
-   */
-  async getEdgeConstraints(id: string): Promise<EdgeType[]> {
-    return apiService.get<EdgeType[]>(`${this.basePath}/${id}/edge-constraints`);
   }
 
   /**
@@ -77,7 +73,7 @@ class MetamodelService extends BaseService<Metamodel, MetamodelCreate, Metamodel
       created_at: string;
       updated_at?: string;
     }>;
-    edgeConstraints: EdgeType[]; // Edge type constraints from M3
+    edgeConstraints: M3EdgeType[]; // Edge type constraints from M3
   }> {
     return apiService.get(`${this.basePath}/${id}/graph`);
   }

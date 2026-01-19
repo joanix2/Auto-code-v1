@@ -308,15 +308,11 @@ async def get_metamodel_graph(
     try:
         graph_data = await service.get_metamodel_with_graph(metamodel_id)
         
-        # Edge constraints are now included in the metamodel object via allowed_edge_types
-        # Add them at the top level for frontend convenience
-        if 'metamodel' in graph_data and hasattr(graph_data['metamodel'], 'allowed_edge_types'):
-            graph_data['edgeConstraints'] = graph_data['metamodel'].allowed_edge_types
-        else:
-            # Fallback to M3 config if not in metamodel
-            graph_data['edgeConstraints'] = M3Config.get_edge_types()
+        # Edge constraints are included in the metamodel object via allowed_edge_types
+        # The MetamodelGraphResponse already includes edgeConstraints field
+        # which will be automatically populated from the metamodel's allowed_edge_types
         
-        logger.info(f"✅ Graph retrieved: {len(graph_data['nodes'])} nodes, {len(graph_data['edges'])} edges, {len(graph_data['edgeConstraints'])} edge constraints")
+        logger.info(f"✅ Graph retrieved: {len(graph_data['nodes'])} nodes, {len(graph_data['edges'])} edges")
         return graph_data
     except ValueError as e:
         logger.error(f"❌ Error getting graph: {e}")

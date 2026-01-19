@@ -175,7 +175,8 @@ class MetamodelService(BaseService[Metamodel]):
         result = {
             "metamodel": metamodel,  # Retourner l'objet complet, pas to_graph_dict()
             "nodes": nodes,  # Chaque node utilise to_graph_dict()
-            "edges": edges   # Chaque edge utilise to_graph_dict()
+            "edges": edges,  # Chaque edge utilise to_graph_dict()
+            "edgeConstraints": metamodel.allowed_edge_types  # Edge type constraints from the graph
         }
         
         logger.info(f"✅ Complete graph: {len(nodes)} nodes, {len(edges)} edges")

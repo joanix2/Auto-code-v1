@@ -45,7 +45,10 @@ class Metamodel(Graph):
             data['allowed_edge_types'] = EDGE_TYPES
         super().__init__(**data)
     
- 
+    # Abstract methods implementation
+    def get_graph_type(self) -> str:
+        """Return 'metamodel' as the graph type"""
+        return "metamodel"
     
     class Config:
         from_attributes = True

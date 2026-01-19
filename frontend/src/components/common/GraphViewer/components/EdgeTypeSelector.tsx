@@ -1,14 +1,14 @@
 import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { EdgeType } from "../types";
+import { M3EdgeType } from "@/types/m3";
 
 interface EdgeTypeSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sourceNode: { id: string; label: string; type?: string } | null;
   targetNode: { id: string; label: string; type?: string } | null;
-  availableEdgeTypes: EdgeType[];
+  availableEdgeTypes: M3EdgeType[];
   onSelectEdgeType: (edgeType: string) => void;
 }
 
@@ -29,16 +29,16 @@ export function EdgeTypeSelector({ open, onOpenChange, sourceNode, targetNode, a
           ) : (
             availableEdgeTypes.map((edgeType) => (
               <Button
-                key={edgeType.edgeType}
+                key={edgeType.name}
                 variant="outline"
                 className="justify-start h-auto py-3 px-4"
                 onClick={() => {
-                  onSelectEdgeType(edgeType.edgeType);
+                  onSelectEdgeType(edgeType.name);
                   onOpenChange(false);
                 }}
               >
                 <div className="text-left">
-                  <div className="font-semibold">{edgeType.label}</div>
+                  <div className="font-semibold">{edgeType.name.toUpperCase()}</div>
                   {edgeType.description && <div className="text-xs text-muted-foreground mt-1">{edgeType.description}</div>}
                 </div>
               </Button>

@@ -1,5 +1,6 @@
 import * as d3 from "d3";
-import { GraphNode, GraphData, EdgeType } from "../types";
+import { GraphNode, GraphData } from "../types";
+import { M3EdgeType } from "@/types/m3";
 
 interface CreateDragBehaviorParams {
   isEdgeModeActive: boolean;
@@ -10,7 +11,7 @@ interface CreateDragBehaviorParams {
   nodeColorMap: Record<string, string>;
   svgElement: SVGSVGElement; // Ajout pour obtenir les coordonnées transformées
   setEdgeDragState: (state: { sourceNode: GraphNode | null; targetNode: GraphNode | null; isDrawing: boolean }) => void;
-  getAvailableEdgeTypes: (source: GraphNode | null, target: GraphNode | null) => EdgeType[];
+  getAvailableEdgeTypes: (source: GraphNode | null, target: GraphNode | null) => M3EdgeType[];
   setShowEdgeTypeSelector: (show: boolean) => void;
   onCreateEdge?: (source: string, target: string, type: string) => void;
 }
@@ -54,11 +55,11 @@ export function createDragBehavior({
         const availableEdgeTypes = getAvailableEdgeTypes(d, null);
         console.log(
           "🔍 Available edge types from source:",
-          availableEdgeTypes.map((et) => `${et.edgeType} -> ${et.targetNodeType}`),
+          availableEdgeTypes.map((et) => `${et.name} -> ${et.targetNodeTypes.join(", ")}`),
         );
 
         // Prendre le premier type cible disponible ou un type par défaut
-        const targetNodeType = availableEdgeTypes.length > 0 ? availableEdgeTypes[0].targetNodeType : d.type || "";
+        const targetNodeType = availableEdgeTypes.length > 0 ? availableEdgeTypes[0].targetNodeTypes[0] : d.type || "";
         const nodeColor = nodeColorMap[targetNodeType] || nodeColorMap[d.type || ""] || "#64748b";
 
         console.log("👻 Creating ghost node with type:", targetNodeType, "color:", nodeColor);
@@ -202,9 +203,9 @@ export function createDragBehavior({
 
           if (availableTypes.length === 1) {
             // Si une seule relation possible, créer directement sans afficher la popup
-            console.log("✨ Single edge type available, creating directly:", availableTypes[0].edgeType);
+            console.log("✨ Single edge type available, creating directly:", availableTypes[0].name);
             if (onCreateEdge) {
-              onCreateEdge(d.id, targetNode.id, availableTypes[0].edgeType);
+              onCreateEdge(d.id, targetNode.id, availableTypes[0].name);
             }
             setEdgeDragState({ sourceNode: null, targetNode: null, isDrawing: false });
           } else if (availableTypes.length > 1) {

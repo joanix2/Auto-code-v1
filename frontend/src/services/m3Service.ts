@@ -5,6 +5,10 @@
  * which defines the types of nodes and edges available in the system.
  */
 import axios from "axios";
+import { M3NodeType, M3EdgeType } from "@/types/m3";
+
+// Re-export for convenience
+export type { M3NodeType, M3EdgeType } from "@/types/m3";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -12,35 +16,9 @@ export interface GenderType {
   value: "m" | "f" | "n";
 }
 
-export interface M3NodeType {
-  name: string;
-  description: string;
-  label: string;
-  labelPlural: string;
-  gender: "m" | "f" | "n";
-  article: string;
-}
-
-export interface M3EdgeType {
-  name: string;
-  description: string;
-  sourceNodeTypes: string[];
-  targetNodeTypes: string[];
-  directed: boolean;
-}
-
-export interface EdgeConstraint {
-  edgeType: string;
-  label: string;
-  sourceNodeType: string;
-  targetNodeType: string;
-  directed: boolean;
-}
-
 export interface M3Config {
   nodeTypes: M3NodeType[];
   edgeTypes: M3EdgeType[];
-  edgeConstraints: EdgeConstraint[];
 }
 
 class M3Service {
@@ -93,14 +71,6 @@ class M3Service {
    */
   async getEdgeType(typeId: string): Promise<M3EdgeType> {
     const response = await axios.get<M3EdgeType>(`${this.baseUrl}/edge-types/${typeId}`);
-    return response.data;
-  }
-
-  /**
-   * Get edge constraints (for graph editor)
-   */
-  async getEdgeConstraints(): Promise<EdgeConstraint[]> {
-    const response = await axios.get<EdgeConstraint[]>(`${this.baseUrl}/edge-constraints`);
     return response.data;
   }
 

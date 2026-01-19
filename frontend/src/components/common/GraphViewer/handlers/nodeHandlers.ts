@@ -1,4 +1,5 @@
-import { GraphNode, EdgeType } from "../types";
+import { GraphNode } from "../types";
+import { M3EdgeType } from "@/types/m3";
 
 interface NodeClickHandlerParams {
   isEdgeModeActive: boolean;
@@ -11,7 +12,7 @@ interface NodeClickHandlerParams {
   setShowEdgeTypeSelector: (show: boolean) => void;
   setSelectedNodeData: (node: GraphNode | null) => void;
   setShowNodePanel: (show: boolean) => void;
-  getAvailableEdgeTypes: (source: GraphNode | null, target: GraphNode | null) => EdgeType[];
+  getAvailableEdgeTypes: (source: GraphNode | null, target: GraphNode | null) => M3EdgeType[];
   onCreateEdge?: (source: string, target: string, type: string) => void;
   onNodeClick?: (node: GraphNode) => void;
 }
@@ -50,7 +51,7 @@ export function createNodeClickHandler({
         } else if (availableTypes.length === 1) {
           // Un seul type : créer directement
           if (onCreateEdge) {
-            onCreateEdge(edgeDragState.sourceNode.id, node.id, availableTypes[0].edgeType);
+            onCreateEdge(edgeDragState.sourceNode.id, node.id, availableTypes[0].name);
           }
           setEdgeDragState({
             sourceNode: null,

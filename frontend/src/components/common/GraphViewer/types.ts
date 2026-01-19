@@ -1,3 +1,5 @@
+import { M3EdgeType } from "@/types/m3";
+
 /**
  * Classe abstraite représentant un type de nœud
  */
@@ -19,17 +21,6 @@ export abstract class NodeType {
   getArticleMaj(): string {
     return this.article.charAt(0).toUpperCase() + this.article.slice(1);
   }
-}
-
-/**
- * Type de lien possible entre deux types de nœuds
- */
-export interface EdgeType {
-  edgeType: string;
-  sourceNodeType: string;
-  targetNodeType: string;
-  label: string;
-  description?: string;
 }
 
 export interface GraphNode {
@@ -88,9 +79,9 @@ export interface GraphViewerProps {
    */
   forms?: Record<string, (node: GraphNode, isEditing: boolean, onCancelEdit: () => void, onTypeChange?: (newType: string) => void) => React.ReactNode>;
   /**
-   * Types de liens possibles avec contraintes
+   * Types de liens possibles avec contraintes (M3 configuration)
    */
-  edgeTypes?: EdgeType[];
+  edgeTypes?: M3EdgeType[];
   /**
    * Callback appelé quand un lien est créé
    */

@@ -1,5 +1,6 @@
 import { useCallback } from "react";
-import { GraphNode, EdgeType } from "../types";
+import { GraphNode } from "../types";
+import { M3EdgeType, getAllowedEdgeTypes } from "@/types/m3";
 
 interface UseEdgeModeParams {
   isEdgeModeActive: boolean;
@@ -10,7 +11,7 @@ interface UseEdgeModeParams {
     isDrawing: boolean;
   };
   setEdgeDragState: (state: { sourceNode: GraphNode | null; targetNode: GraphNode | null; isDrawing: boolean }) => void;
-  edgeTypes: EdgeType[];
+  edgeTypes: M3EdgeType[];
 }
 
 export function useEdgeMode({ isEdgeModeActive, setIsEdgeModeActive, edgeDragState, setEdgeDragState, edgeTypes }: UseEdgeModeParams) {
@@ -18,7 +19,17 @@ export function useEdgeMode({ isEdgeModeActive, setIsEdgeModeActive, edgeDragSta
     (sourceNode: GraphNode | null, targetNode: GraphNode | null) => {
       if (!sourceNode || !targetNode || !edgeTypes.length) return [];
 
-      return edgeTypes.filter((constraint) => constraint.sourceNodeType === sourceNode.type && constraint.targetNodeType === targetNode.type);
+      const sourceType = sourceNode.type || "";
+      const targetType = targetNode.type || "";
+
+      // Filter edge types that allow this connection
+      const allowedTypes = getAllowedEdgeTypes(edgeTypes, sourceType, targetType);
+
+      // Return in the format expected by the UI (with edgeType name)
+      return allowedTypes.map((edgeType) => ({
+        ...edgeType,
+        edgeType: edgeType.name.toUpperCase(), // For display in UI
+      }));
     },
     [edgeTypes],
   );
