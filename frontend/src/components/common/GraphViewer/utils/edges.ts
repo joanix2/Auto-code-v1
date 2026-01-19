@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { GraphEdge, SimulationEdge } from "./types";
+import { GraphEdge, SimulationEdge } from "../types";
 import { EDGE_STROKE_WIDTH, EDGE_STROKE_OPACITY, EDGE_LABEL_FONT_SIZE, EDGE_LABEL_OFFSET, DEFAULT_EDGE_COLOR, GRAPH_BACKGROUND_COLOR } from "./constants";
 
 /**

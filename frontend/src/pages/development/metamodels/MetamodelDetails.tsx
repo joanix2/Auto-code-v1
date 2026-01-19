@@ -8,12 +8,13 @@ import { relationshipService, type Relationship, type RelationshipCreate } from 
 import { edgeService } from "@/services/edgeService";
 import { Database, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { GraphViewer, CreateNodeModal, type EdgeTypeConstraint } from "@/components/common/GraphViewer";
-import type { GraphData, GraphNode, GraphEdge, NodeTypeConfig } from "@/components/common/GraphViewer";
+import { GraphViewer, CreateNodeModal, type EdgeType } from "@/components/common/GraphViewer";
+import type { GraphData, GraphNode, GraphEdge, CreateNodeModalNodeTypeConfig } from "@/components/common/GraphViewer";
 import { Button } from "@/components/ui/button";
 import { ConceptForm } from "@/components/development/metamodels/ConceptForm";
 import { AttributeForm } from "@/components/development/metamodels/AttributeForm";
 import { RelationForm } from "@/components/development/metamodels/RelationForm";
+import { CONCEPT_TYPE, ATTRIBUTE_TYPE, RELATION_TYPE, NODE_TYPES, type NodeTypeId } from "./types";
 
 export function MetamodelDetails() {
   const { id } = useParams<{ id: string }>();
@@ -22,7 +23,7 @@ export function MetamodelDetails() {
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [isCreateNodeOpen, setIsCreateNodeOpen] = useState(false);
-  const [edgeConstraints, setEdgeConstraints] = useState<EdgeTypeConstraint[]>([]);
+  const [edgeConstraints, setEdgeConstraints] = useState<EdgeType[]>([]);
 
   // Sample graph data - À remplacer par les vraies données du métamodèle
   const [graphData, setGraphData] = useState<GraphData>({
@@ -48,7 +49,7 @@ export function MetamodelDetails() {
       const nodes = graphData.nodes.map((node) => ({
         id: node.id,
         label: node.label || node.name,
-        type: node.type as "concept" | "attribute" | "relation",
+        type: node.type as NodeTypeId,
         properties: {
           description: node.description || "",
           ...(node.x && node.y ? { x_position: node.x, y_position: node.y } : {}),
@@ -167,11 +168,11 @@ export function MetamodelDetails() {
   const handleDeleteNode = async (node: GraphNode) => {
     try {
       // Appeler le bon service en fonction du type de nœud
-      if (node.type === "concept") {
+      if (node.type === CONCEPT_TYPE.id) {
         await conceptService.delete(node.id);
-      } else if (node.type === "attribute") {
+      } else if (node.type === ATTRIBUTE_TYPE.id) {
         await attributeService.delete(node.id);
-      } else if (node.type === "relation") {
+      } else if (node.type === RELATION_TYPE.id) {
         await relationshipService.delete(node.id);
       } else {
         throw new Error(`Delete not implemented for node type: ${node.type}`);
@@ -183,19 +184,20 @@ export function MetamodelDetails() {
         edges: prev.edges.filter((e) => e.source !== node.id && e.target !== node.id),
       }));
 
-      const nodeTypeLabel = node.type === "concept" ? "Concept" : node.type === "attribute" ? "Attribut" : node.type === "relation" ? "Relation" : "Élément";
+      const config = node.type ? NODE_TYPES[node.type as NodeTypeId] : null;
 
       toast({
-        title: `${nodeTypeLabel} supprimé`,
-        description: `Le ${nodeTypeLabel.toLowerCase()} "${node.label}" a été supprimé`,
+        title: `${config?.label || "Élément"} supprimé`,
+        description: `${config ? config.getArticleMaj() : "L'"}${config?.label.toLowerCase() || "élément"} "${node.label}" a été supprimé`,
       });
 
       setSelectedNode(null);
     } catch (error) {
       console.error(`Error deleting ${node.type}:`, error);
+      const config = node.type ? NODE_TYPES[node.type as NodeTypeId] : null;
       toast({
         title: "Erreur",
-        description: `Impossible de supprimer le ${node.type === "concept" ? "concept" : node.type === "attribute" ? "attribut" : "élément"}`,
+        description: `Impossible de supprimer ${config?.article || "l'"}${config?.label.toLowerCase() || "élément"}`,
         variant: "destructive",
       });
     }
@@ -245,7 +247,7 @@ export function MetamodelDetails() {
     try {
       let updatedNode: Concept | Attribute | Relationship;
 
-      if (nodeType === "concept") {
+      if (nodeType === CONCEPT_TYPE.id) {
         // Créer ou mettre à jour le concept via l'API
         if (isCreation) {
           updatedNode = await conceptService.create({
@@ -261,7 +263,7 @@ export function MetamodelDetails() {
             description: nodeData.description || "",
           });
         }
-      } else if (nodeType === "attribute") {
+      } else if (nodeType === ATTRIBUTE_TYPE.id) {
         // Créer ou mettre à jour l'attribut via l'API
         const attributeData = nodeData as {
           name: string;
@@ -290,7 +292,7 @@ export function MetamodelDetails() {
             is_unique: attributeData.isUnique || false,
           });
         }
-      } else if (nodeType === "relation") {
+      } else if (nodeType === RELATION_TYPE.id) {
         // Créer ou mettre à jour la relation via l'API
         const relationData = nodeData as {
           name: string;
@@ -325,16 +327,16 @@ export function MetamodelDetails() {
         // Création : ajouter un nouveau nœud
         const newNode: GraphNode = {
           id: updatedNode.id,
-          label: nodeType === "relation" ? (updatedNode as Relationship).name : (updatedNode as Concept | Attribute).name,
-          type: nodeType,
+          label: nodeType === RELATION_TYPE.id ? (updatedNode as Relationship).name : (updatedNode as Concept | Attribute).name,
+          type: nodeType as NodeTypeId,
           properties: {
             description: updatedNode.description || "",
-            ...(nodeType === "attribute" && {
+            ...(nodeType === ATTRIBUTE_TYPE.id && {
               dataType: (updatedNode as Attribute).type || "string",
               isRequired: (updatedNode as Attribute).is_required || false,
               isUnique: (updatedNode as Attribute).is_unique || false,
             }),
-            ...(nodeType === "relation" && {
+            ...(nodeType === RELATION_TYPE.id && {
               relationType: (updatedNode as Relationship).type || "other",
             }),
           },
@@ -351,16 +353,16 @@ export function MetamodelDetails() {
             node.id === nodeId
               ? {
                   ...node,
-                  label: nodeType === "relation" ? (updatedNode as Relationship).name : (updatedNode as Concept | Attribute).name,
+                  label: nodeType === RELATION_TYPE.id ? (updatedNode as Relationship).name : (updatedNode as Concept | Attribute).name,
                   properties: {
                     ...node.properties,
                     description: updatedNode.description || "",
-                    ...(nodeType === "attribute" && {
+                    ...(nodeType === ATTRIBUTE_TYPE.id && {
                       dataType: (updatedNode as Attribute).type || "string",
                       isRequired: (updatedNode as Attribute).is_required || false,
                       isUnique: (updatedNode as Attribute).is_unique || false,
                     }),
-                    ...(nodeType === "relation" && {
+                    ...(nodeType === RELATION_TYPE.id && {
                       relationType: (updatedNode as Relationship).type || "other",
                     }),
                   },
@@ -371,15 +373,18 @@ export function MetamodelDetails() {
         }));
       }
 
+      const config = NODE_TYPES[nodeType as NodeTypeId];
+
       toast({
-        title: `${nodeType === "concept" ? "Concept" : nodeType === "attribute" ? "Attribut" : "Relation"} ${isCreation ? "créé" : "mis à jour"}`,
-        description: `${nodeType === "concept" ? "Le concept" : nodeType === "attribute" ? "L'attribut" : "La relation"} "${nodeData.name || "sans nom"}" a été ${isCreation ? "créé" : "mis à jour"}`,
+        title: `${config.label} ${isCreation ? "créé" : "mis à jour"}`,
+        description: `${config.getArticleMaj()}${config.label.toLowerCase()} "${nodeData.name || "sans nom"}" a été ${isCreation ? "créé" : "mis à jour"}`,
       });
     } catch (error) {
       console.error(`Error ${isCreation ? "creating" : "updating"} ${nodeType}:`, error);
+      const config = NODE_TYPES[nodeType as NodeTypeId];
       toast({
         title: "Erreur",
-        description: `Impossible de ${isCreation ? "créer" : "mettre à jour"} ${nodeType === "concept" ? "le concept" : nodeType === "attribute" ? "l'attribut" : "la relation"}`,
+        description: `Impossible de ${isCreation ? "créer" : "mettre à jour"} ${config.article}${config.label.toLowerCase()}`,
         variant: "destructive",
       });
       throw error; // Re-throw pour que le formulaire puisse gérer l'erreur
@@ -479,14 +484,14 @@ export function MetamodelDetails() {
     relation: renderRelationForm,
   };
 
-  const handleCreateNode = async (nodeData: { name: string; description: string; type: "concept" | "attribute" | "relation" }) => {
+  const handleCreateNode = async (nodeData: { name: string; description: string; type: NodeTypeId }) => {
     if (!id) return;
 
     try {
       let createdNode: Concept | Attribute;
       let newNode: GraphNode;
 
-      if (nodeData.type === "concept") {
+      if (nodeData.type === CONCEPT_TYPE.id) {
         // Create concept
         const createData: ConceptCreate = {
           name: nodeData.name,
@@ -501,13 +506,13 @@ export function MetamodelDetails() {
         newNode = {
           id: createdNode.id,
           label: createdNode.name,
-          type: "concept",
+          type: CONCEPT_TYPE.id,
           properties: {
             description: createdNode.description || "",
             attributes: [],
           },
         };
-      } else if (nodeData.type === "attribute") {
+      } else if (nodeData.type === ATTRIBUTE_TYPE.id) {
         // Create attribute
         // Attribute is created without concept_id (standalone) and can be linked to a concept later
         const createData: AttributeCreateType = {
@@ -526,7 +531,7 @@ export function MetamodelDetails() {
         newNode = {
           id: createdNode.id,
           label: createdNode.name,
-          type: "attribute",
+          type: ATTRIBUTE_TYPE.id,
           properties: {
             description: createdNode.description || "",
             dataType: (createdNode as Attribute).type || "string",
@@ -566,7 +571,7 @@ export function MetamodelDetails() {
         newNode = {
           id: createdRelation.id,
           label: createdRelation.name,
-          type: "relation",
+          type: RELATION_TYPE.id as NodeTypeId,
           properties: {
             name: createdRelation.name,
             description: createdRelation.description || "",
@@ -581,17 +586,20 @@ export function MetamodelDetails() {
         edges: prev.edges,
       }));
 
+      const config = NODE_TYPES[nodeData.type];
+
       toast({
-        title: nodeData.type === "concept" ? "Concept créé" : nodeData.type === "attribute" ? "Attribut créé" : "Relation créée",
-        description: `${nodeData.type === "concept" ? "Concept" : nodeData.type === "attribute" ? "Attribut" : "Relation"} "${nodeData.name}" créé avec succès`,
+        title: `${config.label} créé`,
+        description: `${config.label} "${nodeData.name}" créé avec succès`,
       });
 
       setIsCreateNodeOpen(false);
     } catch (error) {
       console.error(`Error creating ${nodeData.type}:`, error);
+      const config = NODE_TYPES[nodeData.type];
       toast({
         title: "Erreur",
-        description: `Impossible de créer ${nodeData.type === "concept" ? "le concept" : nodeData.type === "attribute" ? "l'attribut" : "la relation"}`,
+        description: `Impossible de créer ${config.article}${config.label.toLowerCase()}`,
         variant: "destructive",
       });
     }
@@ -611,24 +619,24 @@ export function MetamodelDetails() {
   };
 
   // Configuration des types de nœuds pour le modal
-  const nodeTypeConfigs: NodeTypeConfig[] = [
+  const nodeTypeConfigs: CreateNodeModalNodeTypeConfig[] = [
     {
-      value: "concept",
-      label: "Concept",
+      value: CONCEPT_TYPE.id,
+      label: CONCEPT_TYPE.label,
       color: nodeColorMap.concept,
       placeholder: "Ex: Vehicle, Person, Product...",
       descriptionPlaceholder: "Décrivez ce concept...",
     },
     {
-      value: "attribute",
-      label: "Attribut",
+      value: ATTRIBUTE_TYPE.id,
+      label: ATTRIBUTE_TYPE.label,
       color: nodeColorMap.attribute,
       placeholder: "Ex: name, age, price...",
       descriptionPlaceholder: "Décrivez cet attribut...",
     },
     {
-      value: "relation",
-      label: "Relation",
+      value: RELATION_TYPE.id,
+      label: RELATION_TYPE.label,
       color: nodeColorMap.relation,
       placeholder: "Ex: possède, appartientÀ, contient...",
       descriptionPlaceholder: "Décrivez cette relation...",
@@ -672,7 +680,7 @@ export function MetamodelDetails() {
           enableDrag={true}
           onDeleteNode={handleDeleteNode}
           forms={nodeForms}
-          edgeTypeConstraints={edgeConstraints}
+          edgeTypes={edgeConstraints}
           onCreateEdge={handleCreateEdge}
           onAddNode={() => setIsCreateNodeOpen(true)}
           className="w-full h-full"

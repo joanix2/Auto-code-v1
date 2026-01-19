@@ -142,6 +142,14 @@ DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les
 ✅ Suppression d'edges en cliquant dessus (sans confirmation, suppression directe)
 ✅ Si une seule relation possible, ne pas afficher la popup (création automatique)
 
+articleMaj: "La" peut être calucler automatiquement.
+
+export type NodeTypeId = "concept" | "attribute" | "relation"; est spécifique à la logique du metamodèle pas de graphe view
+
+créer un fichier dans metamodels pour les types
+
+même chose que Node Type pour les types de realtion
+
 editer des edges
 
 le drag ne marche pas en mobile
@@ -158,9 +166,11 @@ sytle de la flèche ne doit pas partir du centre
 
 ajouter la possiblité de calculé le nom
 
-ajouter un scroll dans les modales
-
 ajouter un historique pour annuler la dernière action
+
+ajouter un LLM pour générer le graphe
+
+ajouter des contraintes de cardinalité
 
 créer l'interface de création de meta-model
 

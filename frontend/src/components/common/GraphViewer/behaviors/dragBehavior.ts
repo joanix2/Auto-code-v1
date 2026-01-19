@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { GraphNode, GraphData, EdgeTypeConstraint } from "../types";
+import { GraphNode, GraphData, EdgeType } from "../types";
 
 interface CreateDragBehaviorParams {
   isEdgeModeActive: boolean;
@@ -10,7 +10,7 @@ interface CreateDragBehaviorParams {
   nodeColorMap: Record<string, string>;
   svgElement: SVGSVGElement; // Ajout pour obtenir les coordonnées transformées
   setEdgeDragState: (state: { sourceNode: GraphNode | null; targetNode: GraphNode | null; isDrawing: boolean }) => void;
-  getAvailableEdgeTypes: (source: GraphNode | null, target: GraphNode | null) => EdgeTypeConstraint[];
+  getAvailableEdgeTypes: (source: GraphNode | null, target: GraphNode | null) => EdgeType[];
   setShowEdgeTypeSelector: (show: boolean) => void;
   onCreateEdge?: (source: string, target: string, type: string) => void;
 }

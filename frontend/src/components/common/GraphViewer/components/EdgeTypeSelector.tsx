@@ -1,14 +1,14 @@
 import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { EdgeTypeConstraint } from "../types";
+import { EdgeType } from "../types";
 
 interface EdgeTypeSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sourceNode: { id: string; label: string; type?: string } | null;
   targetNode: { id: string; label: string; type?: string } | null;
-  availableEdgeTypes: EdgeTypeConstraint[];
+  availableEdgeTypes: EdgeType[];
   onSelectEdgeType: (edgeType: string) => void;
 }
 

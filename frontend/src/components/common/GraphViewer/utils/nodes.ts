@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { GraphNode } from "./types";
+import { GraphNode } from "../types";
 import { NODE_LABEL_FONT_SIZE, NODE_LABEL_OFFSET, NODE_LABEL_MAX_LENGTH, DEFAULT_NODE_COLOR, SELECTED_STROKE_WIDTH, DEFAULT_STROKE_WIDTH } from "./constants";
 
 /**

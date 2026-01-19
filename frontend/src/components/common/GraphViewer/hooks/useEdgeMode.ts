@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { GraphNode, EdgeTypeConstraint } from "../types";
+import { GraphNode, EdgeType } from "../types";
 
 interface UseEdgeModeParams {
   isEdgeModeActive: boolean;
@@ -10,17 +10,17 @@ interface UseEdgeModeParams {
     isDrawing: boolean;
   };
   setEdgeDragState: (state: { sourceNode: GraphNode | null; targetNode: GraphNode | null; isDrawing: boolean }) => void;
-  edgeTypeConstraints: EdgeTypeConstraint[];
+  edgeTypes: EdgeType[];
 }
 
-export function useEdgeMode({ isEdgeModeActive, setIsEdgeModeActive, edgeDragState, setEdgeDragState, edgeTypeConstraints }: UseEdgeModeParams) {
+export function useEdgeMode({ isEdgeModeActive, setIsEdgeModeActive, edgeDragState, setEdgeDragState, edgeTypes }: UseEdgeModeParams) {
   const getAvailableEdgeTypes = useCallback(
     (sourceNode: GraphNode | null, targetNode: GraphNode | null) => {
-      if (!sourceNode || !targetNode || !edgeTypeConstraints.length) return [];
+      if (!sourceNode || !targetNode || !edgeTypes.length) return [];
 
-      return edgeTypeConstraints.filter((constraint) => constraint.sourceNodeType === sourceNode.type && constraint.targetNodeType === targetNode.type);
+      return edgeTypes.filter((constraint) => constraint.sourceNodeType === sourceNode.type && constraint.targetNodeType === targetNode.type);
     },
-    [edgeTypeConstraints],
+    [edgeTypes],
   );
 
   const toggleEdgeMode = useCallback(() => {

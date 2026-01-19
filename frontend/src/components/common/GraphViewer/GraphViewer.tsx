@@ -30,7 +30,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   onEditNode,
   onDeleteNode,
   forms,
-  edgeTypeConstraints = [],
+  edgeTypes = [],
   onCreateEdge,
   onAddNode,
 }) => {
@@ -71,7 +71,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     setIsEdgeModeActive,
     edgeDragState,
     setEdgeDragState,
-    edgeTypeConstraints,
+    edgeTypes,
   });
 
   // Hook pour les contrôles de zoom

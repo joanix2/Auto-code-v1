@@ -1,4 +1,4 @@
-import { GraphNode, EdgeTypeConstraint } from "../types";
+import { GraphNode, EdgeType } from "../types";
 
 interface NodeClickHandlerParams {
   isEdgeModeActive: boolean;
@@ -11,7 +11,7 @@ interface NodeClickHandlerParams {
   setShowEdgeTypeSelector: (show: boolean) => void;
   setSelectedNodeData: (node: GraphNode | null) => void;
   setShowNodePanel: (show: boolean) => void;
-  getAvailableEdgeTypes: (source: GraphNode | null, target: GraphNode | null) => EdgeTypeConstraint[];
+  getAvailableEdgeTypes: (source: GraphNode | null, target: GraphNode | null) => EdgeType[];
   onCreateEdge?: (source: string, target: string, type: string) => void;
   onNodeClick?: (node: GraphNode) => void;
 }

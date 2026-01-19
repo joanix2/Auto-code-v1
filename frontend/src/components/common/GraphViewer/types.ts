@@ -1,7 +1,42 @@
+/**
+ * Classe abstraite représentant un type de nœud
+ */
+export abstract class NodeType {
+  /** Identifiant unique du type */
+  abstract readonly id: string;
+  /** Label au singulier */
+  abstract readonly label: string;
+  /** Label au pluriel */
+  abstract readonly labelPlural: string;
+  /** Genre grammatical ('m' pour masculin, 'f' pour féminin) */
+  abstract readonly gender: "m" | "f";
+  /** Article défini ('le', 'la', 'l'') */
+  abstract readonly article: string;
+
+  /**
+   * Retourne l'article avec majuscule
+   */
+  getArticleMaj(): string {
+    return this.article.charAt(0).toUpperCase() + this.article.slice(1);
+  }
+}
+
+/**
+ * Type de lien possible entre deux types de nœuds
+ */
+export interface EdgeType {
+  edgeType: string;
+  sourceNodeType: string;
+  targetNodeType: string;
+  label: string;
+  description?: string;
+}
+
 export interface GraphNode {
   id: string;
   label: string;
-  type?: string;
+  nodeType?: NodeType;
+  type?: string; // Pour rétrocompatibilité - contient nodeType.id
   properties?: Record<string, unknown>;
   x?: number;
   y?: number;
@@ -26,17 +61,6 @@ export interface SimulationEdge extends GraphEdge {
 export interface GraphData {
   nodes: GraphNode[];
   edges: GraphEdge[];
-}
-
-/**
- * Type de lien possible entre deux types de nœuds
- */
-export interface EdgeTypeConstraint {
-  edgeType: string;
-  sourceNodeType: string;
-  targetNodeType: string;
-  label: string;
-  description?: string;
 }
 
 export interface GraphViewerProps {
@@ -66,7 +90,7 @@ export interface GraphViewerProps {
   /**
    * Types de liens possibles avec contraintes
    */
-  edgeTypeConstraints?: EdgeTypeConstraint[];
+  edgeTypes?: EdgeType[];
   /**
    * Callback appelé quand un lien est créé
    */
