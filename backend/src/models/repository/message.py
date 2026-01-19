@@ -3,7 +3,7 @@ Message model - PR comments and conversations
 """
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
-from .base import BaseEntity
+from ..base import BaseEntity
 
 
 MessageAuthorType = Literal["user", "copilot", "system"]

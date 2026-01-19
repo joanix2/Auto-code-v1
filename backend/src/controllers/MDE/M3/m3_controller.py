@@ -5,9 +5,9 @@ This exposes the M3 type system (NodeType, EdgeType) to the frontend.
 """
 from fastapi import APIRouter
 from typing import List, Dict, Any
-from backend.src.config.m3_config import M3Config
-from backend.src.models.graph.node_type import NodeType
-from backend.src.models.graph.edge_type import EdgeType
+from src.models.MDE.M3.m3_config import M3Config
+from src.models.graph.node_type import NodeType
+from src.models.graph.edge_type import EdgeType
 
 
 router = APIRouter(prefix="/api/m3", tags=["M3"])

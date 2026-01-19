@@ -6,10 +6,10 @@ from typing import List
 import logging
 
 from src.models.MDE.M2 import MetamodelEdge, MetamodelEdgeType, MetamodelEdgeCreate
-from backend.src.models.oauth.user import User
+from src.models.oauth.user import User
 from src.database import get_db
 from src.utils.auth import get_current_user
-from src.repositories.MDE.metamodel_edge_repository import MetamodelEdgeRepository
+from src.repositories.MDE.M2.metamodel_edge_repository import MetamodelEdgeRepository
 
 logger = logging.getLogger(__name__)
 

@@ -7,8 +7,8 @@ import logging
 from uuid import uuid4
 
 from src.services.base_service import BaseService
-from src.repositories.MDE.attribute_repository import AttributeRepository
-from src.repositories.MDE.concept_repository import ConceptRepository
+from src.repositories.MDE.M2.attribute_repository import AttributeRepository
+from src.repositories.MDE.M2.concept_repository import ConceptRepository
 from src.models.MDE.M2.attribute import Attribute, AttributeCreate, AttributeUpdate
 
 logger = logging.getLogger(__name__)

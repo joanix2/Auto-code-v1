@@ -4,8 +4,7 @@ Base models for all entities
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
-
-from pyparsing import Enum
+from enum import Enum
 
 
 class TimestampMixin(BaseModel):

@@ -4,7 +4,7 @@ Attribute Repository - Database operations for attributes
 from typing import Optional, List, Dict, Any
 import logging
 
-from ..base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
+from ...base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
 from src.models.MDE.M2.attribute import Attribute
 
 logger = logging.getLogger(__name__)

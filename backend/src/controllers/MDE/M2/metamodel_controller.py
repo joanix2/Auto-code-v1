@@ -6,13 +6,13 @@ from typing import List, Optional, Dict, Any
 import logging
 import uuid
 
-from ..base_controller import BaseController
-from ...models.user import User
-from ...models import Metamodel, MetamodelCreate, MetamodelUpdate, MetamodelGraphResponse
-from ...services.MDE.metamodel_service import MetamodelService
-from ...repositories.MDE.metamodel_repository import MetamodelRepository
-from ...utils.auth import get_current_user
-from ...database import get_db
+from ...base_controller import BaseController
+from ....models.oauth.user import User
+from ....models import Metamodel, MetamodelCreate, MetamodelUpdate, MetamodelGraphResponse
+from ....services.MDE.M2.metamodel_service import MetamodelService
+from ....repositories.MDE.M2.metamodel_repository import MetamodelRepository
+from ....utils.auth import get_current_user
+from ....database import get_db
 
 router = APIRouter(prefix="/api/metamodels", tags=["metamodels"])
 logger = logging.getLogger(__name__)
@@ -284,10 +284,10 @@ async def get_metamodel_graph(
     logger.info(f"📊 Getting complete graph for metamodel: {metamodel_id}")
     
     # Créer le service avec tous les repositories
-    from ...repositories.MDE.concept_repository import ConceptRepository
-    from ...repositories.MDE.attribute_repository import AttributeRepository
-    from ...repositories.MDE.relationship_repository import RelationshipRepository
-    from ...repositories.MDE.metamodel_edge_repository import MetamodelEdgeRepository
+    from ....repositories.MDE.M2.concept_repository import ConceptRepository
+    from ....repositories.MDE.M2.attribute_repository import AttributeRepository
+    from ....repositories.MDE.M2.relationship_repository import RelationshipRepository
+    from ....repositories.MDE.M2.metamodel_edge_repository import MetamodelEdgeRepository
     
     metamodel_repo = MetamodelRepository(db)
     concept_repo = ConceptRepository(db)

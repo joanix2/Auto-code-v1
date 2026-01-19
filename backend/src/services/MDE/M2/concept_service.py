@@ -6,8 +6,8 @@ import logging
 from uuid import uuid4
 
 from src.services.base_service import BaseService
-from src.repositories.MDE.concept_repository import ConceptRepository
-from src.repositories.MDE.metamodel_repository import MetamodelRepository
+from src.repositories.MDE.M2.concept_repository import ConceptRepository
+from src.repositories.MDE.M2.metamodel_repository import MetamodelRepository
 from src.models.MDE.M2.concept import Concept, ConceptCreate, ConceptUpdate
 
 logger = logging.getLogger(__name__)

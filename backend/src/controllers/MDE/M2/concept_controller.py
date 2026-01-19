@@ -9,10 +9,10 @@ import logging
 
 from src.controllers.base_controller import BaseController
 from src.models.MDE.M2.concept import Concept, ConceptCreate, ConceptUpdate
-from backend.src.models.oauth.user import User
-from src.services.MDE.concept_service import ConceptService
-from src.repositories.MDE.concept_repository import ConceptRepository
-from src.repositories.MDE.metamodel_repository import MetamodelRepository
+from src.models.oauth.user import User
+from src.services.MDE.M2.concept_service import ConceptService
+from src.repositories.MDE.M2.concept_repository import ConceptRepository
+from src.repositories.MDE.M2.metamodel_repository import MetamodelRepository
 from src.utils.auth import get_current_user
 from src.database import get_db
 

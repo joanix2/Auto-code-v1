@@ -6,10 +6,10 @@ from typing import List, Dict, Any, Optional
 import logging
 from uuid import uuid4
 
-from ..base_controller import BaseController
-from src.services.MDE.attribute_service import AttributeService
+from ...base_controller import BaseController
+from src.services.MDE.M2.attribute_service import AttributeService
 from src.models.MDE.M2.attribute import Attribute, AttributeCreate, AttributeUpdate
-from backend.src.models.oauth.user import User
+from src.models.oauth.user import User
 from src.database import get_db
 from src.utils.auth import get_current_user
 

@@ -5,10 +5,10 @@ from typing import List, Optional, Dict, Any
 import logging
 import httpx
 
-from .base_service import GitHubSyncService
-from ..repositories.issue_repository import IssueRepository
-from ..repositories.repository_repository import RepositoryRepository
-from ..models.issue import Issue, IssueCreate
+from ..base_service import GitHubSyncService
+from ...repositories.repository.issue_repository import IssueRepository
+from ...repositories.repository.repository_repository import RepositoryRepository
+from ...models.repository.issue import Issue, IssueCreate
 
 logger = logging.getLogger(__name__)
 

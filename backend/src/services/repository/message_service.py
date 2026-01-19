@@ -6,10 +6,10 @@ import uuid
 import logging
 import httpx
 
-from .base_service import GitHubSyncService
-from ..repositories.message_repository import MessageRepository
-from ..repositories.issue_repository import IssueRepository
-from ..models.message import Message, MessageCreate
+from ..base_service import GitHubSyncService
+from ...repositories.repository.message_repository import MessageRepository
+from ...repositories.repository.issue_repository import IssueRepository
+from ...models.repository.message import Message, MessageCreate
 
 logger = logging.getLogger(__name__)
 

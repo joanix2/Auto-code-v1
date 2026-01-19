@@ -5,7 +5,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 from typing import List
 
-from backend.src.models.base import BaseSemanticModel, GenderType
+from ..base import BaseSemanticModel, GenderType
 
 
 class NodeType(BaseSemanticModel):

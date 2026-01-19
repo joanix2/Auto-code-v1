@@ -4,7 +4,7 @@ Concept Repository - Database operations for concepts
 from typing import Optional, List, Dict, Any
 import logging
 
-from ..base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
+from ...base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
 from src.models.MDE.M2.concept import Concept
 
 logger = logging.getLogger(__name__)

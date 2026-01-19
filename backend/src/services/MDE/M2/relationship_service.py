@@ -6,8 +6,8 @@ import logging
 from uuid import uuid4
 
 from src.services.base_service import BaseService
-from src.repositories.MDE.relationship_repository import RelationshipRepository
-from src.repositories.MDE.concept_repository import ConceptRepository
+from src.repositories.MDE.M2.relationship_repository import RelationshipRepository
+from src.repositories.MDE.M2.concept_repository import ConceptRepository
 from src.models.MDE.M2.relationship import (
     Relationship,
     RelationshipType,

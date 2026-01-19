@@ -4,7 +4,7 @@ Issue model - GitHub Issues (1 Issue = 1 Branch = 1 PR)
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
 from datetime import datetime
-from .base import BaseSemanticModel
+from ..base import BaseSemanticModel
 
 
 IssueStatus = Literal["open", "in_progress", "review", "closed", "cancelled"]

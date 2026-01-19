@@ -1,10 +1,10 @@
 from typing import List, Optional, Dict, Any
-from src.services.base_service import BaseService
-from src.repositories.MDE.metamodel_repository import MetamodelRepository
-from src.repositories.MDE.concept_repository import ConceptRepository
-from src.repositories.MDE.attribute_repository import AttributeRepository
-from src.repositories.MDE.relationship_repository import RelationshipRepository
-from src.repositories.MDE.metamodel_edge_repository import MetamodelEdgeRepository
+from ...base_service import BaseService
+from ....repositories.MDE.M2.metamodel_repository import MetamodelRepository
+from ....repositories.MDE.M2.concept_repository import ConceptRepository
+from ....repositories.MDE.M2.attribute_repository import AttributeRepository
+from ....repositories.MDE.M2.relationship_repository import RelationshipRepository
+from ....repositories.MDE.M2.metamodel_edge_repository import MetamodelEdgeRepository
 from src.models.MDE.M2 import Metamodel, MetamodelCreate, MetamodelUpdate
 import logging
 

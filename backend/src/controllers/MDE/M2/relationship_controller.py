@@ -6,15 +6,15 @@ from typing import List, Dict, Any, Optional
 import logging
 from uuid import uuid4
 
-from ..base_controller import BaseController
-from src.services.MDE.relationship_service import RelationshipService
+from ...base_controller import BaseController
+from src.services.MDE.M2.relationship_service import RelationshipService
 from src.models.MDE.M2.relationship import (
     Relationship,
     RelationshipType,
     RelationshipCreate,
     RelationshipUpdate
 )
-from backend.src.models.oauth.user import User
+from src.models.oauth.user import User
 from src.database import get_db
 from src.utils.auth import get_current_user
 

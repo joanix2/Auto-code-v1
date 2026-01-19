@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict, Any
-from src.repositories.base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
+from ...base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
 from src.models.MDE.M2 import Metamodel, MetamodelCreate, MetamodelUpdate
 import logging
 

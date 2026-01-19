@@ -3,7 +3,7 @@ EdgeType - M3 Base class for semantic edge types
 """
 from pydantic import Field
 from typing import List
-from backend.src.models.base import BaseSemanticModel
+from ..base import BaseSemanticModel
 
 
 class EdgeType(BaseSemanticModel):

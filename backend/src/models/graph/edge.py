@@ -4,7 +4,7 @@ Edge - Abstract base class for graph edges
 from abc import ABC, abstractmethod
 from pydantic import Field
 from typing import Optional, Dict, Any
-from backend.src.models.graph.edge_type import EdgeType
+from .edge_type import EdgeType
 
 from ..base import BaseSemanticModel
 

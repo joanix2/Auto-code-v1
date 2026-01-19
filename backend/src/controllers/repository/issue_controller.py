@@ -8,15 +8,15 @@ import logging
 import uuid
 import httpx
 
-from .base_controller import BaseController
-from ..models.user import User
-from ..models.issue import Issue, IssueCreate, IssueUpdate
-from ..repositories.issue_repository import IssueRepository
-from ..repositories.repository_repository import RepositoryRepository
-from ..services.copilot_agent_service import GitHubCopilotAgentService
-from ..services.issue_service import IssueService
-from ..utils.auth import get_current_user
-from ..database import get_db
+from ..base_controller import BaseController
+from ...models.oauth.user import User
+from ...models.repository.issue import Issue, IssueCreate, IssueUpdate
+from ...repositories.repository.issue_repository import IssueRepository
+from ...repositories.repository.repository_repository import RepositoryRepository
+from ...services.repository.copilot_agent_service import GitHubCopilotAgentService
+from ...services.repository.issue_service import IssueService
+from ...utils.auth import get_current_user
+from ...database import get_db
 
 router = APIRouter(prefix="/api/issues", tags=["issues"])
 logger = logging.getLogger(__name__)

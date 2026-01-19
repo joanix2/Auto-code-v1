@@ -4,7 +4,7 @@ Relationship Repository - Database operations for relationships between concepts
 from typing import Optional, List, Dict, Any
 import logging
 
-from ..base import BaseRepository, convert_neo4j_types
+from ...base import BaseRepository, convert_neo4j_types
 from src.models.MDE.M2.relationship import Relationship, RelationshipType
 
 logger = logging.getLogger(__name__)

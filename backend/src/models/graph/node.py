@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from pydantic import Field
 from typing import Optional, Dict, Any
 
-from backend.src.models.graph.node_type import NodeType
+from .node_type import NodeType
 from ..base import BaseSemanticModel
 
 

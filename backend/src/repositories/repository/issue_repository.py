@@ -2,8 +2,8 @@
 Issue repository - Data access layer for GitHub issues
 """
 from typing import Optional, List
-from .base import BaseRepository, convert_neo4j_types
-from ..models.issue import Issue
+from ..base import BaseRepository, convert_neo4j_types
+from ...models.repository.issue import Issue
 import logging
 
 logger = logging.getLogger(__name__)

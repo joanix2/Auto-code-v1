@@ -3,7 +3,7 @@ Repository model - GitHub repositories
 """
 from pydantic import BaseModel, Field
 from typing import Optional
-from .base import BaseSemanticModel
+from ..base import BaseSemanticModel
 
 
 class Repository(BaseSemanticModel):

@@ -4,7 +4,7 @@ MetamodelEdge Repository - Database operations for metamodel edges (DOMAIN, RANG
 from typing import List, Dict, Any, Optional
 import logging
 
-from ..base import BaseRepository, convert_neo4j_types
+from ...base import BaseRepository, convert_neo4j_types
 from src.models.MDE.M2 import MetamodelEdge, MetamodelEdgeType
 
 logger = logging.getLogger(__name__)

@@ -2,8 +2,8 @@
 Repository repository - Data access layer for GitHub repositories
 """
 from typing import Optional, List
-from .base import BaseRepository, convert_neo4j_types
-from ..models.repository import Repository
+from ..base import BaseRepository, convert_neo4j_types
+from ...models.repository import Repository
 import logging
 
 logger = logging.getLogger(__name__)

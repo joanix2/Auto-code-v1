@@ -2,8 +2,8 @@
 Message repository - Data access layer for PR comments
 """
 from typing import Optional, List
-from .base import BaseRepository, convert_neo4j_types
-from ..models.message import Message
+from ..base import BaseRepository, convert_neo4j_types
+from ...models.repository.message import Message
 import logging
 
 logger = logging.getLogger(__name__)

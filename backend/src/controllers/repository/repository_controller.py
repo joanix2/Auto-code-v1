@@ -6,15 +6,15 @@ from typing import List, Optional, Dict, Any
 import logging
 import httpx
 
-from .base_controller import BaseController
-from ..models.user import User
-from ..models.repository import Repository, RepositoryCreate, RepositoryUpdate
-from ..repositories.repository_repository import RepositoryRepository
-from ..services.repository_service import RepositoryService
-from ..repositories.issue_repository import IssueRepository
-from ..services.issue_service import IssueService
-from ..utils.auth import get_current_user
-from ..database import get_db
+from ..base_controller import BaseController
+from ...models.oauth.user import User
+from ...models.repository.repository import Repository, RepositoryCreate, RepositoryUpdate
+from ...repositories.repository.repository_repository import RepositoryRepository
+from ...services.repository.repository_service import RepositoryService
+from ...repositories.repository.issue_repository import IssueRepository
+from ...services.repository.issue_service import IssueService
+from ...utils.auth import get_current_user
+from ...database import get_db
 
 router = APIRouter(prefix="/api/repositories", tags=["repositories"])
 logger = logging.getLogger(__name__)

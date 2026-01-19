@@ -1,13 +1,14 @@
 """
 Repository Service - Business logic for repository management and GitHub sync
 """
+import src.controllers
 from typing import List, Optional, Dict, Any
 import logging
 import httpx
 
-from .base_service import GitHubSyncService
-from ..repositories.repository_repository import RepositoryRepository
-from ..models.repository import Repository, RepositoryCreate
+from ..base_service import GitHubSyncService
+from ...repositories.repository.repository_repository import RepositoryRepository
+from ...models.repository import Repository, RepositoryCreate
 
 logger = logging.getLogger(__name__)
 

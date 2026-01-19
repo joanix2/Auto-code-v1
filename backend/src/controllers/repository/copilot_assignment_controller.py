@@ -9,14 +9,14 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
-from ..models.user import User
-from ..repositories.issue_repository import IssueRepository
-from ..repositories.repository_repository import RepositoryRepository
-from ..repositories.oauth.user_repository import UserRepository
-from ..services.copilot_agent_service import GitHubCopilotAgentService
-from ..services.repository_initializer_service import RepositoryInitializerService
-from ..utils.auth import get_current_user
-from ..database import get_db
+from src.models.oauth.user import User
+from src.repositories.repository.issue_repository import IssueRepository
+from src.repositories.repository.repository_repository import RepositoryRepository
+from src.repositories.oauth.user_repository import UserRepository
+from src.services.repository.copilot_agent_service import GitHubCopilotAgentService
+from src.services.repository.repository_initializer_service import RepositoryInitializerService
+from src.utils.auth import get_current_user
+from src.database import get_db
 
 logger = logging.getLogger(__name__)
 

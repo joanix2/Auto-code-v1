@@ -5,9 +5,9 @@ from typing import Optional, List, Dict, Any
 import logging
 import httpx
 
-from .base_service import BaseService, SyncableService
-from ..repositories.user_repository import UserRepository
-from ..models.user import User, UserCreate, UserUpdate
+from ..base_service import BaseService, SyncableService
+from ...repositories.oauth.user_repository import UserRepository
+from ...models.oauth.user import User, UserCreate, UserUpdate
 
 logger = logging.getLogger(__name__)
 

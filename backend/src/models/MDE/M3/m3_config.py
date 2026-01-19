@@ -5,9 +5,9 @@ This defines the concrete types available in the metamodel layer.
 This is the single source of truth for node and edge types.
 """
 from typing import List, Dict
-from backend.src.models.base import GenderType
-from backend.src.models.graph.node_type import NodeType
-from backend.src.models.graph.edge_type import EdgeType
+from ...base import GenderType
+from ...graph.node_type import NodeType
+from ...graph.edge_type import EdgeType
 
 
 # ==================== NODE TYPES ====================

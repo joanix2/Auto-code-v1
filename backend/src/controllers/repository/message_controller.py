@@ -7,15 +7,15 @@ import logging
 import uuid
 import httpx
 
-from .base_controller import BaseController
-from ..models.user import User
-from ..models.message import Message, MessageCreate
-from ..services.message_service import MessageService
-from ..repositories.message_repository import MessageRepository
-from ..repositories.issue_repository import IssueRepository
-from ..repositories.repository_repository import RepositoryRepository
-from ..utils.auth import get_current_user
-from ..database import get_db
+from ..base_controller import BaseController
+from ...models.oauth.user import User
+from ...models.repository.message import Message, MessageCreate
+from ...services.repository.message_service import MessageService
+from ...repositories.repository.message_repository import MessageRepository
+from ...repositories.repository.issue_repository import IssueRepository
+from ...repositories.repository.repository_repository import RepositoryRepository
+from ...utils.auth import get_current_user
+from ...database import get_db
 
 router = APIRouter(prefix="/api/messages", tags=["messages"])
 logger = logging.getLogger(__name__)

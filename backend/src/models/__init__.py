@@ -3,9 +3,9 @@ Pydantic models for all entities
 """
 from .base import BaseEntity, TimestampMixin
 from .oauth.user import User, UserCreate, UserUpdate, UserPublic
-from .repository import Repository, RepositoryCreate, RepositoryUpdate
-from .issue import Issue, IssueCreate, IssueUpdate, IssueStatus, IssuePriority, IssueType
-from .message import Message, MessageCreate, MessageUpdate, MessageAuthorType
+from .repository.repository import Repository, RepositoryCreate, RepositoryUpdate
+from .repository.issue import Issue, IssueCreate, IssueUpdate, IssueStatus, IssuePriority, IssueType
+from .repository.message import Message, MessageCreate, MessageUpdate, MessageAuthorType
 from .MDE import (
     Metamodel, 
     MetamodelCreate, 
