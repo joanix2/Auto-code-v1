@@ -63,7 +63,7 @@ async def get_current_user(
 ):
     """Dependency to get current authenticated user from JWT token"""
     from src.models.user import User
-    from src.repositories.user_repository import UserRepository
+    from backend.src.repositories.oauth.user_repository import UserRepository
     
     token = credentials.credentials
     credentials_exception = HTTPException(

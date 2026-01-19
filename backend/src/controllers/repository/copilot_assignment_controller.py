@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from ..models.user import User
 from ..repositories.issue_repository import IssueRepository
 from ..repositories.repository_repository import RepositoryRepository
-from ..repositories.user_repository import UserRepository
+from ..repositories.oauth.user_repository import UserRepository
 from ..services.copilot_agent_service import GitHubCopilotAgentService
 from ..services.repository_initializer_service import RepositoryInitializerService
 from ..utils.auth import get_current_user

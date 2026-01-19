@@ -5,35 +5,25 @@ from abc import ABC, abstractmethod
 from pydantic import Field
 from typing import Optional, Dict, Any
 
-from ..base import BaseEntity
+from backend.src.models.graph.node_type import NodeType
+from ..base import BaseSemanticModel
 
 
-class Node(BaseEntity, ABC):
+class Node(BaseSemanticModel, ABC):
     """
     Abstract Node - Represents a vertex in a graph
     
     All nodes in a graph (Concept, Attribute, Relationship) inherit from this class.
     Nodes are stored as nodes in Neo4j.
     """
-    
-    # Core properties
-    name: str = Field(..., min_length=1, max_length=200, description="Node name")
-    description: Optional[str] = Field(default=None, description="Node description")
+
+    # Graph metadata
+    graph_id: str = Field(..., description="ID of the parent graph (metamodel)")
+    node_type: NodeType = Field(..., description="Type of this node")
     
     # Position for graph visualization
     x_position: Optional[float] = Field(default=None, description="X coordinate in graph visualization")
     y_position: Optional[float] = Field(default=None, description="Y coordinate in graph visualization")
-    
-    # Graph metadata
-    graph_id: str = Field(..., description="ID of the parent graph (metamodel)")
-    
-    @abstractmethod
-    def get_node_type(self) -> str:
-        """
-        Return the type of this node (concept, attribute, relationship, etc.)
-        Must be implemented by subclasses
-        """
-        pass
     
     @abstractmethod
     def get_display_label(self) -> str:
@@ -61,7 +51,7 @@ class Node(BaseEntity, ABC):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "type": self.get_node_type(),
+            "type": self.node_type,
             "label": self.get_display_label(),
             "x": self.x_position,
             "y": self.y_position,

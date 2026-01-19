@@ -1,11 +1,11 @@
 from typing import List, Optional, Dict, Any
 from src.services.base_service import BaseService
-from backend.src.repositories.MDE.metamodel_repository import MetamodelRepository
+from src.repositories.MDE.metamodel_repository import MetamodelRepository
 from src.repositories.MDE.concept_repository import ConceptRepository
 from src.repositories.MDE.attribute_repository import AttributeRepository
 from src.repositories.MDE.relationship_repository import RelationshipRepository
 from src.repositories.MDE.metamodel_edge_repository import MetamodelEdgeRepository
-from src.models.MDE.metamodel import Metamodel, MetamodelCreate, MetamodelUpdate
+from src.models.MDE.M2 import Metamodel, MetamodelCreate, MetamodelUpdate
 import logging
 
 logger = logging.getLogger(__name__)
@@ -48,10 +48,10 @@ class MetamodelService(BaseService[Metamodel]):
         logger.info(f"🔍 Service: Getting metamodel by ID: {entity_id}")
         return await self.repository.get_by_id(entity_id)
     
-    async def get_all(self, filters: Optional[Dict[str, Any]] = None) -> List[Metamodel]:
-        """Get all metamodels with optional filters"""
-        logger.info(f"🔍 Service: Getting all metamodels with filters: {filters}")
-        return await self.repository.get_all()
+    async def get_all(self, skip: int = 0, limit: int = 100) -> List[Metamodel]:
+        """Get all metamodels with optional pagination"""
+        logger.info(f"🔍 Service: Getting all metamodels (skip={skip}, limit={limit})")
+        return await self.repository.get_all(skip, limit)
     
     async def update(self, entity_id: str, update_data: Dict[str, Any]) -> Optional[Metamodel]:
         """Update metamodel"""
@@ -95,7 +95,7 @@ class MetamodelService(BaseService[Metamodel]):
         Get a complete metamodel with all its nodes and edges as a graph structure
         
         Returns a dictionary containing:
-        - graph: The metamodel as a graph dict (using to_graph_dict())
+        - metamodel: The complete Metamodel object (not a dict)
         - nodes: List of all nodes with their graph representation
         - edges: List of all edges with their graph representation
         
@@ -103,7 +103,7 @@ class MetamodelService(BaseService[Metamodel]):
             metamodel_id: ID of the metamodel
             
         Returns:
-            Dict with keys: graph, nodes, edges
+            Dict with keys: metamodel, nodes, edges
         """
         logger.info(f"📊 Service: Getting complete metamodel graph: {metamodel_id}")
         
@@ -121,12 +121,11 @@ class MetamodelService(BaseService[Metamodel]):
             nodes.extend([c.to_graph_dict() for c in concepts])
             logger.info(f"  ✓ Found {len(concepts)} concepts")
         
-        # Récupérer les Attributs standalone (sans concept_id)
+        # Récupérer TOUS les Attributs (standalone ET attachés à des concepts)
         if self.attribute_repository:
             attributes = await self.attribute_repository.get_by_metamodel(metamodel_id)
-            standalone_attrs = [a for a in attributes if not a.concept_id]
-            nodes.extend([a.to_graph_dict() for a in standalone_attrs])
-            logger.info(f"  ✓ Found {len(standalone_attrs)} standalone attributes")
+            nodes.extend([a.to_graph_dict() for a in attributes])
+            logger.info(f"  ✓ Found {len(attributes)} attributes (standalone and attached)")
         
         # Récupérer les Relations
         if self.relationship_repository:
@@ -134,15 +133,47 @@ class MetamodelService(BaseService[Metamodel]):
             nodes.extend([r.to_graph_dict() for r in relationships])
             logger.info(f"  ✓ Found {len(relationships)} relationships")
         
+        # Créer un Set des IDs de nœuds existants
+        node_ids = {node["id"] for node in nodes}
+        logger.info(f"  📋 Total node IDs: {len(node_ids)}")
+        
         # Récupérer les Edges
         if self.edge_repository:
             metamodel_edges = await self.edge_repository.get_by_metamodel(metamodel_id)
-            edges = [e.to_graph_dict() for e in metamodel_edges]
-            logger.info(f"  ✓ Found {len(edges)} edges")
+            
+            # Filtrer les edges orphelins (qui pointent vers des nœuds inexistants)
+            valid_edges = []
+            orphaned_edges = []
+            
+            for edge in metamodel_edges:
+                edge_dict = edge.to_graph_dict()
+                has_valid_source = edge_dict["source"] in node_ids
+                has_valid_target = edge_dict["target"] in node_ids
+                
+                if has_valid_source and has_valid_target:
+                    valid_edges.append(edge_dict)
+                else:
+                    orphaned_edges.append({
+                        "id": edge_dict["id"],
+                        "source": edge_dict["source"],
+                        "target": edge_dict["target"],
+                        "type": edge_dict["type"],
+                        "source_exists": has_valid_source,
+                        "target_exists": has_valid_target
+                    })
+            
+            edges = valid_edges
+            
+            if orphaned_edges:
+                logger.warning(f"  ⚠️ Found {len(orphaned_edges)} orphaned edges (will be filtered out)")
+                for orphan in orphaned_edges[:5]:  # Log first 5 only
+                    logger.warning(f"    - Edge {orphan['id']}: source={orphan['source']} (exists={orphan['source_exists']}), target={orphan['target']} (exists={orphan['target_exists']})")
+            
+            logger.info(f"  ✓ Found {len(edges)} valid edges ({len(orphaned_edges)} orphaned edges filtered)")
         
-        # Construire le résultat avec la représentation graphe du metamodel
+        # Construire le résultat avec l'objet Metamodel complet
         result = {
-            "graph": metamodel.to_graph_dict(),  # Utilise to_graph_dict() du Graph
+            "metamodel": metamodel,  # Retourner l'objet complet, pas to_graph_dict()
             "nodes": nodes,  # Chaque node utilise to_graph_dict()
             "edges": edges   # Chaque edge utilise to_graph_dict()
         }

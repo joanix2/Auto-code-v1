@@ -3,15 +3,13 @@ Repository model - GitHub repositories
 """
 from pydantic import BaseModel, Field
 from typing import Optional
-from .base import BaseEntity
+from .base import BaseSemanticModel
 
 
-class Repository(BaseEntity):
+class Repository(BaseSemanticModel):
     """GitHub repository model"""
-    name: str = Field(..., description="Repository name")
     full_name: str = Field(..., description="owner/repo")
     owner_username: str = Field(..., description="Owner username")
-    description: Optional[str] = Field(None, description="Repository description")
     github_id: Optional[int] = Field(None, description="GitHub repository ID")
     default_branch: str = Field(default="main", description="Default branch")
     is_private: bool = Field(default=False, description="Is private repository")

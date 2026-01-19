@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Any
 import logging
 
 from ..base import BaseRepository, convert_neo4j_types
-from src.models.MDE.metamodel.relationship import Relationship, RelationshipType
+from src.models.MDE.M2.relationship import Relationship, RelationshipType
 
 logger = logging.getLogger(__name__)
 

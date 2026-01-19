@@ -8,7 +8,7 @@ from uuid import uuid4
 from src.services.base_service import BaseService
 from src.repositories.MDE.relationship_repository import RelationshipRepository
 from src.repositories.MDE.concept_repository import ConceptRepository
-from src.models.MDE.metamodel.relationship import (
+from src.models.MDE.M2.relationship import (
     Relationship,
     RelationshipType,
     RelationshipCreate,

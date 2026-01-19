@@ -4,7 +4,7 @@ Issue model - GitHub Issues (1 Issue = 1 Branch = 1 PR)
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
 from datetime import datetime
-from .base import BaseEntity
+from .base import BaseSemanticModel
 
 
 IssueStatus = Literal["open", "in_progress", "review", "closed", "cancelled"]
@@ -12,11 +12,8 @@ IssuePriority = Literal["low", "medium", "high", "urgent"]
 IssueType = Literal["bug", "feature", "documentation", "refactor"]
 
 
-class Issue(BaseEntity):
-    """Issue model (1 Issue = 1 Branch = 1 PR)"""
-    title: str = Field(..., description="Issue title")
-    description: str = Field(..., description="Issue description")
-    
+class Issue(BaseSemanticModel):
+    """Issue model (1 Issue = 1 Branch = 1 PR)"""   
     # Relations
     repository_id: str = Field(..., description="Repository ID")
     author_username: str = Field(..., description="Author username")

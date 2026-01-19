@@ -16,6 +16,7 @@ from src.controllers import (
     message_router,
     copilot_assignment_router,
 )
+from backend.src.controllers.MDE.M3.m3_controller import router as m3_router
 from src.controllers.MDE.metamodel_controller import router as metamodel_router
 from src.controllers.MDE.concept_controller import router as concept_router
 from src.controllers.MDE.attribute_controller import router as attribute_router
@@ -73,6 +74,7 @@ app.include_router(repository_router)
 app.include_router(issue_router)
 app.include_router(message_router)
 app.include_router(copilot_assignment_router)
+app.include_router(m3_router)
 app.include_router(metamodel_router)
 app.include_router(concept_router)
 app.include_router(attribute_router)

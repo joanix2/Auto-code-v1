@@ -4,27 +4,26 @@ Edge - Abstract base class for graph edges
 from abc import ABC, abstractmethod
 from pydantic import Field
 from typing import Optional, Dict, Any
+from backend.src.models.graph.edge_type import EdgeType
 
-from ..base import BaseEntity
+from ..base import BaseSemanticModel
 
 
-class Edge(BaseEntity, ABC):
+class Edge(BaseSemanticModel, ABC):
     """
     Abstract Edge - Represents a relationship/connection between two nodes in a graph
     
     Edges connect nodes and are stored as relationships in Neo4j.
     In the MDE context, Relationship entities are edges between Concept nodes.
     """
-    
-    # Core properties
-    description: Optional[str] = Field(default=None, description="Edge description")
-    
+     
+    # Graph metadata
+    graph_id: str = Field(..., description="ID of the parent graph (metamodel)")
+    edge_type: str = Field(..., description="Type of this edge")
+
     # Source and target nodes
     source_id: str = Field(..., description="ID of the source node")
     target_id: str = Field(..., description="ID of the target node")
-    
-    # Graph metadata
-    graph_id: str = Field(..., description="ID of the parent graph (metamodel)")
     
     # Optional labels
     source_label: Optional[str] = Field(default=None, description="Label of source node (cached)")
@@ -67,11 +66,12 @@ class Edge(BaseEntity, ABC):
         Convert to dictionary suitable for graph visualization
         Override in subclasses to add specific properties
         """
+        display_label = self.get_display_label()
         return {
             "id": self.id,
             "description": self.description,
-            "type": self.get_edge_type(),
-            "label": self.get_display_label(),
+            "type": display_label,  # Use uppercase display label for consistency
+            "label": display_label,  # Same for label
             "source": self.source_id,
             "target": self.target_id,
             "source_label": self.source_label,

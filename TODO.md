@@ -142,13 +142,17 @@ DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les
 ✅ Suppression d'edges en cliquant dessus (sans confirmation, suppression directe)
 ✅ Si une seule relation possible, ne pas afficher la popup (création automatique)
 
-articleMaj: "La" peut être calucler automatiquement.
+✅ articleMaj: "La" peut être calucler automatiquement.
 
-export type NodeTypeId = "concept" | "attribute" | "relation"; est spécifique à la logique du metamodèle pas de graphe view
+✅ export type NodeTypeId = "concept" | "attribute" | "relation"; est spécifique à la logique du metamodèle pas de graphe view
 
-créer un fichier dans metamodels pour les types
+✅ créer un fichier dans metamodels pour les types
 
-même chose que Node Type pour les types de realtion
+même chose que Node Type pour les types d'edge
+
+Nom des edges en majuscule
+
+copier NodeType et EdgeType coté API
 
 editer des edges
 

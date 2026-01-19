@@ -267,53 +267,6 @@ async def deprecate_metamodel(
     return await controller.deprecate_metamodel(metamodel_id)
 
 
-@router.get("/{metamodel_id}/edge-constraints", response_model=List[Dict[str, str]])
-async def get_edge_constraints(
-    metamodel_id: str,
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
-):
-    """
-    Get edge type constraints for a metamodel
-    Returns the list of possible edge types between node types
-    """
-    # Pour l'instant, retourner des contraintes hardcodées pour les métamodèles
-    # Plus tard, ces contraintes pourront être stockées en base de données
-    
-    constraints = [
-        {
-            "edgeType": "domain",
-            "sourceNodeType": "relation",
-            "targetNodeType": "concept",
-            "label": "Domain",
-            "description": "Définit le concept de domaine d'une relation"
-        },
-        {
-            "edgeType": "range",
-            "sourceNodeType": "relation",
-            "targetNodeType": "concept",
-            "label": "Range",
-            "description": "Définit le concept de portée d'une relation"
-        },
-        {
-            "edgeType": "has_attribute",
-            "sourceNodeType": "concept",
-            "targetNodeType": "attribute",
-            "label": "Has Attribute",
-            "description": "Lie un attribut à un concept"
-        },
-        {
-            "edgeType": "subclass_of",
-            "sourceNodeType": "concept",
-            "targetNodeType": "concept",
-            "label": "Subclass Of",
-            "description": "Relation de sous-classe entre concepts"
-        }
-    ]
-    
-    return constraints
-
-
 @router.get("/{metamodel_id}/graph", response_model=MetamodelGraphResponse)
 async def get_metamodel_graph(
     metamodel_id: str,

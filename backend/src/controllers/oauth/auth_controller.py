@@ -8,13 +8,13 @@ import secrets
 from typing import Optional
 from pydantic import BaseModel
 
-from ..models.user import User, UserPublic
-from ..services.github_oauth_service import GitHubOAuthService
-from ..services.user_service import UserService
-from ..repositories.user_repository import UserRepository
-from ..database import get_db
-from ..utils.auth import get_current_user, create_access_token
-from ..utils.config import config
+from ...models.user import User, UserPublic
+from ...services import GitHubOAuthService
+from ...services import UserService
+from ...repositories.oauth.user_repository import UserRepository
+from ...database import get_db
+from ...utils.auth import get_current_user, create_access_token
+from ...utils.config import config
 from neo4j import AsyncDriver
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])

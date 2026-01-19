@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 import logging
 
-from src.models.MDE.metamodel import MetamodelEdge, MetamodelEdgeType, MetamodelEdgeCreate
+from src.models.MDE.M2 import MetamodelEdge, MetamodelEdgeType, MetamodelEdgeCreate
 from src.models.user import User
 from src.database import get_db
 from src.utils.auth import get_current_user

@@ -1,9 +1,9 @@
 """
 MetamodelEdge - Edges in the metamodel graph (domain, range, has_attribute, etc.)
 """
-from enum import Enum
 from pydantic import BaseModel, Field
 from typing import Optional
+from enum import Enum
 
 from ...graph.edge import Edge
 
@@ -14,6 +14,20 @@ class MetamodelEdgeType(str, Enum):
     RANGE = "range"             # Relation → Target Concept
     HAS_ATTRIBUTE = "has_attribute"  # Concept → Attribute
     SUBCLASS_OF = "subclass_of"      # Concept → Concept (inheritance)
+    
+    def get_display_label(self) -> str:
+        """Return the label in UPPERCASE for display (Neo4j convention)"""
+        return self.value.upper()
+    
+    def get_description(self) -> str:
+        """Return human-readable description of this edge type"""
+        descriptions = {
+            "domain": "Définit le concept de domaine d'une relation (source)",
+            "range": "Définit le concept de portée d'une relation (cible)",
+            "has_attribute": "Relie un concept à un de ses attributs",
+            "subclass_of": "Définit une relation d'héritage entre concepts",
+        }
+        return descriptions.get(self.value, "")
 
 
 class MetamodelEdge(Edge):
@@ -41,13 +55,7 @@ class MetamodelEdge(Edge):
     
     def get_display_label(self) -> str:
         """Return the label to display on the edge in UPPERCASE like Neo4j"""
-        labels = {
-            MetamodelEdgeType.DOMAIN: "DOMAIN",
-            MetamodelEdgeType.RANGE: "RANGE",
-            MetamodelEdgeType.HAS_ATTRIBUTE: "HAS_ATTRIBUTE",
-            MetamodelEdgeType.SUBCLASS_OF: "SUBCLASS_OF",
-        }
-        return labels.get(self.edge_type, self.edge_type.value.upper())
+        return self.edge_type.get_display_label()
     
     def is_directed(self) -> bool:
         """All metamodel edges are directed"""

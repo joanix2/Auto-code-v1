@@ -207,21 +207,25 @@ export function MetamodelDetails() {
     if (!id) return;
 
     try {
+      // Le backend attend le type en minuscules (enum: "domain", "range", etc.)
+      // mais edgeType vient des contraintes en MAJUSCULES
+      const backendEdgeType = edgeType.toLowerCase();
+
       // Créer l'edge en base de données via l'API
       const createdEdge = await edgeService.create({
         graph_id: id,
         source_id: sourceNodeId,
         target_id: targetNodeId,
-        edge_type: edgeType,
+        edge_type: backendEdgeType,
       });
 
-      // Ajouter l'edge au graphe local
+      // Le backend retourne le type en MAJUSCULES pour l'affichage
       const newEdge: GraphEdge = {
         id: createdEdge.id,
         source: sourceNodeId,
         target: targetNodeId,
-        label: edgeType,
-        type: edgeType,
+        label: createdEdge.label || createdEdge.type,
+        type: createdEdge.type,
       };
 
       setGraphData((prev: GraphData) => ({
@@ -231,7 +235,7 @@ export function MetamodelDetails() {
 
       toast({
         title: "Lien créé",
-        description: `Lien de type "${edgeType}" créé avec succès`,
+        description: `Lien de type "${createdEdge.type}" créé avec succès`,
       });
     } catch (error) {
       console.error("Error creating edge:", error);

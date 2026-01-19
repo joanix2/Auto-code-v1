@@ -2,8 +2,8 @@
 User repository - Data access layer for users
 """
 from typing import Optional
-from .base import BaseRepository, convert_neo4j_types
-from ..models.user import User
+from ..base import BaseRepository, convert_neo4j_types
+from ...models.user import User
 import logging
 
 logger = logging.getLogger(__name__)

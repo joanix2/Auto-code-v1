@@ -5,10 +5,10 @@ from abc import ABC, abstractmethod
 from pydantic import Field
 from typing import List, Dict, Any, Optional
 
-from ..base import BaseEntity
+from ..base import BaseSemanticModel
 
 
-class Graph(BaseEntity, ABC):
+class Graph(BaseSemanticModel, ABC):
     """
     Abstract Graph - Represents a graph structure containing nodes and edges
     
@@ -20,9 +20,6 @@ class Graph(BaseEntity, ABC):
     
     Graphs are stored as nodes in Neo4j with relationships to their contained nodes.
     """
-    
-    name: str = Field(..., min_length=1, max_length=200, description="Graph name")
-    description: Optional[str] = Field(default=None, description="Graph description")
     
     # Metrics
     node_count: int = Field(default=0, ge=0, description="Total number of nodes in the graph")
