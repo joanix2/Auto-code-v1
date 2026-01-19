@@ -11,7 +11,7 @@ export const createArrowMarkers = (svg: d3.Selection<SVGSVGElement, unknown, nul
     .append("marker")
     .attr("id", "arrowhead")
     .attr("viewBox", "0 -5 10 10")
-    .attr("refX", nodeRadius + 8)
+    .attr("refX", 10) // Pointe exactement au bout du path
     .attr("refY", 0)
     .attr("markerWidth", 6)
     .attr("markerHeight", 6)
@@ -25,7 +25,7 @@ export const createArrowMarkers = (svg: d3.Selection<SVGSVGElement, unknown, nul
     .append("marker")
     .attr("id", "arrowhead-selected")
     .attr("viewBox", "0 -5 10 10")
-    .attr("refX", nodeRadius + 8)
+    .attr("refX", 10) // Pointe exactement au bout du path
     .attr("refY", 0)
     .attr("markerWidth", 6)
     .attr("markerHeight", 6)

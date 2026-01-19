@@ -226,6 +226,18 @@ export function MetamodelDetails() {
     if (!id) return;
 
     try {
+      // Vérifier si un lien du même type existe déjà entre ces deux nœuds
+      const existingEdge = graphData.edges.find((edge) => edge.source === sourceNodeId && edge.target === targetNodeId && edge.type?.toUpperCase() === edgeType.toUpperCase());
+
+      if (existingEdge) {
+        toast({
+          title: "Lien déjà existant",
+          description: `Un lien de type "${edgeType}" existe déjà entre ces deux nœuds`,
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Le backend attend le type en minuscules (enum: "domain", "range", etc.)
       // mais edgeType vient des contraintes en MAJUSCULES
       const backendEdgeType = edgeType.toLowerCase();

@@ -152,6 +152,10 @@ même chose que Node Type pour les types d'edge
 
 Nom des edges en majuscule
 
+Si j'ai deux liaison, je ne doit pas avoir deux fois le même noeud
+
+dessin de la flèche doit partir de la bordure du noeud source
+
 copier NodeType et EdgeType coté API
 
 editer des edges

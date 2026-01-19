@@ -72,6 +72,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     edgeDragState,
     setEdgeDragState,
     edgeTypes,
+    existingEdges: data.edges,
   });
 
   // Hook pour les contrôles de zoom
@@ -258,7 +259,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
 
     // Update positions on simulation tick
     simulation.on("tick", () => {
-      updateEdgePositions(link, edgeLabels);
+      updateEdgePositions(link, edgeLabels, nodeRadius);
       updateNodePositions(node, nodeLabels);
     });
 

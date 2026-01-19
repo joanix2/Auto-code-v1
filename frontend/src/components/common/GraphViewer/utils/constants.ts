@@ -26,6 +26,7 @@ export const SELECTED_STROKE_WIDTH = 3;
 export const DEFAULT_STROKE_WIDTH = 2;
 export const EDGE_STROKE_WIDTH = 2;
 export const EDGE_STROKE_OPACITY = 0.6;
+export const EDGE_ARROW_OFFSET = 0; // Espace entre la fin du path et le nœud cible
 
 export const NODE_LABEL_FONT_SIZE = 12;
 export const EDGE_LABEL_FONT_SIZE = 10;

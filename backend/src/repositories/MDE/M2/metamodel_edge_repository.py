@@ -234,7 +234,27 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
             
         Returns:
             MetamodelEdge: L'edge créé
+            
+        Raises:
+            ValueError: Si l'edge existe déjà
         """
+        # Vérifier si l'edge existe déjà
+        edge_rel_type = edge_type.value.upper()
+        check_query = f"""
+        MATCH (source {{id: $source_id}})-[edge:{edge_rel_type}]->(target {{id: $target_id}})
+        RETURN count(edge) as edge_count
+        """
+        
+        check_result = self.db.execute_query(
+            check_query,
+            {"source_id": source_id, "target_id": target_id}
+        )
+        
+        if check_result and check_result[0]["edge_count"] > 0:
+            raise ValueError(
+                f"Un lien de type {edge_type.value} existe déjà entre {source_id} et {target_id}"
+            )
+        
         # Déterminer les types de noeuds selon le type d'edge
         if edge_type == MetamodelEdgeType.DOMAIN:
             # DOMAIN: Relation → Concept

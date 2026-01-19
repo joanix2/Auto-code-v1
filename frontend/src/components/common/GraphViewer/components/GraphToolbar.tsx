@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Link, Send } from "lucide-react";
+import { Plus, Link, Send, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -40,17 +40,15 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({ prompt, onPromptChan
             <Send className="h-4 w-4" />
           </Button>
         </div>
-
         {/* Bouton Ajouter un nœud - texte complet sur desktop, icône seulement sur mobile */}
         <Button onClick={onAddNode} variant="default" size="sm" className="shrink-0">
           <Plus className="h-4 w-4 md:mr-2" />
           <span className="hidden md:inline">Ajouter un nœud</span>
         </Button>
-
         {/* Bouton Mode Edge/Node - avec indicateur visuel actif/inactif */}
         <Button onClick={onToggleEdgeMode} variant={isEdgeMode ? "default" : "outline"} size="sm" className="shrink-0">
-          <Link className="h-4 w-4 md:mr-2" />
-          <span className="hidden md:inline">{isEdgeMode ? "Mode Lien (actif)" : "Mode Lien"}</span>
+          {isEdgeMode ? <Link className="h-4 w-4 md:mr-2" /> : <Circle className="h-4 w-4 md:mr-2" />}
+          <span className="hidden md:inline">{isEdgeMode ? "Mode Arrête" : "Mode Noeud"}</span>
         </Button>
       </div>
     </div>

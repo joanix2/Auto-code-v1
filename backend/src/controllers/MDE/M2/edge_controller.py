@@ -2,7 +2,7 @@
 Edge Controller - API endpoints for metamodel edges
 """
 from fastapi import APIRouter, HTTPException, Depends, status
-from typing import List
+from typing import List, Dict, Any
 import logging
 
 from src.models.MDE.M2 import MetamodelEdge, MetamodelEdgeType, MetamodelEdgeCreate
@@ -22,13 +22,13 @@ def get_edge_repository(db = Depends(get_db)):
     return MetamodelEdgeRepository(db)
 
 
-@router.post("/", response_model=MetamodelEdge, status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_edge(
     edge_data: MetamodelEdgeCreate,
     current_user: User = Depends(get_current_user),
     db = Depends(get_db),
     edge_repo: MetamodelEdgeRepository = Depends(get_edge_repository)
-):
+) -> Dict[str, Any]:
     """
     Create a new edge between two nodes
     
@@ -39,9 +39,9 @@ async def create_edge(
         Created edge
     """
     try:
-        # Convertir le string en enum si nécessaire
+        # Convertir le string en enum si nécessaire (accepter majuscules et minuscules)
         if isinstance(edge_data.edge_type, str):
-            edge_type_enum = MetamodelEdgeType(edge_data.edge_type)
+            edge_type_enum = MetamodelEdgeType(edge_data.edge_type.lower())
         else:
             edge_type_enum = edge_data.edge_type
     except ValueError:
@@ -64,7 +64,8 @@ async def create_edge(
         )
         
         logger.info(f"✅ Edge created successfully: {edge.id}")
-        return edge
+        # Retourner le dictionnaire formaté pour le frontend avec le champ 'label'
+        return edge.to_graph_dict()
         
     except ValueError as e:
         logger.error(f"❌ Error creating edge: {e}")
@@ -101,8 +102,8 @@ async def delete_edge(
         Success message
     """
     try:
-        # Convertir le string en enum
-        edge_type_enum = MetamodelEdgeType(edge_type)
+        # Convertir le string en enum (accepter majuscules et minuscules)
+        edge_type_enum = MetamodelEdgeType(edge_type.lower())
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
