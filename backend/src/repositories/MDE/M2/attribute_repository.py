@@ -6,6 +6,7 @@ import logging
 
 from ...base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
 from src.models.MDE.M2.attribute import Attribute
+from src.models.MDE.M3.m3_config import ATTRIBUTE_NODE_TYPE
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,11 @@ class AttributeRepository(BaseRepository[Attribute]):
 
     def __init__(self, db):
         super().__init__(db, Attribute, "Attribute")
+
+    def _add_node_type(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Add node_type to attribute data"""
+        data["node_type"] = ATTRIBUTE_NODE_TYPE
+        return data
 
     async def create(self, data: Dict[str, Any]) -> Attribute:
         """
@@ -65,7 +71,7 @@ class AttributeRepository(BaseRepository[Attribute]):
         
         node = convert_neo4j_types(result[0]["a"])
         logger.info(f"✅ Created {self.label} with id={node.get('id')} and HAS_ATTRIBUTE relationship")
-        return self.model(**node)
+        return self.model(**self._add_node_type(node))
 
     async def create_with_relationship(self, data: Dict[str, Any]) -> Attribute:
         """
@@ -123,7 +129,7 @@ class AttributeRepository(BaseRepository[Attribute]):
         
         node = convert_neo4j_types(result[0]["a"])
         logger.info(f"✅ Created Attribute with id={node.get('id')} for concept={concept_id}, metamodel={graph_id}")
-        return self.model(**node)
+        return self.model(**self._add_node_type(node))
 
     async def get_by_concept(self, concept_id: str, skip: int = 0, limit: int = 100) -> List[Attribute]:
         """
@@ -145,7 +151,7 @@ class AttributeRepository(BaseRepository[Attribute]):
         LIMIT $limit
         """
         result = self.db.execute_query(query, {"concept_id": concept_id, "skip": skip, "limit": limit})
-        return [self.model(**convert_neo4j_types(row["a"])) for row in result]
+        return [self.model(**self._add_node_type(convert_neo4j_types(row["a"]))) for row in result]
 
     async def get_by_metamodel(self, metamodel_id: str, skip: int = 0, limit: int = 100) -> List[Attribute]:
         """
@@ -167,7 +173,7 @@ class AttributeRepository(BaseRepository[Attribute]):
         LIMIT $limit
         """
         result = self.db.execute_query(query, {"metamodel_id": metamodel_id, "skip": skip, "limit": limit})
-        return [self.model(**convert_neo4j_types(row["a"])) for row in result]
+        return [self.model(**self._add_node_type(convert_neo4j_types(row["a"]))) for row in result]
 
     async def get_by_name(self, concept_id: str, name: str) -> Optional[Attribute]:
         """
@@ -187,7 +193,7 @@ class AttributeRepository(BaseRepository[Attribute]):
         result = self.db.execute_query(query, {"concept_id": concept_id, "name": name})
         if not result:
             return None
-        return self.model(**convert_neo4j_types(result[0]["a"]))
+        return self.model(**self._add_node_type(convert_neo4j_types(result[0]["a"])))
 
     async def get_required_attributes(self, concept_id: str) -> List[Attribute]:
         """
@@ -205,7 +211,7 @@ class AttributeRepository(BaseRepository[Attribute]):
         ORDER BY a.created_at ASC
         """
         result = self.db.execute_query(query, {"concept_id": concept_id})
-        return [self.model(**convert_neo4j_types(row["a"])) for row in result]
+        return [self.model(**self._add_node_type(convert_neo4j_types(row["a"]))) for row in result]
 
     async def count_by_concept(self, concept_id: str) -> int:
         """

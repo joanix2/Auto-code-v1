@@ -6,6 +6,7 @@ import logging
 
 from ...base import BaseRepository, convert_neo4j_types
 from src.models.MDE.M2.relationship import Relationship, RelationshipType
+from src.models.MDE.M3.m3_config import RELATION_NODE_TYPE
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,11 @@ class RelationshipRepository(BaseRepository[Relationship]):
 
     def __init__(self, db):
         super().__init__(db, Relationship, "Relationship")
+
+    def _add_node_type(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Add node_type to relationship data"""
+        data["node_type"] = RELATION_NODE_TYPE
+        return data
 
     def _normalize_relationship_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -26,6 +32,9 @@ class RelationshipRepository(BaseRepository[Relationship]):
         # Ensure graph_id is set from metamodel_id if present
         if "metamodel_id" in normalized and "graph_id" not in normalized:
             normalized["graph_id"] = normalized["metamodel_id"]
+        
+        # Add node_type from M3 configuration
+        normalized["node_type"] = RELATION_NODE_TYPE
             
         return normalized
 

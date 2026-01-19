@@ -6,6 +6,7 @@ import logging
 
 from ...base import BaseRepository, convert_neo4j_types, prepare_neo4j_properties
 from src.models.MDE.M2.concept import Concept
+from src.models.MDE.M3.m3_config import CONCEPT_NODE_TYPE
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,11 @@ class ConceptRepository(BaseRepository[Concept]):
 
     def __init__(self, db):
         super().__init__(db, Concept, "Concept")
+
+    def _add_node_type(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Add node_type to concept data"""
+        data["node_type"] = CONCEPT_NODE_TYPE
+        return data
 
     async def create(self, data: Dict[str, Any]) -> Concept:
         """
@@ -65,7 +71,7 @@ class ConceptRepository(BaseRepository[Concept]):
         
         node = convert_neo4j_types(result[0]["c"])
         logger.info(f"✅ Created {self.label} with id={node.get('id')} and HAS_CONCEPT relationship")
-        return self.model(**node)
+        return self.model(**self._add_node_type(node))
 
     async def get_by_metamodel(self, metamodel_id: str, skip: int = 0, limit: int = 100) -> List[Concept]:
         """
@@ -87,7 +93,7 @@ class ConceptRepository(BaseRepository[Concept]):
         LIMIT $limit
         """
         result = self.db.execute_query(query, {"metamodel_id": metamodel_id, "skip": skip, "limit": limit})
-        return [self.model(**convert_neo4j_types(row["c"])) for row in result]
+        return [self.model(**self._add_node_type(convert_neo4j_types(row["c"]))) for row in result]
 
     async def get_by_name(self, metamodel_id: str, name: str) -> Optional[Concept]:
         """
@@ -107,7 +113,7 @@ class ConceptRepository(BaseRepository[Concept]):
         result = self.db.execute_query(query, {"metamodel_id": metamodel_id, "name": name})
         if not result:
             return None
-        return self.model(**convert_neo4j_types(result[0]["c"]))
+        return self.model(**self._add_node_type(convert_neo4j_types(result[0]["c"])))
 
     async def update_position(self, concept_id: str, x: float, y: float) -> Optional[Concept]:
         """
@@ -130,7 +136,7 @@ class ConceptRepository(BaseRepository[Concept]):
         result = self.db.execute_query(query, {"id": concept_id, "x": x, "y": y})
         if not result:
             return None
-        return self.model(**convert_neo4j_types(result[0]["c"]))
+        return self.model(**self._add_node_type(convert_neo4j_types(result[0]["c"])))
 
     async def get_with_attributes(self, concept_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -155,7 +161,7 @@ class ConceptRepository(BaseRepository[Concept]):
         attributes = [convert_neo4j_types(attr) for attr in result[0]["attributes"] if attr]
         
         return {
-            "concept": self.model(**concept_data),
+            "concept": self.model(**self._add_node_type(concept_data)),
             "attributes": attributes
         }
 

@@ -194,8 +194,8 @@ class RelationshipController(BaseController[Relationship, RelationshipCreate, Re
 
 def get_controller(db = Depends(get_db)) -> RelationshipController:
     """Factory function to create RelationshipController instance"""
-    from src.repositories.MDE.relationship_repository import RelationshipRepository
-    from src.repositories.MDE.concept_repository import ConceptRepository
+    from src.repositories.MDE.M2.relationship_repository import RelationshipRepository
+    from src.repositories.MDE.M2.concept_repository import ConceptRepository
     
     relationship_repo = RelationshipRepository(db)
     concept_repo = ConceptRepository(db)

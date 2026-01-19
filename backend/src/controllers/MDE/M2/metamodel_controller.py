@@ -9,6 +9,8 @@ import uuid
 from ...base_controller import BaseController
 from ....models.oauth.user import User
 from ....models import Metamodel, MetamodelCreate, MetamodelUpdate, MetamodelGraphResponse
+from ....models.graph.edge_type import EdgeType
+from ....models.MDE.M3.m3_config import M3Config
 from ....services.MDE.M2.metamodel_service import MetamodelService
 from ....repositories.MDE.M2.metamodel_repository import MetamodelRepository
 from ....utils.auth import get_current_user
@@ -305,7 +307,16 @@ async def get_metamodel_graph(
     
     try:
         graph_data = await service.get_metamodel_with_graph(metamodel_id)
-        logger.info(f"✅ Graph retrieved: {len(graph_data['nodes'])} nodes, {len(graph_data['edges'])} edges")
+        
+        # Edge constraints are now included in the metamodel object via allowed_edge_types
+        # Add them at the top level for frontend convenience
+        if 'metamodel' in graph_data and hasattr(graph_data['metamodel'], 'allowed_edge_types'):
+            graph_data['edgeConstraints'] = graph_data['metamodel'].allowed_edge_types
+        else:
+            # Fallback to M3 config if not in metamodel
+            graph_data['edgeConstraints'] = M3Config.get_edge_types()
+        
+        logger.info(f"✅ Graph retrieved: {len(graph_data['nodes'])} nodes, {len(graph_data['edges'])} edges, {len(graph_data['edgeConstraints'])} edge constraints")
         return graph_data
     except ValueError as e:
         logger.error(f"❌ Error getting graph: {e}")

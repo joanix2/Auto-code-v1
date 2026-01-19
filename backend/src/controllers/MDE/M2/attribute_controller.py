@@ -7,11 +7,15 @@ import logging
 from uuid import uuid4
 
 from ...base_controller import BaseController
-from src.services.MDE.M2.attribute_service import AttributeService
 from src.models.MDE.M2.attribute import Attribute, AttributeCreate, AttributeUpdate
 from src.models.oauth.user import User
 from src.database import get_db
 from src.utils.auth import get_current_user
+
+from src.services.MDE.M2.attribute_service import AttributeService
+from src.repositories.MDE.M2.attribute_repository import AttributeRepository
+from src.repositories.MDE.M2.concept_repository import ConceptRepository
+from src.repositories.MDE.M2.metamodel_repository import MetamodelRepository
 
 logger = logging.getLogger(__name__)
 
@@ -142,10 +146,6 @@ class AttributeController(BaseController[Attribute, AttributeCreate, AttributeUp
 
 def get_controller(db = Depends(get_db)) -> AttributeController:
     """Factory function to create AttributeController instance"""
-    from src.services.MDE.attribute_service import AttributeService
-    from src.repositories.MDE.attribute_repository import AttributeRepository
-    from src.repositories.MDE.concept_repository import ConceptRepository
-    from src.repositories.MDE.metamodel_repository import MetamodelRepository
     
     attribute_repo = AttributeRepository(db)
     concept_repo = ConceptRepository(db)

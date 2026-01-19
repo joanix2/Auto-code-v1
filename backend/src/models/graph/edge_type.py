@@ -14,8 +14,10 @@ class EdgeType(BaseSemanticModel):
     and which node types they can connect.
     
     Example: DOMAIN edge connects RELATION to CONCEPT
-    """
     
+    Inherits from BaseSemanticModel (name, description) but NOT BaseEntity (no id).
+    This is a configuration/metadata class, not a database entity.
+    """
     sourceNodeTypes: List[str] = Field(..., description="IDs of valid source node types")
     targetNodeTypes: List[str] = Field(..., description="IDs of valid target node types")
     directed: bool = Field(default=True, description="Whether the edge is directed")

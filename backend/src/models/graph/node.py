@@ -5,21 +5,25 @@ from abc import ABC, abstractmethod
 from pydantic import Field
 from typing import Optional, Dict, Any
 
+from ..base import BaseEntity, BaseSemanticModel
 from .node_type import NodeType
-from ..base import BaseSemanticModel
 
 
-class Node(BaseSemanticModel, ABC):
+class Node(BaseEntity, BaseSemanticModel, ABC):
     """
     Abstract Node - Represents a vertex in a graph
     
     All nodes in a graph (Concept, Attribute, Relationship) inherit from this class.
     Nodes are stored as nodes in Neo4j.
+    
+    Multiple inheritance:
+    - BaseEntity: provides id, created_at, updated_at
+    - BaseSemanticModel: provides name, description
     """
 
     # Graph metadata
     graph_id: str = Field(..., description="ID of the parent graph (metamodel)")
-    node_type: NodeType = Field(..., description="Type of this node")
+    node_type: NodeType = Field(..., description="Type definition of this node (M3 metadata)")
     
     # Position for graph visualization
     x_position: Optional[float] = Field(default=None, description="X coordinate in graph visualization")
@@ -51,12 +55,12 @@ class Node(BaseSemanticModel, ABC):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "type": self.node_type,
+            "type": self.node_type.name,  # Use the name from the NodeType
             "label": self.get_display_label(),
             "x": self.x_position,
             "y": self.y_position,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
     
     class Config:

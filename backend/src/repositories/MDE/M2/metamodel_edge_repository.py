@@ -74,6 +74,7 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
         for record in result:
             edge_data = {
                 "id": f"domain-{record['source_id']}-{record['target_id']}",
+                "name": f"domain-{record['source_label']}-{record['target_label']}",
                 "edge_type": MetamodelEdgeType.DOMAIN,
                 "source_id": record["source_id"],
                 "target_id": record["target_id"],
@@ -108,6 +109,7 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
         for record in result:
             edge_data = {
                 "id": f"range-{record['source_id']}-{record['target_id']}",
+                "name": f"range-{record['source_label']}-{record['target_label']}",
                 "edge_type": MetamodelEdgeType.RANGE,
                 "source_id": record["source_id"],
                 "target_id": record["target_id"],
@@ -142,6 +144,7 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
         for record in result:
             edge_data = {
                 "id": f"has_attribute-{record['source_id']}-{record['target_id']}",
+                "name": f"has_attribute-{record['source_label']}-{record['target_label']}",
                 "edge_type": MetamodelEdgeType.HAS_ATTRIBUTE,
                 "source_id": record["source_id"],
                 "target_id": record["target_id"],
@@ -176,6 +179,7 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
         for record in result:
             edge_data = {
                 "id": f"subclass_of-{record['source_id']}-{record['target_id']}",
+                "name": f"subclass_of-{record['source_label']}-{record['target_label']}",
                 "edge_type": MetamodelEdgeType.SUBCLASS_OF,
                 "source_id": record["source_id"],
                 "target_id": record["target_id"],
@@ -283,6 +287,7 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
         record = result[0]
         edge_data = {
             "id": f"{edge_type.value}-{source_id}-{target_id}",
+            "name": f"{edge_type.value}-{record['source_label']}-{record['target_label']}",
             "edge_type": edge_type,
             "source_id": record["source_id"],
             "target_id": record["target_id"],

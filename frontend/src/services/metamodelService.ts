@@ -77,6 +77,7 @@ class MetamodelService extends BaseService<Metamodel, MetamodelCreate, Metamodel
       created_at: string;
       updated_at?: string;
     }>;
+    edgeConstraints: EdgeType[]; // Edge type constraints from M3
   }> {
     return apiService.get(`${this.basePath}/${id}/graph`);
   }

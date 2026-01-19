@@ -32,7 +32,23 @@ export function MetamodelDetails() {
   });
 
   const loadMetamodel = useCallback(async () => {
-    if (!id) return;
+    if (!id) {
+      console.warn("⚠️ No metamodel ID provided");
+      setLoading(false);
+      return;
+    }
+
+    // Vérifier que l'ID n'est pas "undefined" (string)
+    if (id === "undefined" || id === "null") {
+      console.warn(`⚠️ Invalid metamodel ID: ${id}`);
+      setLoading(false);
+      toast({
+        title: "Erreur",
+        description: "ID de métamodèle invalide. Veuillez sélectionner un métamodèle valide.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       setLoading(true);
@@ -690,7 +706,7 @@ export function MetamodelDetails() {
           className="w-full h-full"
         />
       ) : (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-full w-full flex-col space-y-4">
           <div className="text-center">
             <Database className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground mb-4">Aucun concept défini</p>

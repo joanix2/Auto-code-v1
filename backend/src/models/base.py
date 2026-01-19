@@ -28,6 +28,6 @@ class GenderType(str, Enum):
 
 
 class BaseSemanticModel(BaseModel):
-    """Base model for all semantic types"""
+    """Base model for all semantic types - just name and description"""
     name: str = Field(..., description="Unique identifier name")
     description: str = Field(default="", description="Human-readable description")

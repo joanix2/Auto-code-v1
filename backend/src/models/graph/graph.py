@@ -5,10 +5,12 @@ from abc import ABC, abstractmethod
 from pydantic import Field
 from typing import List, Dict, Any, Optional
 
-from ..base import BaseSemanticModel
+from ..base import BaseEntity, BaseSemanticModel
+from .node_type import NodeType
+from .edge_type import EdgeType
 
 
-class Graph(BaseSemanticModel, ABC):
+class Graph(BaseEntity, BaseSemanticModel, ABC):
     """
     Abstract Graph - Represents a graph structure containing nodes and edges
     
@@ -19,6 +21,10 @@ class Graph(BaseSemanticModel, ABC):
     - Relationship edges (connecting concepts)
     
     Graphs are stored as nodes in Neo4j with relationships to their contained nodes.
+    
+    Multiple inheritance:
+    - BaseEntity: provides id, created_at, updated_at
+    - BaseSemanticModel: provides name, description
     """
     
     # Metrics
@@ -28,27 +34,15 @@ class Graph(BaseSemanticModel, ABC):
     # Ownership
     owner_id: Optional[str] = Field(default=None, description="ID of the graph owner/creator")
     
+    # Type constraints (M3 configuration)
+    allowed_node_types: List[NodeType] = Field(default_factory=list, description="List of allowed node types in this graph")
+    allowed_edge_types: List[EdgeType] = Field(default_factory=list, description="List of allowed edge types in this graph")
+    
     @abstractmethod
     def get_graph_type(self) -> str:
         """
         Return the type of this graph (metamodel, knowledge_graph, etc.)
         Must be implemented by subclasses
-        """
-        pass
-    
-    @abstractmethod
-    def get_node_types(self) -> List[str]:
-        """
-        Return the list of node types that can exist in this graph
-        Example: ["concept", "attribute"] for a metamodel
-        """
-        pass
-    
-    @abstractmethod
-    def get_edge_types(self) -> List[str]:
-        """
-        Return the list of edge types that can exist in this graph
-        Example: ["is_a", "has_part", "has_subclass", "part_of"] for a metamodel
         """
         pass
     
@@ -87,8 +81,8 @@ class Graph(BaseSemanticModel, ABC):
             "name": self.name,
             "description": self.description,
             "type": self.get_graph_type(),
-            "node_types": self.get_node_types(),
-            "edge_types": self.get_edge_types(),
+            "allowed_node_types": [nt.model_dump() for nt in self.allowed_node_types],
+            "allowed_edge_types": [et.model_dump() for et in self.allowed_edge_types],
             "metrics": self.get_metrics(),
             "owner_id": self.owner_id,
             "created_at": self.created_at,

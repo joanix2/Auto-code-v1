@@ -14,6 +14,9 @@ class NodeType(BaseSemanticModel):
     
     This is a meta-class that defines what types of nodes can exist.
     Example: In a metamodel, we can have Concept, Attribute, Relation nodes.
+    
+    Inherits from BaseSemanticModel (name, description) but NOT BaseEntity (no id).
+    This is a configuration/metadata class, not a database entity.
     """
     label: str = Field(..., description="Display label (singular)")
     labelPlural: str = Field(..., description="Display label (plural)")

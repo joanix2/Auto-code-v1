@@ -3,10 +3,10 @@ Repository model - GitHub repositories
 """
 from pydantic import BaseModel, Field
 from typing import Optional
-from ..base import BaseSemanticModel
+from ..base import BaseEntity, BaseSemanticModel
 
 
-class Repository(BaseSemanticModel):
+class Repository(BaseEntity, BaseSemanticModel):
     """GitHub repository model"""
     full_name: str = Field(..., description="owner/repo")
     owner_username: str = Field(..., description="Owner username")

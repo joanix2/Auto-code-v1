@@ -4,17 +4,20 @@ Edge - Abstract base class for graph edges
 from abc import ABC, abstractmethod
 from pydantic import Field
 from typing import Optional, Dict, Any
-from .edge_type import EdgeType
 
-from ..base import BaseSemanticModel
+from ..base import BaseEntity, BaseSemanticModel
 
 
-class Edge(BaseSemanticModel, ABC):
+class Edge(BaseEntity, BaseSemanticModel, ABC):
     """
     Abstract Edge - Represents a relationship/connection between two nodes in a graph
     
     Edges connect nodes and are stored as relationships in Neo4j.
     In the MDE context, Relationship entities are edges between Concept nodes.
+    
+    Multiple inheritance:
+    - BaseEntity: provides id, created_at, updated_at
+    - BaseSemanticModel: provides name, description
     """
      
     # Graph metadata
@@ -77,8 +80,8 @@ class Edge(BaseSemanticModel, ABC):
             "source_label": self.source_label,
             "target_label": self.target_label,
             "directed": self.is_directed(),
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
     
     class Config:
