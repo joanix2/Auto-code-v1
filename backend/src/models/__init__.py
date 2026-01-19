@@ -2,7 +2,7 @@
 Pydantic models for all entities
 """
 from .base import BaseEntity, TimestampMixin
-from .user import User, UserCreate, UserUpdate, UserPublic
+from .oauth.user import User, UserCreate, UserUpdate, UserPublic
 from .repository import Repository, RepositoryCreate, RepositoryUpdate
 from .issue import Issue, IssueCreate, IssueUpdate, IssueStatus, IssuePriority, IssueType
 from .message import Message, MessageCreate, MessageUpdate, MessageAuthorType

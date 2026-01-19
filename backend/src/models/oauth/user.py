@@ -3,7 +3,7 @@ User model - OAuth2 Authentication
 """
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
-from .base import BaseEntity
+from ..base import BaseEntity
 
 
 class User(BaseEntity):

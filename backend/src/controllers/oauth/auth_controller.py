@@ -8,7 +8,7 @@ import secrets
 from typing import Optional
 from pydantic import BaseModel
 
-from ...models.user import User, UserPublic
+from ...models.oauth.user import User, UserPublic
 from ...services import GitHubOAuthService
 from ...services import UserService
 from ...repositories.oauth.user_repository import UserRepository

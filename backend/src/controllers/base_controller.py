@@ -9,7 +9,7 @@ from fastapi import HTTPException, status
 from typing import List, Optional, TypeVar, Generic, Dict, Any
 import logging
 
-from ..models.user import User
+from ..models.oauth.user import User
 
 T = TypeVar('T')  # Model type
 TCreate = TypeVar('TCreate')  # Create schema type
