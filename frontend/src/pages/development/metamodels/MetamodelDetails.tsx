@@ -5,6 +5,7 @@ import { metamodelService } from "@/services/metamodelService";
 import { conceptService, ConceptCreate, type Concept } from "@/services/conceptService";
 import { attributeService, type AttributeCreate as AttributeCreateType, type Attribute } from "@/services/attributeService";
 import { relationshipService, type Relationship, type RelationshipCreate } from "@/services/relationshipService";
+import { edgeService } from "@/services/edgeService";
 import { Database, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { GraphViewer, CreateNodeModal, type EdgeTypeConstraint } from "@/components/common/GraphViewer";
@@ -60,8 +61,12 @@ export function MetamodelDetails() {
         },
       }));
 
-      // Transformer les edges du backend au format GraphEdge
-      const edges = graphData.edges.map((edge) => ({
+      // Créer un Set des IDs de nœuds existants pour la validation
+      const nodeIds = new Set(nodes.map((n) => n.id));
+
+      // Transformer et filtrer les edges du backend au format GraphEdge
+      // Ne garder que les edges qui pointent vers des nœuds existants
+      const allEdges = graphData.edges.map((edge) => ({
         id: edge.id,
         source: edge.source,
         target: edge.target,
@@ -69,9 +74,22 @@ export function MetamodelDetails() {
         type: edge.type,
       }));
 
-      setGraphData({ nodes, edges });
+      const validEdges = allEdges.filter((edge) => {
+        const hasValidSource = nodeIds.has(edge.source);
+        const hasValidTarget = nodeIds.has(edge.target);
 
-      console.log(`📊 Graphe chargé: ${nodes.length} noeuds, ${edges.length} edges`);
+        if (!hasValidSource || !hasValidTarget) {
+          console.warn(`⚠️ Edge orphelin ignoré: ${edge.id} (source: ${edge.source}, target: ${edge.target})`);
+          return false;
+        }
+        return true;
+      });
+
+      setGraphData({ nodes, edges: validEdges });
+
+      console.log(
+        `📊 Graphe chargé: ${nodes.length} noeuds, ${validEdges.length} edges${allEdges.length !== validEdges.length ? ` (${allEdges.length - validEdges.length} edges orphelins ignorés)` : ""}`,
+      );
     } catch (error) {
       console.error("Error loading metamodel:", error);
       toast({
@@ -100,12 +118,46 @@ export function MetamodelDetails() {
     });
   };
 
-  const handleEdgeClick = (edge: GraphEdge) => {
-    // TODO: Afficher les propriétés de la relation
-    toast({
-      title: "Relation sélectionnée",
-      description: `${edge.label || "Relation"} - Fonctionnalité à venir`,
-    });
+  const handleEdgeClick = async (edge: GraphEdge) => {
+    // Supprimer directement sans confirmation
+    try {
+      // Extraire les IDs source et target (peuvent être des strings ou des GraphNode)
+      const sourceId = typeof edge.source === "string" ? edge.source : edge.source.id;
+      const targetId = typeof edge.target === "string" ? edge.target : edge.target.id;
+
+      // Supprimer l'edge via l'API
+      await edgeService.delete(sourceId, targetId, edge.type || "");
+
+      // Retirer l'edge du graphe local et filtrer les edges invalides
+      setGraphData((prev: GraphData) => {
+        const updatedEdges = prev.edges.filter((e) => e.id !== edge.id);
+
+        // Vérifier que tous les edges restants pointent vers des nœuds existants
+        const nodeIds = new Set(prev.nodes.map((n) => n.id));
+        const validEdges = updatedEdges.filter((e) => {
+          const srcId = typeof e.source === "string" ? e.source : e.source.id;
+          const tgtId = typeof e.target === "string" ? e.target : e.target.id;
+          return nodeIds.has(srcId) && nodeIds.has(tgtId);
+        });
+
+        return {
+          nodes: prev.nodes,
+          edges: validEdges,
+        };
+      });
+
+      toast({
+        title: "Lien supprimé",
+        description: `Le lien "${edge.label || edge.type}" a été supprimé`,
+      });
+    } catch (error) {
+      console.error("Error deleting edge:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le lien",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleBackgroundClick = () => {
@@ -153,10 +205,17 @@ export function MetamodelDetails() {
     if (!id) return;
 
     try {
-      // Pour l'instant, créer un lien visuel simple
-      // Plus tard, on pourra créer des entités en base selon le type de lien
+      // Créer l'edge en base de données via l'API
+      const createdEdge = await edgeService.create({
+        graph_id: id,
+        source_id: sourceNodeId,
+        target_id: targetNodeId,
+        edge_type: edgeType,
+      });
+
+      // Ajouter l'edge au graphe local
       const newEdge: GraphEdge = {
-        id: `edge-${Date.now()}`,
+        id: createdEdge.id,
         source: sourceNodeId,
         target: targetNodeId,
         label: edgeType,
@@ -292,7 +351,7 @@ export function MetamodelDetails() {
             node.id === nodeId
               ? {
                   ...node,
-                  label: nodeType === "relation" ? node.label : (updatedNode as Concept | Attribute).name,
+                  label: nodeType === "relation" ? (updatedNode as Relationship).name : (updatedNode as Concept | Attribute).name,
                   properties: {
                     ...node.properties,
                     description: updatedNode.description || "",
@@ -601,7 +660,6 @@ export function MetamodelDetails() {
       {graphData.nodes.length > 0 ? (
         <GraphViewer
           data={graphData}
-          nodeRadius={30}
           onNodeClick={handleNodeClick}
           onNodeDoubleClick={handleNodeDoubleClick}
           onEdgeClick={handleEdgeClick}

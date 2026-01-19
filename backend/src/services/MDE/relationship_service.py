@@ -43,14 +43,14 @@ class RelationshipService(BaseService[Relationship]):
         """
         Create a relationship with or without ontological reasoning
         
-        Si source_concept_id et target_concept_id sont fournis, crée une relation complète
+        Si les IDs source/target sont fournis dans data, crée une relation complète
         avec les edges DOMAIN/RANGE et le raisonnement ontologique.
         
         Sinon, crée uniquement le noeud Relationship sans connexions.
         Les connexions seront ajoutées via le système d'edges.
         
         Args:
-            data: Relationship creation data (dict)
+            data: Relationship creation data (dict with optional source/target IDs)
             
         Returns:
             Created relationship
@@ -59,28 +59,20 @@ class RelationshipService(BaseService[Relationship]):
         relationship_data = {**data}
         relationship_data["id"] = str(uuid4())
         
-        # Vérifier si on a les connexions source/target
-        has_connections = bool(data.get("source_concept_id") and data.get("target_concept_id"))
+        # Vérifier si on a les connexions source/target dans le dict data
+        has_connections = bool(data.get("source_id") and data.get("target_id"))
         
         if has_connections:
             # Mode complet avec DOMAIN/RANGE edges et raisonnement ontologique
-            # Get target concept name if not provided
-            if not relationship_data.get("target_concept_name"):
-                target_concept_id = data.get("target_concept_id")
-                target_concept = await self.concept_repo.get_by_id(target_concept_id)
-                if target_concept:
-                    relationship_data["target_concept_name"] = target_concept.name
-            
             # Create the relationship with concepts
             relationship = await self.relationship_repo.create_with_concepts(relationship_data)
             
             logger.info(
-                f"Created relationship: {relationship.name} "
-                f"({relationship.source_concept_id} → {relationship.target_concept_id})"
+                f"Created relationship: {relationship.name} with DOMAIN/RANGE connections"
             )
             
             # Apply ontological reasoning - create inverse relationship
-            await self._create_inverse_relationship(relationship)
+            await self._create_inverse_relationship(relationship, data.get("source_id"), data.get("target_id"))
         else:
             # Mode standalone : juste le noeud, sans connexions
             relationship = await self.relationship_repo.create_standalone(relationship_data)
@@ -92,12 +84,14 @@ class RelationshipService(BaseService[Relationship]):
         
         return relationship
     
-    async def _create_inverse_relationship(self, relationship: Relationship) -> Optional[Relationship]:
+    async def _create_inverse_relationship(self, relationship: Relationship, source_id: str, target_id: str) -> Optional[Relationship]:
         """
         Create inverse relationship based on ontological reasoning
         
         Args:
             relationship: Original relationship
+            source_id: Source concept ID from data dict
+            target_id: Target concept ID from data dict
             
         Returns:
             Inverse relationship or None
@@ -109,20 +103,19 @@ class RelationshipService(BaseService[Relationship]):
             return None
         
         # Get source concept name for the inverse relationship
-        source_concept = await self.concept_repo.get_by_id(relationship.source_concept_id)
+        source_concept = await self.concept_repo.get_by_id(source_id)
         if not source_concept:
-            logger.warning(f"Source concept not found: {relationship.source_concept_id}")
+            logger.warning(f"Source concept not found: {source_id}")
             return None
         
         # Create inverse relationship data
         inverse_data = {
             "id": str(uuid4()),
             "type": inverse_type.value,  # Use the inverse type
-            "source_concept_id": relationship.target_concept_id,
-            "target_concept_id": relationship.source_concept_id,
-            "target_concept_name": source_concept.name,
+            "source_id": target_id,
+            "target_id": source_id,
             "description": f"Inverse of: {relationship.description or relationship.name}",
-            "metamodel_id": relationship.metamodel_id,
+            "graph_id": relationship.graph_id,
             "_is_inverse": True,  # Mark as inverse for potential filtering
             "_inverse_of": relationship.id  # Reference to original relationship
         }
@@ -130,8 +123,8 @@ class RelationshipService(BaseService[Relationship]):
         try:
             # Check if inverse already exists
             existing_inverse = await self.relationship_repo.get_between_concepts(
-                relationship.target_concept_id,
-                relationship.source_concept_id
+                target_id,
+                source_id
             )
             
             if existing_inverse:
@@ -142,8 +135,7 @@ class RelationshipService(BaseService[Relationship]):
             inverse_rel = await self.relationship_repo.create_with_concepts(inverse_data)
             
             logger.info(
-                f"Created inverse relationship: {inverse_type.value} "
-                f"({inverse_rel.source_concept_id} → {inverse_rel.target_concept_id})"
+                f"Created inverse relationship: {inverse_type.value} with DOMAIN/RANGE connections"
             )
             
             return inverse_rel
@@ -281,7 +273,11 @@ class RelationshipService(BaseService[Relationship]):
     
     async def delete(self, relationship_id: str) -> bool:
         """
-        Delete a relationship and its inverse
+        Delete a relationship
+        
+        Note: La suppression de la relation inverse n'est pas implémentée car
+        les informations de source/target sont dans les edges Neo4j DOMAIN/RANGE,
+        pas dans le modèle Relationship.
         
         Args:
             relationship_id: Relationship ID
@@ -289,22 +285,13 @@ class RelationshipService(BaseService[Relationship]):
         Returns:
             True if deleted
         """
-        # Get the relationship first
+        # Get the relationship first to verify it exists
         relationship = await self.get_by_id(relationship_id)
         if not relationship:
             return False
         
-        # Try to find and delete inverse relationship
-        inverse = await self.relationship_repo.get_between_concepts(
-            relationship.target_concept_id,
-            relationship.source_concept_id
-        )
-        
-        if inverse:
-            await self.relationship_repo.delete(inverse.id)
-            logger.info(f"Deleted inverse relationship: {inverse.id}")
-        
-        # Delete the main relationship
+        # Delete the relationship
+        # Note: Les edges DOMAIN/RANGE seront automatiquement supprimés par la requête Neo4j
         deleted = await self.relationship_repo.delete(relationship_id)
         
         if deleted:
@@ -325,73 +312,11 @@ class RelationshipService(BaseService[Relationship]):
             
         Returns:
             List of inferred relationships
+            
+        Note: Cette fonctionnalité nécessite d'accéder aux relations DOMAIN/RANGE depuis Neo4j.
+        Elle est actuellement désactivée.
         """
-        inferred = []
+        logger.warning("infer_relationships is not yet implemented - requires DOMAIN/RANGE edge queries")
+        return []
         
-        # Get all is_a relationships
-        is_a_rels = await self.get_by_type(metamodel_id, RelationshipType.IS_A)
-        
-        # Apply transitivity: if A is_a B and B is_a C, then A is_a C
-        for rel1 in is_a_rels:
-            for rel2 in is_a_rels:
-                if rel1.target_concept_id == rel2.source_concept_id:
-                    # Check if A -> C relationship already exists
-                    existing = await self.relationship_repo.get_between_concepts(
-                        rel1.source_concept_id,
-                        rel2.target_concept_id
-                    )
-                    
-                    if not existing:
-                        # Create inferred relationship
-                        target_concept = await self.concept_repo.get_by_id(rel2.target_concept_id)
-                        
-                        inferred_data = {
-                            "id": str(uuid4()),
-                            "type": RelationshipType.IS_A.value,
-                            "source_concept_id": rel1.source_concept_id,
-                            "target_concept_id": rel2.target_concept_id,
-                            "target_concept_name": target_concept.name if target_concept else None,
-                            "description": f"Inferred from transitivity",
-                            "metamodel_id": metamodel_id,
-                            "_is_inferred": True
-                        }
-                        
-                        inferred_rel = await self.relationship_repo.create_with_concepts(inferred_data)
-                        inferred.append(inferred_rel)
-                        
-                        logger.info(
-                            f"Inferred relationship: {inferred_rel.source_concept_id} is_a "
-                            f"{inferred_rel.target_concept_id} (via {rel1.target_concept_id})"
-                        )
-        
-        # Apply same logic for part_of relationships
-        part_of_rels = await self.get_by_type(metamodel_id, RelationshipType.PART_OF)
-        
-        for rel1 in part_of_rels:
-            for rel2 in part_of_rels:
-                if rel1.target_concept_id == rel2.source_concept_id:
-                    existing = await self.relationship_repo.get_between_concepts(
-                        rel1.source_concept_id,
-                        rel2.target_concept_id
-                    )
-                    
-                    if not existing:
-                        target_concept = await self.concept_repo.get_by_id(rel2.target_concept_id)
-                        
-                        inferred_data = {
-                            "id": str(uuid4()),
-                            "type": RelationshipType.PART_OF.value,
-                            "source_concept_id": rel1.source_concept_id,
-                            "target_concept_id": rel2.target_concept_id,
-                            "target_concept_name": target_concept.name if target_concept else None,
-                            "description": f"Inferred from transitivity",
-                            "metamodel_id": metamodel_id,
-                            "_is_inferred": True
-                        }
-                        
-                        inferred_rel = await self.relationship_repo.create_with_concepts(inferred_data)
-                        inferred.append(inferred_rel)
-        
-        logger.info(f"Inferred {len(inferred)} new relationships for metamodel {metamodel_id}")
-        
-        return inferred
+        # TODO: Réimplémenter en utilisant des requêtes Neo4j pour récupérer les DOMAIN/RANGE edges

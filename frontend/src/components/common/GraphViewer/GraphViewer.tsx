@@ -235,7 +235,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     });
 
     const node = createNodes(g, data.nodes, nodeRadius, selectedNodeId, nodeColorMap, handleInternalNodeClick, onNodeDoubleClick);
-    const nodeLabels = createNodeLabels(g, data.nodes, nodeRadius, selectedNodeId, showLabels);
+    const nodeLabels = createNodeLabels(g, data.nodes, nodeRadius, selectedNodeId, showLabels, nodeColorMap);
 
     // Add drag behavior with edge mode support
     if (enableDrag) {
@@ -250,6 +250,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
         setEdgeDragState,
         getAvailableEdgeTypes,
         setShowEdgeTypeSelector,
+        onCreateEdge,
       });
 
       node.call(drag);

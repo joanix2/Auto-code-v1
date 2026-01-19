@@ -96,35 +96,19 @@ class RelationshipRepository(BaseRepository[Relationship]):
         (Relationship)-[:RANGE]->(TargetConcept)
         
         Args:
-            data: Relationship data including name, source_concept_id, target_concept_id
+            data: Relationship data with source_id and target_id in the dict
             
         Returns:
             Created relationship
         """
-        source_id = data.get("source_concept_id")
-        target_id = data.get("target_concept_id")
         metamodel_id = data.get("metamodel_id")
         name = data.get("name")
-        
-        if not source_id or not target_id:
-            raise ValueError("source_concept_id and target_concept_id are required")
-        if not metamodel_id:
-            raise ValueError("metamodel_id is required")
-        if not name:
-            raise ValueError("name is required")
+        # Ces IDs viennent du dict data, pas du modèle Relationship
+        source_id = data.get("source_id")
+        target_id = data.get("target_id")
 
-        # Get source and target concept names
-        query_concepts = """
-        MATCH (source:Concept {id: $source_id})
-        MATCH (target:Concept {id: $target_id})
-        RETURN source.name as source_name, target.name as target_name
-        """
-        result = self.db.execute_query(query_concepts, {"source_id": source_id, "target_id": target_id})
-        if not result:
-            raise ValueError(f"Source concept {source_id} or target concept {target_id} not found")
-        
-        source_name = result[0]["source_name"]
-        target_name = result[0]["target_name"]
+        if not source_id or not target_id:
+            raise ValueError("source_id and target_id are required in data dict")
         
         # Prepare relationship data (it's a Node, not an Edge)
         rel_data = {
@@ -133,10 +117,6 @@ class RelationshipRepository(BaseRepository[Relationship]):
             "type": data.get("type"),
             "description": data.get("description"),
             "graph_id": metamodel_id,
-            "source_concept_id": source_id,
-            "target_concept_id": target_id,
-            "source_label": source_name,
-            "target_label": target_name,
             "x_position": data.get("x_position"),
             "y_position": data.get("y_position"),
         }
@@ -166,7 +146,7 @@ class RelationshipRepository(BaseRepository[Relationship]):
             raise ValueError("Failed to create Relationship")
         
         node = convert_neo4j_types(result[0]["r"])
-        logger.info(f"Created Relationship '{node.get('name')}' (id={node.get('id')}) from {source_id} to {target_id}")
+        logger.info(f"Created Relationship '{node.get('name')}' (id={node.get('id')}) with DOMAIN/RANGE edges")
         return self.model(**self._normalize_relationship_data(node))
 
     async def get_by_metamodel(self, metamodel_id: str, skip: int = 0, limit: int = 100) -> List[Relationship]:
@@ -203,66 +183,6 @@ class RelationshipRepository(BaseRepository[Relationship]):
             rel_data["target_label"] = row["target_name"]
             rel_data["graph_id"] = metamodel_id
             
-            relationships.append(self.model(**self._normalize_relationship_data(rel_data)))
-        
-        return relationships
-
-    async def get_by_source_concept(self, source_concept_id: str) -> List[Relationship]:
-        """
-        Get all relationships from a source concept (via DOMAIN edge)
-        
-        Args:
-            source_concept_id: Source concept ID
-            
-        Returns:
-            List of relationships
-        """
-        query = """
-        MATCH (r:Relationship)-[:DOMAIN]->(source:Concept {id: $source_id})
-        OPTIONAL MATCH (r)-[:RANGE]->(target:Concept)
-        RETURN r, source.id as source_id, source.name as source_name,
-               target.id as target_id, target.name as target_name
-        ORDER BY r.created_at ASC
-        """
-        result = self.db.execute_query(query, {"source_id": source_concept_id})
-        
-        relationships = []
-        for row in result:
-            rel_data = convert_neo4j_types(row["r"])
-            rel_data["source_id"] = row["source_id"]
-            rel_data["source_label"] = row["source_name"]
-            rel_data["target_id"] = row["target_id"]
-            rel_data["target_label"] = row["target_name"]
-            relationships.append(self.model(**self._normalize_relationship_data(rel_data)))
-        
-        return relationships
-
-    async def get_by_target_concept(self, target_concept_id: str) -> List[Relationship]:
-        """
-        Get all relationships to a target concept (via RANGE edge)
-        
-        Args:
-            target_concept_id: Target concept ID
-            
-        Returns:
-            List of relationships
-        """
-        query = """
-        MATCH (r:Relationship)-[:RANGE]->(target:Concept {id: $target_id})
-        OPTIONAL MATCH (r)-[:DOMAIN]->(source:Concept)
-        RETURN r, source.id as source_id, source.name as source_name,
-               target.id as target_id, target.name as target_name
-        ORDER BY r.created_at ASC
-        """
-        result = self.db.execute_query(query, {"target_id": target_concept_id})
-        
-        relationships = []
-        for row in result:
-            rel_data = convert_neo4j_types(row["r"])
-            rel_data["source_id"] = row["source_id"]
-            rel_data["source_label"] = row["source_name"]
-            rel_data["target_id"] = row["target_id"]
-            rel_data["target_label"] = row["target_name"]
             relationships.append(self.model(**self._normalize_relationship_data(rel_data)))
         
         return relationships

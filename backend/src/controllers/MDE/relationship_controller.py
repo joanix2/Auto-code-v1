@@ -64,7 +64,8 @@ class RelationshipController(BaseController[Relationship, RelationshipCreate, Re
                 detail="Relationship not found"
             )
         
-        return None  # No modifications needed
+        # Return the update data as dict
+        return updates.model_dump(exclude_unset=True)
     
     async def validate_delete(self, resource_id: str, current_user: User, db) -> Relationship:
         """Validate relationship deletion"""
@@ -247,7 +248,6 @@ async def create_relationship(
     controller: RelationshipController = Depends(get_controller)
 ):
     """Create a new relationship (automatically creates inverse)"""
-    logger.info(f"Creating relationship: {relationship_data.type} from {relationship_data.source_concept_id} to {relationship_data.target_concept_id}")
     return await controller.create(relationship_data, current_user, db)
 
 

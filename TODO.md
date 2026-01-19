@@ -137,10 +137,24 @@ DAG de ticker: ajouter des dépendances entre les tickets (savoir quels sont les
 ✅ Overflow horizontal pour mobile
 ✅ Intégration dans GraphViewer avec callback onAddNode
 
-🔄 À faire : Créer les edges DOMAIN/RANGE via le système click-to-click
-🔄 À faire : Implémenter la persistance en base des edges créés via GraphViewer
+✅ Créer les edges DOMAIN/RANGE via le système click-to-click
+✅ Persistance en base des edges créés via GraphViewer (POST /api/edges)
+✅ Suppression d'edges en cliquant dessus (sans confirmation, suppression directe)
+✅ Si une seule relation possible, ne pas afficher la popup (création automatique)
+
+editer des edges
+
+le drag ne marche pas en mobile
+
+supprimer les logs
 
 problème de mise à jour des relations
+
+pas d'attraction entre les noeuds
+
+si un noeud est modifier les edges doivent continuer de pointer vers le noeud (nom unique)
+
+sytle de la flèche ne doit pas partir du centre
 
 ajouter la possiblité de calculé le nom
 

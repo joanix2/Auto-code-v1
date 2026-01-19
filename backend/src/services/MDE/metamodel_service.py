@@ -121,12 +121,11 @@ class MetamodelService(BaseService[Metamodel]):
             nodes.extend([c.to_graph_dict() for c in concepts])
             logger.info(f"  ✓ Found {len(concepts)} concepts")
         
-        # Récupérer les Attributs standalone (sans concept_id)
+        # Récupérer TOUS les Attributs (standalone ET attachés à des concepts)
         if self.attribute_repository:
             attributes = await self.attribute_repository.get_by_metamodel(metamodel_id)
-            standalone_attrs = [a for a in attributes if not a.concept_id]
-            nodes.extend([a.to_graph_dict() for a in standalone_attrs])
-            logger.info(f"  ✓ Found {len(standalone_attrs)} standalone attributes")
+            nodes.extend([a.to_graph_dict() for a in attributes])
+            logger.info(f"  ✓ Found {len(attributes)} attributes (standalone and attached)")
         
         # Récupérer les Relations
         if self.relationship_repository:
@@ -134,11 +133,43 @@ class MetamodelService(BaseService[Metamodel]):
             nodes.extend([r.to_graph_dict() for r in relationships])
             logger.info(f"  ✓ Found {len(relationships)} relationships")
         
+        # Créer un Set des IDs de nœuds existants
+        node_ids = {node["id"] for node in nodes}
+        logger.info(f"  📋 Total node IDs: {len(node_ids)}")
+        
         # Récupérer les Edges
         if self.edge_repository:
             metamodel_edges = await self.edge_repository.get_by_metamodel(metamodel_id)
-            edges = [e.to_graph_dict() for e in metamodel_edges]
-            logger.info(f"  ✓ Found {len(edges)} edges")
+            
+            # Filtrer les edges orphelins (qui pointent vers des nœuds inexistants)
+            valid_edges = []
+            orphaned_edges = []
+            
+            for edge in metamodel_edges:
+                edge_dict = edge.to_graph_dict()
+                has_valid_source = edge_dict["source"] in node_ids
+                has_valid_target = edge_dict["target"] in node_ids
+                
+                if has_valid_source and has_valid_target:
+                    valid_edges.append(edge_dict)
+                else:
+                    orphaned_edges.append({
+                        "id": edge_dict["id"],
+                        "source": edge_dict["source"],
+                        "target": edge_dict["target"],
+                        "type": edge_dict["type"],
+                        "source_exists": has_valid_source,
+                        "target_exists": has_valid_target
+                    })
+            
+            edges = valid_edges
+            
+            if orphaned_edges:
+                logger.warning(f"  ⚠️ Found {len(orphaned_edges)} orphaned edges (will be filtered out)")
+                for orphan in orphaned_edges[:5]:  # Log first 5 only
+                    logger.warning(f"    - Edge {orphan['id']}: source={orphan['source']} (exists={orphan['source_exists']}), target={orphan['target']} (exists={orphan['target_exists']})")
+            
+            logger.info(f"  ✓ Found {len(edges)} valid edges ({len(orphaned_edges)} orphaned edges filtered)")
         
         # Construire le résultat avec l'objet Metamodel complet
         result = {

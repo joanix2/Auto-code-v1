@@ -20,6 +20,7 @@ from src.controllers.MDE.metamodel_controller import router as metamodel_router
 from src.controllers.MDE.concept_controller import router as concept_router
 from src.controllers.MDE.attribute_controller import router as attribute_router
 from src.controllers.MDE.relationship_controller import router as relationship_router
+from src.controllers.MDE.edge_controller import router as edge_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -76,6 +77,7 @@ app.include_router(metamodel_router)
 app.include_router(concept_router)
 app.include_router(attribute_router)
 app.include_router(relationship_router)
+app.include_router(edge_router)
 
 
 @app.get("/")

@@ -12,6 +12,7 @@ interface CreateDragBehaviorParams {
   setEdgeDragState: (state: { sourceNode: GraphNode | null; targetNode: GraphNode | null; isDrawing: boolean }) => void;
   getAvailableEdgeTypes: (source: GraphNode | null, target: GraphNode | null) => EdgeTypeConstraint[];
   setShowEdgeTypeSelector: (show: boolean) => void;
+  onCreateEdge?: (source: string, target: string, type: string) => void;
 }
 
 export function createDragBehavior({
@@ -25,6 +26,7 @@ export function createDragBehavior({
   setEdgeDragState,
   getAvailableEdgeTypes,
   setShowEdgeTypeSelector,
+  onCreateEdge,
 }: CreateDragBehaviorParams) {
   // Variables pour stocker les éléments temporaires en closure
   let tempLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null;
@@ -197,8 +199,22 @@ export function createDragBehavior({
           setEdgeDragState({ sourceNode: d, targetNode, isDrawing: false });
           const availableTypes = getAvailableEdgeTypes(d, targetNode);
           console.log("📋 Available edge types:", availableTypes.length);
-          if (availableTypes.length > 0) {
+
+          if (availableTypes.length === 1) {
+            // Si une seule relation possible, créer directement sans afficher la popup
+            console.log("✨ Single edge type available, creating directly:", availableTypes[0].edgeType);
+            if (onCreateEdge) {
+              onCreateEdge(d.id, targetNode.id, availableTypes[0].edgeType);
+            }
+            setEdgeDragState({ sourceNode: null, targetNode: null, isDrawing: false });
+          } else if (availableTypes.length > 1) {
+            // Si plusieurs relations possibles, afficher la popup de sélection
+            console.log("📝 Multiple edge types available, showing selector");
             setShowEdgeTypeSelector(true);
+          } else {
+            // Aucune relation possible
+            console.log("⚠️ No edge types available");
+            setEdgeDragState({ sourceNode: null, targetNode: null, isDrawing: false });
           }
         } else {
           setEdgeDragState({ sourceNode: null, targetNode: null, isDrawing: false });

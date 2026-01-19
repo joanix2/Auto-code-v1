@@ -1,15 +1,6 @@
 import * as d3 from "d3";
 import { GraphNode } from "./types";
-import {
-  NODE_LABEL_FONT_SIZE,
-  NODE_LABEL_OFFSET,
-  DEFAULT_NODE_COLOR,
-  SELECTED_NODE_COLOR,
-  SELECTED_NODE_STROKE_COLOR,
-  DEFAULT_NODE_STROKE_COLOR,
-  SELECTED_STROKE_WIDTH,
-  DEFAULT_STROKE_WIDTH,
-} from "./constants";
+import { NODE_LABEL_FONT_SIZE, NODE_LABEL_OFFSET, NODE_LABEL_MAX_LENGTH, DEFAULT_NODE_COLOR, SELECTED_STROKE_WIDTH, DEFAULT_STROKE_WIDTH } from "./constants";
 
 /**
  * Creates node (circle) elements
@@ -36,12 +27,10 @@ export const createNodes = (
     })
     .attr("fill-opacity", (d) => (d.id === selectedNodeId ? 1 : 0.9))
     .attr("stroke", (d) => {
-      if (d.id === selectedNodeId) {
-        // Utiliser une version plus foncée de la couleur du nœud comme contour
-        const nodeColor = nodeColorMap[d.type || ""] || DEFAULT_NODE_COLOR;
-        return d3.color(nodeColor)?.darker(0.5).toString() || nodeColor;
-      }
-      return DEFAULT_NODE_STROKE_COLOR;
+      // Toujours utiliser une version plus foncée de la couleur du nœud comme contour
+      const nodeColor = nodeColorMap[d.type || ""] || DEFAULT_NODE_COLOR;
+      const darkerColor = d3.color(nodeColor)?.darker(0.5).toString() || nodeColor;
+      return darkerColor;
     })
     .attr("stroke-width", (d) => (d.id === selectedNodeId ? SELECTED_STROKE_WIDTH : DEFAULT_STROKE_WIDTH))
     .style("cursor", "pointer")
@@ -61,9 +50,32 @@ export const createNodes = (
 };
 
 /**
- * Creates node label elements
+ * Détermine si le texte doit être blanc ou noir en fonction de la luminosité de la couleur de fond
+ * Utilise la formule de luminosité relative WCAG
  */
-export const createNodeLabels = (g: d3.Selection<SVGGElement, unknown, null, undefined>, nodes: GraphNode[], nodeRadius: number, selectedNodeId: string | null, showLabels: boolean) => {
+const getContrastColor = (backgroundColor: string): string => {
+  const color = d3.color(backgroundColor);
+  if (!color) return "#000000";
+
+  const rgb = color.rgb();
+  // Formule de luminosité relative (WCAG)
+  const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+
+  // Si la couleur est claire (luminance > 0.5), utiliser du texte noir, sinon blanc
+  return luminance > 0.5 ? "#000000" : "#ffffff";
+};
+
+/**
+ * Creates node label elements (centered on nodes)
+ */
+export const createNodeLabels = (
+  g: d3.Selection<SVGGElement, unknown, null, undefined>,
+  nodes: GraphNode[],
+  nodeRadius: number,
+  selectedNodeId: string | null,
+  showLabels: boolean,
+  nodeColorMap: Record<string, string>,
+) => {
   if (!showLabels) return null;
 
   return g
@@ -74,10 +86,18 @@ export const createNodeLabels = (g: d3.Selection<SVGGElement, unknown, null, und
     .join("text")
     .attr("font-size", NODE_LABEL_FONT_SIZE)
     .attr("font-weight", (d) => (d.id === selectedNodeId ? "bold" : "normal"))
-    .attr("fill", "#1f2937")
+    .attr("fill", (d) => {
+      // Déterminer la couleur du texte en fonction de la couleur de fond du nœud
+      const nodeColor = nodeColorMap[d.type || ""] || DEFAULT_NODE_COLOR;
+      return getContrastColor(nodeColor);
+    })
     .attr("text-anchor", "middle")
-    .attr("dy", nodeRadius + NODE_LABEL_OFFSET)
-    .text((d) => d.label)
+    .attr("dominant-baseline", "central") // Centre verticalement le texte
+    .text((d) => {
+      // Tronquer le texte si plus de NODE_LABEL_MAX_LENGTH caractères
+      const label = d.label || "";
+      return label.length > NODE_LABEL_MAX_LENGTH ? label.substring(0, NODE_LABEL_MAX_LENGTH) + "..." : label;
+    })
     .style("pointer-events", "none")
     .style("user-select", "none");
 };

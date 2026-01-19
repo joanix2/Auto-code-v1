@@ -2,7 +2,7 @@
 MetamodelEdge - Edges in the metamodel graph (domain, range, has_attribute, etc.)
 """
 from enum import Enum
-from pydantic import Field
+from pydantic import BaseModel, Field
 from typing import Optional
 
 from ...graph.edge import Edge
@@ -40,14 +40,14 @@ class MetamodelEdge(Edge):
         return self.edge_type.value
     
     def get_display_label(self) -> str:
-        """Return the label to display on the edge"""
+        """Return the label to display on the edge in UPPERCASE like Neo4j"""
         labels = {
-            MetamodelEdgeType.DOMAIN: "domain",
-            MetamodelEdgeType.RANGE: "range",
-            MetamodelEdgeType.HAS_ATTRIBUTE: "has",
-            MetamodelEdgeType.SUBCLASS_OF: "subclass of",
+            MetamodelEdgeType.DOMAIN: "DOMAIN",
+            MetamodelEdgeType.RANGE: "RANGE",
+            MetamodelEdgeType.HAS_ATTRIBUTE: "HAS_ATTRIBUTE",
+            MetamodelEdgeType.SUBCLASS_OF: "SUBCLASS_OF",
         }
-        return labels.get(self.edge_type, self.edge_type.value)
+        return labels.get(self.edge_type, self.edge_type.value.upper())
     
     def is_directed(self) -> bool:
         """All metamodel edges are directed"""
@@ -57,7 +57,7 @@ class MetamodelEdge(Edge):
         from_attributes = True
 
 
-class MetamodelEdgeCreate(Edge):
+class MetamodelEdgeCreate(BaseModel):
     """Schema for creating a metamodel edge"""
     edge_type: MetamodelEdgeType = Field(..., description="Type of metamodel edge")
     source_id: str = Field(..., description="ID of the source node")
@@ -66,7 +66,7 @@ class MetamodelEdgeCreate(Edge):
     description: Optional[str] = None
 
 
-class MetamodelEdgeUpdate(Edge):
+class MetamodelEdgeUpdate(BaseModel):
     """Schema for updating a metamodel edge"""
     description: Optional[str] = None
 
