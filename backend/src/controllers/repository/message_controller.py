@@ -18,12 +18,13 @@ from ...repositories.repository.repository_repository import RepositoryRepositor
 from ...services.repository.message_service import MessageService
 from ...utils.auth import get_current_user
 from ..base_controller import BaseController
+from ..mixins.github_sync import GitHubSyncMixin
 
 router = APIRouter(prefix="/api/messages", tags=["messages"])
 logger = logging.getLogger(__name__)
 
 
-class MessageController(BaseController[Message, MessageCreate, None]):
+class MessageController(GitHubSyncMixin, BaseController[Message, MessageCreate, None]):
     """Message Controller with CRUD operations and GitHub PR comment sync"""
 
     def __init__(
@@ -163,13 +164,32 @@ class MessageController(BaseController[Message, MessageCreate, None]):
             )
 
     async def sync_from_github(
-        self, github_token: str, current_user: User, **kwargs
+        self, github_token: str, current_user: User, db, **kwargs
     ) -> list[Message]:
         # Messages are not synced from GitHub (they're PR comments)
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
             detail="Messages cannot be synced from GitHub",
         )
+
+    async def create_on_github(self, data: dict[str, Any]) -> Any:
+        """Create message as PR comment on GitHub via service."""
+        return await self.service.create_on_github(**data)
+
+    async def update_on_github(self, resource_id: str, updates: dict[str, Any]) -> Any:
+        """Messages cannot be updated on GitHub."""
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+            detail="Messages cannot be updated on GitHub",
+        )
+
+    async def delete_on_github(self, resource_id: str, **kwargs) -> None:
+        """Delete PR comment on GitHub via service."""
+        entity = await self.service.get_by_id(resource_id)
+        if entity:
+            await self.service.delete_on_github(
+                access_token=kwargs.get("access_token", ""), entity=entity
+            )
 
     async def get_by_issue(self, issue_id: str) -> list[Message]:
         """Get all messages for an issue"""

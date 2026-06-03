@@ -18,12 +18,13 @@ from ...services.repository.copilot_agent_service import GitHubCopilotAgentServi
 from ...services.repository.issue_service import IssueService
 from ...utils.auth import get_current_user
 from ..base_controller import BaseController
+from ..mixins.github_sync import GitHubSyncMixin
 
 router = APIRouter(prefix="/api/issues", tags=["issues"])
 logger = logging.getLogger(__name__)
 
 
-class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
+class IssueController(GitHubSyncMixin, BaseController[Issue, IssueCreate, IssueUpdate]):
     """Issue Controller with CRUD + Sync operations"""
 
     def __init__(self, service: IssueService, repo_repository: RepositoryRepository):
@@ -189,7 +190,7 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
             )
 
     async def sync_from_github(
-        self, github_token: str, current_user: User, **kwargs
+        self, github_token: str, current_user: User, db, **kwargs
     ) -> list[Issue]:
         """Sync issues from GitHub for a specific repository"""
         owner = kwargs.get("owner")
@@ -202,6 +203,22 @@ class IssueController(BaseController[Issue, IssueCreate, IssueUpdate]):
             )
 
         return await self.service.sync_from_github(github_token, owner=owner, repo=repo)
+
+    async def create_on_github(self, data: dict[str, Any]) -> Any:
+        """Create issue on GitHub via service."""
+        return await self.service.create_on_github(**data)
+
+    async def update_on_github(self, resource_id: str, updates: dict[str, Any]) -> Any:
+        """Update issue on GitHub via service."""
+        return await self.service.update_on_github(**updates)
+
+    async def delete_on_github(self, resource_id: str, **kwargs) -> None:
+        """Delete issue on GitHub via service."""
+        entity = await self.service.issue_repo.get_by_id(resource_id)
+        if entity:
+            await self.service.delete_on_github(
+                access_token=kwargs.get("access_token", ""), entity=entity
+            )
 
     async def get_by_repository(
         self, repository_id: str, status_filter: str | None = None

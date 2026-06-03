@@ -17,12 +17,15 @@ from ...services.repository.issue_service import IssueService
 from ...services.repository.repository_service import RepositoryService
 from ...utils.auth import get_current_user
 from ..base_controller import BaseController
+from ..mixins.github_sync import GitHubSyncMixin
 
 router = APIRouter(prefix="/api/repositories", tags=["repositories"])
 logger = logging.getLogger(__name__)
 
 
-class RepositoryController(BaseController[Repository, RepositoryCreate, RepositoryUpdate]):
+class RepositoryController(
+    GitHubSyncMixin, BaseController[Repository, RepositoryCreate, RepositoryUpdate]
+):
     """Repository Controller with CRUD + Sync + GitHub integration"""
 
     def __init__(self, repository: RepositoryRepository):
@@ -199,10 +202,26 @@ class RepositoryController(BaseController[Repository, RepositoryCreate, Reposito
             )
 
     async def sync_from_github(
-        self, github_token: str, current_user: User, **kwargs
+        self, github_token: str, current_user: User, db, **kwargs
     ) -> list[Repository]:
         """Sync repositories from GitHub"""
         return await self.service.sync_from_github(github_token, username=current_user.username)
+
+    async def create_on_github(self, data: dict[str, Any]) -> Any:
+        """Create repository on GitHub via service."""
+        return await self.service.create_on_github(**data)
+
+    async def update_on_github(self, resource_id: str, updates: dict[str, Any]) -> Any:
+        """Update repository on GitHub via service."""
+        return await self.service.update_on_github(**updates)
+
+    async def delete_on_github(self, resource_id: str, **kwargs) -> None:
+        """Delete repository on GitHub via service."""
+        entity = await self.repository.get_by_id(resource_id)
+        if entity:
+            await self.service.delete_on_github(
+                access_token=kwargs.get("access_token", ""), entity=entity
+            )
 
     async def get_by_owner(self, owner: str, skip: int = 0, limit: int = 100) -> list[Repository]:
         """Get repositories by owner"""
@@ -238,7 +257,7 @@ async def sync_repositories(
     controller: RepositoryController = Depends(get_repository_controller),
 ):
     """Sync all repositories from GitHub for current user"""
-    return await controller.sync_from_github(current_user.github_token, current_user)
+    return await controller.sync_from_github(current_user.github_token, current_user, db)
 
 
 @router.get("/", response_model=list[Repository])
