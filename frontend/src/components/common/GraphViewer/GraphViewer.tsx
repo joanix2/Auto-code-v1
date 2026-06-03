@@ -87,7 +87,6 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
 
   const handleSendPrompt = () => {
     if (!prompt.trim()) return;
-    console.log("Prompt LLM:", prompt);
     setPrompt("");
   };
 
@@ -109,6 +108,9 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   useEffect(() => {
     if (!svgRef.current || dimensions.width === 0 || dimensions.height === 0) return;
     if (!data.nodes.length) return;
+
+    // Déduploquer les nœuds par id pour éviter les doublons
+    const dedupedNodes = data.nodes.filter((node, index, self) => index === self.findIndex((n) => n.id === node.id));
 
     const svg = d3.select(svgRef.current);
 
@@ -200,7 +202,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     createArrowMarkers(svg, nodeRadius);
 
     // Create force simulation
-    const simulation = createSimulation(data.nodes, data.edges, dimensions.width, dimensions.height, nodeRadius);
+    const simulation = createSimulation(dedupedNodes, data.edges, dimensions.width, dimensions.height, nodeRadius);
     simulationRef.current = simulation;
 
     // Create edges and edge labels
@@ -213,9 +215,6 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     let tempGroup = svg.select<SVGGElement>("g.temp-edge-group");
     if (tempGroup.empty()) {
       tempGroup = svg.append("g").attr("class", "temp-edge-group");
-      console.log("🆕 Created new temp group in SVG");
-    } else {
-      console.log("♻️ Reusing existing temp group from SVG");
     }
 
     // Synchroniser la transformation du tempGroup avec celle de g
@@ -235,8 +234,8 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
       onNodeClick,
     });
 
-    const node = createNodes(g, data.nodes, nodeRadius, selectedNodeId, nodeColorMap, handleInternalNodeClick, onNodeDoubleClick);
-    const nodeLabels = createNodeLabels(g, data.nodes, nodeRadius, selectedNodeId, showLabels, nodeColorMap);
+    const node = createNodes(g, dedupedNodes, nodeRadius, selectedNodeId, nodeColorMap, handleInternalNodeClick, onNodeDoubleClick);
+    const nodeLabels = createNodeLabels(g, dedupedNodes, nodeRadius, selectedNodeId, showLabels, nodeColorMap);
 
     // Add drag behavior with edge mode support
     if (enableDrag) {
