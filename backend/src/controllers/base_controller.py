@@ -12,6 +12,7 @@ from typing import Any, Generic, TypeVar
 from fastapi import HTTPException, status
 
 from ..models.oauth.user import User
+from ..utils.error_handler import handle_create, handle_delete, handle_get, handle_operation, handle_update
 
 T = TypeVar("T")  # Model type
 TCreate = TypeVar("TCreate")  # Create schema type
@@ -59,35 +60,13 @@ class BaseController(ABC, Generic[T, TCreate, TUpdate]):
     # CRUD Operations with common error handling
 
     async def create(self, data: TCreate, current_user: User, db) -> T:
-        """
-        Create a new resource
-
-        Args:
-            data: Creation data
-            current_user: Current authenticated user
-            db: Database connection
-
-        Returns:
-            Created resource
-        """
-        try:
-            # Validate
+        """Create a new resource"""
+        async def _perform() -> T:
             validated_data = await self.validate_create(data, current_user, db)
-
-            # Create via service
             resource = await self.service.create(validated_data)
             logger.info(f"Created resource {resource.id if hasattr(resource, 'id') else ''}")
-
             return resource
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Creation error: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to create resource: {str(e)}",
-            )
+        return await handle_create(_perform)
 
     async def get_by_id(self, resource_id: str, current_user: User, db) -> T:
         """
@@ -128,70 +107,26 @@ class BaseController(ABC, Generic[T, TCreate, TUpdate]):
         return resources
 
     async def update(self, resource_id: str, updates: TUpdate, current_user: User, db) -> T:
-        """
-        Update a resource
-
-        Args:
-            resource_id: Resource ID
-            updates: Fields to update
-            current_user: Current authenticated user
-            db: Database connection
-
-        Returns:
-            Updated resource
-        """
-        try:
-            # Validate
+        """Update a resource"""
+        async def _perform() -> T:
             validated_updates = await self.validate_update(resource_id, updates, current_user, db)
-
-            # Update via service
             updated_resource = await self.service.update(resource_id, validated_updates)
-
             logger.info(f"Updated resource {resource_id}")
             return updated_resource
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Update error: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to update resource: {str(e)}",
-            )
+        return await handle_update(_perform)
 
     async def delete(self, resource_id: str, current_user: User, db) -> dict[str, str]:
-        """
-        Delete a resource
-
-        Args:
-            resource_id: Resource ID
-            current_user: Current authenticated user
-            db: Database connection
-
-        Returns:
-            Success message
-        """
-        try:
-            # Delete via service
+        """Delete a resource"""
+        async def _perform() -> dict[str, str]:
             deleted = await self.service.delete(resource_id)
-
             if deleted:
                 logger.info(f"Deleted resource {resource_id}")
                 return {"message": "Resource deleted successfully"}
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Failed to delete resource",
-                )
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Deletion error: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to delete resource: {str(e)}",
+                detail="Failed to delete resource",
             )
+        return await handle_delete(_perform)
 
 
 class GitHubSyncController(BaseController[T, TCreate, TUpdate]):
@@ -241,10 +176,8 @@ class GitHubSyncController(BaseController[T, TCreate, TUpdate]):
     # Override create to add ID generation
     async def create(self, data: TCreate, current_user: User, db) -> T:
         """Create with ID generation"""
-        try:
+        async def _perform() -> T:
             validated_data = await self.validate_create(data, current_user, db)
-
-            # Convert to dict and add ID
             if isinstance(validated_data, dict):
                 data_dict = validated_data
             elif hasattr(validated_data, "dict"):
@@ -252,79 +185,35 @@ class GitHubSyncController(BaseController[T, TCreate, TUpdate]):
             else:
                 data_dict = dict(validated_data)  # type: ignore[arg-type]
             data_dict["id"] = await self.generate_id(data_dict)
-
             resource = await self.service.create(data_dict)
             logger.info(f"Created {self.get_resource_name()} {resource.id}")
-
             return resource
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"{self.get_resource_name().capitalize()} creation error: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to create {self.get_resource_name()}: {str(e)}",
-            )
+        return await handle_create(_perform)
 
     # Override delete to use validate_delete
     async def delete(self, resource_id: str, current_user: User, db) -> dict[str, str]:
         """Delete with validation"""
-        try:
-            resource = await self.validate_delete(resource_id, current_user, db)
-
+        async def _perform() -> dict[str, str]:
+            await self.validate_delete(resource_id, current_user, db)
             deleted = await self.service.delete(resource_id)
-
             if deleted:
                 logger.info(f"Deleted {self.get_resource_name()} {resource_id}")
                 return {"message": f"{self.get_resource_name().capitalize()} deleted successfully"}
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=f"Failed to delete {self.get_resource_name()}",
-                )
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"{self.get_resource_name().capitalize()} deletion error: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to delete {self.get_resource_name()}: {str(e)}",
+                detail=f"Failed to delete {self.get_resource_name()}",
             )
+        return await handle_delete(_perform)
 
     async def sync(self, github_token: str, current_user: User, db, **kwargs) -> dict[str, Any]:
-        """
-        Sync resources from GitHub
-
-        Args:
-            github_token: GitHub access token
-            current_user: Current authenticated user
-            db: Database connection
-            **kwargs: Additional sync parameters
-
-        Returns:
-            Sync result with count and resources
-        """
-        try:
+        """Sync resources from GitHub"""
+        async def _perform() -> dict[str, Any]:
             if not github_token:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="GitHub account not connected. Please connect your GitHub account in your profile settings.",
+                    detail="GitHub account not connected.",
                 )
-
             resources = await self.sync_from_github(github_token, current_user, **kwargs)
-
-            logger.info(
-                f"Synced {len(resources)} {self.get_resource_name_plural()} for {current_user.username}"
-            )
+            logger.info(f"Synced {len(resources)} {self.get_resource_name_plural()} for {current_user.username}")
             return {"count": len(resources), self.get_resource_name_plural(): resources}
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"{self.get_resource_name().capitalize()} sync error: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to sync {self.get_resource_name_plural()}: {str(e)}",
-            )
+        return await handle_operation("sync", _perform)
