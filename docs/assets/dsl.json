@@ -1,0 +1,72 @@
+{
+  "schema_version": "0.1.0",
+  "metadata": {
+    "name": "ticket-system",
+    "description": "Minimal graph IR for a ticket system"
+  },
+  "kinds": {
+    "node": {
+      "model": {
+        "color": "#FF0000",
+        "label": "Model"
+      },
+      "attribute": {
+        "color": "#00FF00",
+        "label": "Attribute"
+      }
+    },
+    "edge": {
+      "relation": {
+        "color": "#0000FF",
+        "label": "Relation"
+      },
+      "has_attribute": {
+        "color": "#999999",
+        "label": "Has attribute"
+      }
+    }
+  },
+  "nodes": [
+    {
+      "id": "model:User",
+      "kind": "model",
+      "name": "User",
+      "properties": {}
+    },
+    {
+      "id": "model:Ticket",
+      "kind": "model",
+      "name": "Ticket",
+      "properties": {}
+    },
+    {
+      "id": "attribute:Ticket.title",
+      "kind": "attribute",
+      "name": "title",
+      "properties": {
+        "type": "Text",
+        "required": true
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:Ticket.has_attribute.title",
+      "kind": "has_attribute",
+      "name": "has_attribute",
+      "source": "model:Ticket",
+      "target": "attribute:Ticket.title",
+      "properties": {}
+    },
+    {
+      "id": "edge:Ticket.assigned_to.User",
+      "kind": "relation",
+      "name": "assigned_to",
+      "source": "model:Ticket",
+      "target": "model:User",
+      "properties": {
+        "cardinality": "many_to_one"
+      }
+    }
+  ]
+}

@@ -17,4 +17,4 @@ Implémentation des fonctionnalités de gestion de projet : kanban, Gantt, estim
 - [ ] Graphe de dépendance entre les tâches
 - [ ] Gantt
 - [ ] Estimation de temps
-- [ ] cf docs/GESTION-DE-PROJET-STEPPER.md
+- [ ] cf docs/project-management/GESTION-DE-PROJET-STEPPER.md

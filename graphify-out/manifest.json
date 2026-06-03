@@ -1,0 +1,1497 @@
+{
+  "/home/joanix/Documents/Auto-code-v1/.opencode/opencode.json": {
+    "mtime": 1780514127.892178,
+    "ast_hash": "abcc8b9dcd80bca5f9dde6d9f0c3ae79",
+    "semantic_hash": "abcc8b9dcd80bca5f9dde6d9f0c3ae79"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.opencode/plugins/graphify.js": {
+    "mtime": 1780514127.8920639,
+    "ast_hash": "64ccd3c03dbfe0980b6095766f5c4e52",
+    "semantic_hash": "64ccd3c03dbfe0980b6095766f5c4e52"
+  },
+  "/home/joanix/Documents/Auto-code-v1/IaC/bash/delete-instance.sh": {
+    "mtime": 1780513791.1728601,
+    "ast_hash": "afe6ca7983ba51442ada129049ac93c2",
+    "semantic_hash": "afe6ca7983ba51442ada129049ac93c2"
+  },
+  "/home/joanix/Documents/Auto-code-v1/IaC/bash/provision.sh": {
+    "mtime": 1780513791.1729639,
+    "ast_hash": "043b27a1b4fc5e53f56351e8d24b2026",
+    "semantic_hash": "043b27a1b4fc5e53f56351e8d24b2026"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/main.py": {
+    "mtime": 1780513791.1735566,
+    "ast_hash": "3672b0eb4e438efa607ef1958eae270a",
+    "semantic_hash": "3672b0eb4e438efa607ef1958eae270a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/__init__.py": {
+    "mtime": 1780513791.1735566,
+    "ast_hash": "a2e596086ec3c0aeee3f85fae54cf289",
+    "semantic_hash": "a2e596086ec3c0aeee3f85fae54cf289"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/MDE/M2/__init__.py": {
+    "mtime": 1780513791.1738636,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/MDE/M2/attribute_controller.py": {
+    "mtime": 1780513791.1739042,
+    "ast_hash": "caff00b20e24153ea3209bc0605315e9",
+    "semantic_hash": "caff00b20e24153ea3209bc0605315e9"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/MDE/M2/concept_controller.py": {
+    "mtime": 1780513791.1739042,
+    "ast_hash": "b003eda3f28b28688ba2103f529b59c2",
+    "semantic_hash": "b003eda3f28b28688ba2103f529b59c2"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/MDE/M2/edge_controller.py": {
+    "mtime": 1780513791.1739042,
+    "ast_hash": "b5e23d53c1542756f6ac739c4a8f09fa",
+    "semantic_hash": "b5e23d53c1542756f6ac739c4a8f09fa"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/MDE/M2/metamodel_controller.py": {
+    "mtime": 1780513791.1739042,
+    "ast_hash": "bb9b5c968aed7a227c8abc06e02a9b35",
+    "semantic_hash": "bb9b5c968aed7a227c8abc06e02a9b35"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/MDE/M2/relationship_controller.py": {
+    "mtime": 1780513791.174084,
+    "ast_hash": "01f804ba2633f107be8c06c101fe653c",
+    "semantic_hash": "01f804ba2633f107be8c06c101fe653c"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/MDE/M3/__init__.py": {
+    "mtime": 1780513791.174084,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/MDE/M3/m3_controller.py": {
+    "mtime": 1780513791.1743112,
+    "ast_hash": "ed1403689228c0ddb22f998513ccda68",
+    "semantic_hash": "ed1403689228c0ddb22f998513ccda68"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/MDE/__init__.py": {
+    "mtime": 1780513791.1743112,
+    "ast_hash": "77e8b791b48029689c2227f71c5d7ba6",
+    "semantic_hash": "77e8b791b48029689c2227f71c5d7ba6"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/__init__.py": {
+    "mtime": 1780513791.1743112,
+    "ast_hash": "2c37254067075de1b291e3d4eace6c08",
+    "semantic_hash": "2c37254067075de1b291e3d4eace6c08"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/base_controller.py": {
+    "mtime": 1780513791.1743112,
+    "ast_hash": "2efda457c250679d7004184f7da1a7cc",
+    "semantic_hash": "2efda457c250679d7004184f7da1a7cc"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/oauth/auth_controller.py": {
+    "mtime": 1780513791.1743112,
+    "ast_hash": "fba4018f18c8df1618ace47e2c7b4431",
+    "semantic_hash": "fba4018f18c8df1618ace47e2c7b4431"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/repository/copilot_assignment_controller.py": {
+    "mtime": 1780513791.1743112,
+    "ast_hash": "9acf30aef6bc9d43470ef0f7b19e69fc",
+    "semantic_hash": "9acf30aef6bc9d43470ef0f7b19e69fc"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/repository/issue_controller.py": {
+    "mtime": 1780513791.174614,
+    "ast_hash": "9d4ac17f41f5ea0ccb727b3f4f023a69",
+    "semantic_hash": "9d4ac17f41f5ea0ccb727b3f4f023a69"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/repository/message_controller.py": {
+    "mtime": 1780513791.174614,
+    "ast_hash": "e8acb2df871476ced661c5899ae8f970",
+    "semantic_hash": "e8acb2df871476ced661c5899ae8f970"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/controllers/repository/repository_controller.py": {
+    "mtime": 1780513791.174614,
+    "ast_hash": "f3a76a238d9c6ff5b1dbf6769be17ddc",
+    "semantic_hash": "f3a76a238d9c6ff5b1dbf6769be17ddc"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/database.py": {
+    "mtime": 1780513791.174614,
+    "ast_hash": "eaa189bce2099297b74a2e355c8fddbd",
+    "semantic_hash": "eaa189bce2099297b74a2e355c8fddbd"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/M1/individual.py": {
+    "mtime": 1780513791.17492,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/M1/model.py": {
+    "mtime": 1780513791.17492,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/M2/__init__.py": {
+    "mtime": 1780513791.174977,
+    "ast_hash": "20548888e559147627f4db7325008066",
+    "semantic_hash": "20548888e559147627f4db7325008066"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/M2/attribute.py": {
+    "mtime": 1780513791.175048,
+    "ast_hash": "717ded8a8fe7b873d814f7b6aecebd88",
+    "semantic_hash": "717ded8a8fe7b873d814f7b6aecebd88"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/M2/concept.py": {
+    "mtime": 1780513791.175048,
+    "ast_hash": "3a6b13c457b7b9bac3c9896327861678",
+    "semantic_hash": "3a6b13c457b7b9bac3c9896327861678"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/M2/metamodel.py": {
+    "mtime": 1780513791.175048,
+    "ast_hash": "69aa740fc183a276913e989558c3a49c",
+    "semantic_hash": "69aa740fc183a276913e989558c3a49c"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/M2/metamodel_edge.py": {
+    "mtime": 1780513791.175048,
+    "ast_hash": "2f7c6914b135cc4df05eaafda3b62f5a",
+    "semantic_hash": "2f7c6914b135cc4df05eaafda3b62f5a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/M2/relationship.py": {
+    "mtime": 1780513791.1750839,
+    "ast_hash": "d69a053229f4214908c3f2d8809254ab",
+    "semantic_hash": "d69a053229f4214908c3f2d8809254ab"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/M3/__init__.py": {
+    "mtime": 1780513791.1750839,
+    "ast_hash": "92837a7bab6ff2f7a15a3cec3fc25ffb",
+    "semantic_hash": "92837a7bab6ff2f7a15a3cec3fc25ffb"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/M3/m3_config.py": {
+    "mtime": 1780513791.1753452,
+    "ast_hash": "73a79423ded208cd5fc67c95909da58d",
+    "semantic_hash": "73a79423ded208cd5fc67c95909da58d"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/__init__.py": {
+    "mtime": 1780513791.1753452,
+    "ast_hash": "0f29765d971fba7f8a48caf133494fab",
+    "semantic_hash": "0f29765d971fba7f8a48caf133494fab"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/MDE/templates.py": {
+    "mtime": 1780513791.1753452,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/__init__.py": {
+    "mtime": 1780513791.1753452,
+    "ast_hash": "89614cd1e75e74c5e4d7aeb39e21a2dc",
+    "semantic_hash": "89614cd1e75e74c5e4d7aeb39e21a2dc"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/base.py": {
+    "mtime": 1780513791.1753452,
+    "ast_hash": "33eb7f190b0a6802dd85b7aad3a743a6",
+    "semantic_hash": "33eb7f190b0a6802dd85b7aad3a743a6"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/graph/__init__.py": {
+    "mtime": 1780513791.1753452,
+    "ast_hash": "2dfc08fb3f04c423e95872a0b14d3f19",
+    "semantic_hash": "2dfc08fb3f04c423e95872a0b14d3f19"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/graph/edge.py": {
+    "mtime": 1780513791.175543,
+    "ast_hash": "a8c7cf12c253909f92129e5ca5466f9a",
+    "semantic_hash": "a8c7cf12c253909f92129e5ca5466f9a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/graph/edge_type.py": {
+    "mtime": 1780513791.175543,
+    "ast_hash": "7f0aff224d6b40fecdf5b4d4b05cefa3",
+    "semantic_hash": "7f0aff224d6b40fecdf5b4d4b05cefa3"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/graph/graph.py": {
+    "mtime": 1780513791.175543,
+    "ast_hash": "7f211b83f1df98bea14d8d16d95ec730",
+    "semantic_hash": "7f211b83f1df98bea14d8d16d95ec730"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/graph/node.py": {
+    "mtime": 1780513791.175543,
+    "ast_hash": "0f8bd6c6328783d485e4c2a1ab27f436",
+    "semantic_hash": "0f8bd6c6328783d485e4c2a1ab27f436"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/graph/node_type.py": {
+    "mtime": 1780513791.175543,
+    "ast_hash": "a9186942e7023234d01d30ec25e01806",
+    "semantic_hash": "a9186942e7023234d01d30ec25e01806"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/oauth/user.py": {
+    "mtime": 1780513791.175543,
+    "ast_hash": "4b8095e2fcd7b22d4a41a91dfbde0778",
+    "semantic_hash": "4b8095e2fcd7b22d4a41a91dfbde0778"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/repository/__init__.py": {
+    "mtime": 1780513791.175543,
+    "ast_hash": "7db7aed96497e641c34905f2a90f63a5",
+    "semantic_hash": "7db7aed96497e641c34905f2a90f63a5"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/repository/issue.py": {
+    "mtime": 1780513791.1758566,
+    "ast_hash": "c369a39b221957c817faa1d86b35908a",
+    "semantic_hash": "c369a39b221957c817faa1d86b35908a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/repository/message.py": {
+    "mtime": 1780513791.1758566,
+    "ast_hash": "7b9d5a91b92725ea42b3c50c9f060f55",
+    "semantic_hash": "7b9d5a91b92725ea42b3c50c9f060f55"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/models/repository/repository.py": {
+    "mtime": 1780513791.1758566,
+    "ast_hash": "4cfed194b5a33844276638664504b251",
+    "semantic_hash": "4cfed194b5a33844276638664504b251"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/MDE/M2/__init__.py": {
+    "mtime": 1780513791.175979,
+    "ast_hash": "1336d09c4365e35a07abdd1abffae72d",
+    "semantic_hash": "1336d09c4365e35a07abdd1abffae72d"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/MDE/M2/attribute_repository.py": {
+    "mtime": 1780513791.1760466,
+    "ast_hash": "be4514fd7962de8a20b73e0775ef34e9",
+    "semantic_hash": "be4514fd7962de8a20b73e0775ef34e9"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/MDE/M2/concept_repository.py": {
+    "mtime": 1780513791.1760466,
+    "ast_hash": "a327d38dcab0b35408a1aa315e533122",
+    "semantic_hash": "a327d38dcab0b35408a1aa315e533122"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/MDE/M2/metamodel_edge_repository.py": {
+    "mtime": 1780513791.1760466,
+    "ast_hash": "00d3f26841870abfdff861c2699e2347",
+    "semantic_hash": "00d3f26841870abfdff861c2699e2347"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/MDE/M2/metamodel_repository.py": {
+    "mtime": 1780513791.176084,
+    "ast_hash": "33ae2bafe7e486dad45ab3aba0cf6851",
+    "semantic_hash": "33ae2bafe7e486dad45ab3aba0cf6851"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/MDE/M2/relationship_repository.py": {
+    "mtime": 1780513791.176084,
+    "ast_hash": "cdf837fb1dcbc0aa7337ed99d18adfbd",
+    "semantic_hash": "cdf837fb1dcbc0aa7337ed99d18adfbd"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/MDE/__init__.py": {
+    "mtime": 1780513791.176084,
+    "ast_hash": "694656e975ceccccd1c8a31147d6a3c0",
+    "semantic_hash": "694656e975ceccccd1c8a31147d6a3c0"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/__init__.py": {
+    "mtime": 1780513791.176084,
+    "ast_hash": "e32ced415d95795b4375dcef32eed62f",
+    "semantic_hash": "e32ced415d95795b4375dcef32eed62f"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/base.py": {
+    "mtime": 1780513791.176084,
+    "ast_hash": "5e3a06c663ccf4e5e966de23228c68fa",
+    "semantic_hash": "5e3a06c663ccf4e5e966de23228c68fa"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/oauth/__init__.py": {
+    "mtime": 1780513791.176084,
+    "ast_hash": "aff63748eeeaa21cc362df5f54b8841f",
+    "semantic_hash": "aff63748eeeaa21cc362df5f54b8841f"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/oauth/user_repository.py": {
+    "mtime": 1780513791.1765106,
+    "ast_hash": "ef7f228996e313159b0963f9da189d29",
+    "semantic_hash": "ef7f228996e313159b0963f9da189d29"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/repository/__init__.py": {
+    "mtime": 1780513791.1765106,
+    "ast_hash": "89603135658d3c2c933c26a01759e9c1",
+    "semantic_hash": "89603135658d3c2c933c26a01759e9c1"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/repository/issue_repository.py": {
+    "mtime": 1780513791.1765983,
+    "ast_hash": "bfc8b591433e24d7839df9d1d4761041",
+    "semantic_hash": "bfc8b591433e24d7839df9d1d4761041"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/repository/message_repository.py": {
+    "mtime": 1780513791.1765983,
+    "ast_hash": "29a72214f7e0f81282d231b29255fae4",
+    "semantic_hash": "29a72214f7e0f81282d231b29255fae4"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/repositories/repository/repository_repository.py": {
+    "mtime": 1780513791.1765983,
+    "ast_hash": "182c30b5e1cb3c65dc58e7f73fa57fa9",
+    "semantic_hash": "182c30b5e1cb3c65dc58e7f73fa57fa9"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/MDE/M2/__init__.py": {
+    "mtime": 1780513791.176745,
+    "ast_hash": "b0901b00e495d7d2ed81252d44dd1ed7",
+    "semantic_hash": "b0901b00e495d7d2ed81252d44dd1ed7"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/MDE/M2/attribute_service.py": {
+    "mtime": 1780513791.1768022,
+    "ast_hash": "8cb5b06a0fff11df0650de715922b05b",
+    "semantic_hash": "8cb5b06a0fff11df0650de715922b05b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/MDE/M2/concept_service.py": {
+    "mtime": 1780513791.1768022,
+    "ast_hash": "009d69d61a0b87a03f4ec3d90143c0aa",
+    "semantic_hash": "009d69d61a0b87a03f4ec3d90143c0aa"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/MDE/M2/metamodel_service.py": {
+    "mtime": 1780513791.1768022,
+    "ast_hash": "9bd0a728636e3bbdf5fc11d8b918dc30",
+    "semantic_hash": "9bd0a728636e3bbdf5fc11d8b918dc30"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/MDE/M2/relationship_service.py": {
+    "mtime": 1780513791.1768022,
+    "ast_hash": "0ea687b307af6ea2244c038921ddb322",
+    "semantic_hash": "0ea687b307af6ea2244c038921ddb322"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/MDE/__init__.py": {
+    "mtime": 1780513791.1768022,
+    "ast_hash": "b78ee3d710ab1be3beab69b3b4f58bce",
+    "semantic_hash": "b78ee3d710ab1be3beab69b3b4f58bce"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/__init__.py": {
+    "mtime": 1780513791.1768022,
+    "ast_hash": "c64c5a7cb245f274f4f4153e92bb8520",
+    "semantic_hash": "c64c5a7cb245f274f4f4153e92bb8520"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/base_service.py": {
+    "mtime": 1780513791.1768022,
+    "ast_hash": "84575be61d511e617746afca0ca0c8a1",
+    "semantic_hash": "84575be61d511e617746afca0ca0c8a1"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/oauth/__init__.py": {
+    "mtime": 1780513791.1768022,
+    "ast_hash": "b9de22eeb01b48d747741d6b4448dcb6",
+    "semantic_hash": "b9de22eeb01b48d747741d6b4448dcb6"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/oauth/github_oauth_service.py": {
+    "mtime": 1780513791.1772091,
+    "ast_hash": "bcabf40d1822ec7caba3df49c6561c01",
+    "semantic_hash": "bcabf40d1822ec7caba3df49c6561c01"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/oauth/user_service.py": {
+    "mtime": 1780513791.1772091,
+    "ast_hash": "b709422e61b8dcfb825b0e6a42a18ee2",
+    "semantic_hash": "b709422e61b8dcfb825b0e6a42a18ee2"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/repository/__init__.py": {
+    "mtime": 1780513791.1772091,
+    "ast_hash": "463d61ee080471ab1722f98656a9e464",
+    "semantic_hash": "463d61ee080471ab1722f98656a9e464"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/repository/copilot_agent_service.py": {
+    "mtime": 1780513791.17741,
+    "ast_hash": "0562374d78f8ba85d59f9833b5da9b69",
+    "semantic_hash": "0562374d78f8ba85d59f9833b5da9b69"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/repository/issue_service.py": {
+    "mtime": 1780513791.17741,
+    "ast_hash": "d7d3e043df367ba2a9e68e44b3b540fd",
+    "semantic_hash": "d7d3e043df367ba2a9e68e44b3b540fd"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/repository/message_service.py": {
+    "mtime": 1780513791.17741,
+    "ast_hash": "8695ac2c8e407c1c4d9db77ceca615f0",
+    "semantic_hash": "8695ac2c8e407c1c4d9db77ceca615f0"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/repository/repository_initializer_service.py": {
+    "mtime": 1780513791.17741,
+    "ast_hash": "2e85533aa02095460efc062224f4a02c",
+    "semantic_hash": "2e85533aa02095460efc062224f4a02c"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/services/repository/repository_service.py": {
+    "mtime": 1780513791.17741,
+    "ast_hash": "015206a418c6a2db964f3f815261cbf5",
+    "semantic_hash": "015206a418c6a2db964f3f815261cbf5"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/utils/__init__.py": {
+    "mtime": 1780513791.17741,
+    "ast_hash": "3adce8decff8aab95424702b407f3b1c",
+    "semantic_hash": "3adce8decff8aab95424702b407f3b1c"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/utils/auth.py": {
+    "mtime": 1780513791.1778312,
+    "ast_hash": "599c2ffe657845505cfa6a192ea9d7a6",
+    "semantic_hash": "599c2ffe657845505cfa6a192ea9d7a6"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/utils/config.py": {
+    "mtime": 1780513791.1778312,
+    "ast_hash": "758885a2f00490b155bc981ae2556595",
+    "semantic_hash": "758885a2f00490b155bc981ae2556595"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/websocket/__init__.py": {
+    "mtime": 1780513791.1778312,
+    "ast_hash": "b7a6cf37cfaba32ffa5226493c4c67f4",
+    "semantic_hash": "b7a6cf37cfaba32ffa5226493c4c67f4"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/src/websocket/connection_manager.py": {
+    "mtime": 1780513791.177943,
+    "ast_hash": "5bd39d1211a34cc266d75fa681bffd1f",
+    "semantic_hash": "5bd39d1211a34cc266d75fa681bffd1f"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/test_concept_api.py": {
+    "mtime": 1780513791.177943,
+    "ast_hash": "e05f1fb223abb2f9a61e455e2ed82dbb",
+    "semantic_hash": "e05f1fb223abb2f9a61e455e2ed82dbb"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/test_concept_http.py": {
+    "mtime": 1780513791.177943,
+    "ast_hash": "888cac5994b0ae9697efd02e3ea0ed42",
+    "semantic_hash": "888cac5994b0ae9697efd02e3ea0ed42"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/tests/__init__.py": {
+    "mtime": 1780513791.177943,
+    "ast_hash": "2ff08ad53c53b444f261cf5d161bee75",
+    "semantic_hash": "2ff08ad53c53b444f261cf5d161bee75"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/tests/test_auth.py": {
+    "mtime": 1780513791.1780953,
+    "ast_hash": "ddbc9e56f16061052c6677367ec3c06c",
+    "semantic_hash": "ddbc9e56f16061052c6677367ec3c06c"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/tests/test_copilot_agent.py": {
+    "mtime": 1780513791.1780953,
+    "ast_hash": "068d6ee2e83bd27f85ff7e6c57c4b191",
+    "semantic_hash": "068d6ee2e83bd27f85ff7e6c57c4b191"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/tests/test_mde_api.sh": {
+    "mtime": 1780513791.1780953,
+    "ast_hash": "f603017d04126887e99dfc9d75223bc8",
+    "semantic_hash": "f603017d04126887e99dfc9d75223bc8"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/components.json": {
+    "mtime": 1780513791.1823397,
+    "ast_hash": "8374b74daf75bd47ef5e1123bccde4ad",
+    "semantic_hash": "8374b74daf75bd47ef5e1123bccde4ad"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/eslint.config.js": {
+    "mtime": 1780513791.1823397,
+    "ast_hash": "289d6b79f2956f20f833b7b2fe6c3e9b",
+    "semantic_hash": "289d6b79f2956f20f833b7b2fe6c3e9b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/package.json": {
+    "mtime": 1780513791.183084,
+    "ast_hash": "b023a94c2e31dbcb2ed14143f8614dc2",
+    "semantic_hash": "b023a94c2e31dbcb2ed14143f8614dc2"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/postcss.config.js": {
+    "mtime": 1780513791.183084,
+    "ast_hash": "ef3ba2a81ba19f8ea5ddf625521e96f0",
+    "semantic_hash": "ef3ba2a81ba19f8ea5ddf625521e96f0"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/App.tsx": {
+    "mtime": 1780513791.1844935,
+    "ast_hash": "103a4f878e6b81a25f4e2dd461a4438b",
+    "semantic_hash": "103a4f878e6b81a25f4e2dd461a4438b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/DeleteDialog.tsx": {
+    "mtime": 1780513791.1844935,
+    "ast_hash": "947069f8b5f9700137c42a2f07a976a0",
+    "semantic_hash": "947069f8b5f9700137c42a2f07a976a0"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/Card/BaseCard.tsx": {
+    "mtime": 1780513791.1846194,
+    "ast_hash": "b842379347ec193936b85c7ee9ff7fa3",
+    "semantic_hash": "b842379347ec193936b85c7ee9ff7fa3"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/CardList/BaseCardList.tsx": {
+    "mtime": 1780513791.1846986,
+    "ast_hash": "37761459355a66c7d6f5b665cd72a49b",
+    "semantic_hash": "37761459355a66c7d6f5b665cd72a49b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/Form/Fields/BooleanField.tsx": {
+    "mtime": 1780513791.1848495,
+    "ast_hash": "94c335a97e55139c63915a217fd9d582",
+    "semantic_hash": "94c335a97e55139c63915a217fd9d582"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/Form/Fields/Field.tsx": {
+    "mtime": 1780513791.1849043,
+    "ast_hash": "31fc4ed9541b238340d58e0e853f0d9e",
+    "semantic_hash": "31fc4ed9541b238340d58e0e853f0d9e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/Form/Fields/SelectField.tsx": {
+    "mtime": 1780513791.1849043,
+    "ast_hash": "c5e03b7bf7579a95b3bc2df3ea30ffdb",
+    "semantic_hash": "c5e03b7bf7579a95b3bc2df3ea30ffdb"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/Form/Fields/TextAreaField.tsx": {
+    "mtime": 1780513791.1849043,
+    "ast_hash": "a19bdf59d7d8b4656a590c2ee2dfac32",
+    "semantic_hash": "a19bdf59d7d8b4656a590c2ee2dfac32"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/Form/Fields/TextField.tsx": {
+    "mtime": 1780513791.1849043,
+    "ast_hash": "313f35472409f644cd92263ae7302db7",
+    "semantic_hash": "313f35472409f644cd92263ae7302db7"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/Form/Fields/index.ts": {
+    "mtime": 1780513791.1849043,
+    "ast_hash": "2b792753416b72194d6eb01e0c422986",
+    "semantic_hash": "2b792753416b72194d6eb01e0c422986"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/Form/Form.tsx": {
+    "mtime": 1780513791.1849043,
+    "ast_hash": "d68f3bb7125af745d782d748c92b316c",
+    "semantic_hash": "d68f3bb7125af745d782d748c92b316c"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/Form/NodeForm.tsx": {
+    "mtime": 1780513791.1849043,
+    "ast_hash": "63a61a76e034394dc583307316453c3a",
+    "semantic_hash": "63a61a76e034394dc583307316453c3a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/Form/index.ts": {
+    "mtime": 1780513791.185084,
+    "ast_hash": "94749f829078d6b0c89fdfa759f31ebb",
+    "semantic_hash": "94749f829078d6b0c89fdfa759f31ebb"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/GraphViewer.tsx": {
+    "mtime": 1780513791.185084,
+    "ast_hash": "9a29f121e5e4f7cc4eb455b2456a2c10",
+    "semantic_hash": "9a29f121e5e4f7cc4eb455b2456a2c10"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/behaviors/dragBehavior.ts": {
+    "mtime": 1780513791.1853733,
+    "ast_hash": "4af1c2587b6050d0060d22e7e0d39536",
+    "semantic_hash": "4af1c2587b6050d0060d22e7e0d39536"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/behaviors/index.ts": {
+    "mtime": 1780513791.1855266,
+    "ast_hash": "001f666839e50c77c2ab6aef127cf3a2",
+    "semantic_hash": "001f666839e50c77c2ab6aef127cf3a2"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/components/CreateNodeModal.tsx": {
+    "mtime": 1780513791.1855266,
+    "ast_hash": "e801084da4cf1f7fc626c081ef05b132",
+    "semantic_hash": "e801084da4cf1f7fc626c081ef05b132"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/components/EdgeTypeSelector.tsx": {
+    "mtime": 1780513791.1856399,
+    "ast_hash": "34eebd19390505288fa6fa2ef22abdd7",
+    "semantic_hash": "34eebd19390505288fa6fa2ef22abdd7"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/components/GraphNodePanel.tsx": {
+    "mtime": 1780513791.1856399,
+    "ast_hash": "47d1e08ab4311944bedde32534080da4",
+    "semantic_hash": "47d1e08ab4311944bedde32534080da4"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/components/GraphToolbar.tsx": {
+    "mtime": 1780513791.1856399,
+    "ast_hash": "728fb870756f42d7c675160f5ff81aca",
+    "semantic_hash": "728fb870756f42d7c675160f5ff81aca"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/components/ZoomControls.tsx": {
+    "mtime": 1780513791.1856399,
+    "ast_hash": "78aeecfc7cba4f6ca7a9b8c45ff37c64",
+    "semantic_hash": "78aeecfc7cba4f6ca7a9b8c45ff37c64"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/handlers/backgroundHandlers.ts": {
+    "mtime": 1780513791.1856399,
+    "ast_hash": "866e27d14c9c907a6680b8d8748cca9b",
+    "semantic_hash": "866e27d14c9c907a6680b8d8748cca9b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/handlers/index.ts": {
+    "mtime": 1780513791.1858778,
+    "ast_hash": "bc7f6bc612d58be78f462d731b24699d",
+    "semantic_hash": "bc7f6bc612d58be78f462d731b24699d"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/handlers/nodeHandlers.ts": {
+    "mtime": 1780513791.1858778,
+    "ast_hash": "126aaeb88dfd8907d59e177fde746047",
+    "semantic_hash": "126aaeb88dfd8907d59e177fde746047"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/hooks/index.ts": {
+    "mtime": 1780513791.1858778,
+    "ast_hash": "1471cadf8c05f5583fe1c1980c26cbe0",
+    "semantic_hash": "1471cadf8c05f5583fe1c1980c26cbe0"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/hooks/useDimensions.ts": {
+    "mtime": 1780513791.1859872,
+    "ast_hash": "c0ad856c727614655b727c341106ccc2",
+    "semantic_hash": "c0ad856c727614655b727c341106ccc2"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/hooks/useEdgeMode.ts": {
+    "mtime": 1780513791.1859872,
+    "ast_hash": "e6ffb97fec4652dbc43930ceab2a7d19",
+    "semantic_hash": "e6ffb97fec4652dbc43930ceab2a7d19"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/hooks/useGraphState.ts": {
+    "mtime": 1780513791.1859872,
+    "ast_hash": "52b6bc8242aa511135782dfc64e7e4bf",
+    "semantic_hash": "52b6bc8242aa511135782dfc64e7e4bf"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/hooks/useZoomControls.ts": {
+    "mtime": 1780513791.1859872,
+    "ast_hash": "2966f9b1b827360bbe5d32ceebccf434",
+    "semantic_hash": "2966f9b1b827360bbe5d32ceebccf434"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/index.ts": {
+    "mtime": 1780513791.1859872,
+    "ast_hash": "437b98db5bce22a70d45150b68ffe8ba",
+    "semantic_hash": "437b98db5bce22a70d45150b68ffe8ba"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/types.ts": {
+    "mtime": 1780513791.1859872,
+    "ast_hash": "8feed5e7d195f127868edc6a4da904d1",
+    "semantic_hash": "8feed5e7d195f127868edc6a4da904d1"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/utils/constants.ts": {
+    "mtime": 1780513791.186084,
+    "ast_hash": "6af086afc7435048961eb444ad722e41",
+    "semantic_hash": "6af086afc7435048961eb444ad722e41"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/utils/edges.ts": {
+    "mtime": 1780513791.1862648,
+    "ast_hash": "25b0a151fa526d7d02da0e13fbd79bc9",
+    "semantic_hash": "25b0a151fa526d7d02da0e13fbd79bc9"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/utils/index.ts": {
+    "mtime": 1780513791.1862648,
+    "ast_hash": "6c9487e5eb3ee789f7a50355bb087ca8",
+    "semantic_hash": "6c9487e5eb3ee789f7a50355bb087ca8"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/utils/markers.ts": {
+    "mtime": 1780513791.1862648,
+    "ast_hash": "41f4e5fbc49540dfc3372d2f16a949be",
+    "semantic_hash": "41f4e5fbc49540dfc3372d2f16a949be"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/utils/nodes.ts": {
+    "mtime": 1780513791.1862648,
+    "ast_hash": "53c08609be1eea1067e818d13a0d67f8",
+    "semantic_hash": "53c08609be1eea1067e818d13a0d67f8"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/utils/simulation.ts": {
+    "mtime": 1780513791.1862648,
+    "ast_hash": "d2f27c22e4df63204882550db9f55d16",
+    "semantic_hash": "d2f27c22e4df63204882550db9f55d16"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/development/issues/AssignToCopilotDialog.tsx": {
+    "mtime": 1780513791.1865032,
+    "ast_hash": "3c2859bf50c37c8ae846eab172252a3b",
+    "semantic_hash": "3c2859bf50c37c8ae846eab172252a3b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/development/issues/IssueCard.tsx": {
+    "mtime": 1780513791.1865683,
+    "ast_hash": "01dceda75589b8299f3bff1a7bd01896",
+    "semantic_hash": "01dceda75589b8299f3bff1a7bd01896"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/development/issues/IssueList.tsx": {
+    "mtime": 1780513791.1865683,
+    "ast_hash": "d349199a69e2e1650bd35f1603147215",
+    "semantic_hash": "d349199a69e2e1650bd35f1603147215"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/development/issues/IssueStatusFilter.tsx": {
+    "mtime": 1780513791.1865683,
+    "ast_hash": "92400ddef3fad7e42bdcf3eacf2e72fd",
+    "semantic_hash": "92400ddef3fad7e42bdcf3eacf2e72fd"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/development/metamodels/AttributeForm.tsx": {
+    "mtime": 1780513791.1865683,
+    "ast_hash": "7ceaed2672e4b7737666d9eec8548d7e",
+    "semantic_hash": "7ceaed2672e4b7737666d9eec8548d7e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/development/metamodels/ConceptForm.tsx": {
+    "mtime": 1780513791.1867323,
+    "ast_hash": "03fc2859ee3132c3842090f58c55ab3a",
+    "semantic_hash": "03fc2859ee3132c3842090f58c55ab3a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/development/metamodels/MetamodelCard.tsx": {
+    "mtime": 1780513791.1867323,
+    "ast_hash": "c4324cc949eced54b92317d979fb746b",
+    "semantic_hash": "c4324cc949eced54b92317d979fb746b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/development/metamodels/MetamodelList.tsx": {
+    "mtime": 1780513791.1867323,
+    "ast_hash": "55cfdd37e2c17827fb28b9585094a51b",
+    "semantic_hash": "55cfdd37e2c17827fb28b9585094a51b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/development/metamodels/RelationForm.tsx": {
+    "mtime": 1780513791.1867323,
+    "ast_hash": "dd5f4c44de38ac753c8b5c9b5f591530",
+    "semantic_hash": "dd5f4c44de38ac753c8b5c9b5f591530"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/development/repositories/RepositoryCard.tsx": {
+    "mtime": 1780513791.1867323,
+    "ast_hash": "f7393e51cd9163906ed2ecc9b4505d98",
+    "semantic_hash": "f7393e51cd9163906ed2ecc9b4505d98"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/development/repositories/RepositoryList.tsx": {
+    "mtime": 1780513791.1869507,
+    "ast_hash": "d2b5723a81a428fa3fbc3b3e91cf41a5",
+    "semantic_hash": "d2b5723a81a428fa3fbc3b3e91cf41a5"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/layout/Header.tsx": {
+    "mtime": 1780513791.1869507,
+    "ast_hash": "d9d8bb60e844535912bac141f1213966",
+    "semantic_hash": "d9d8bb60e844535912bac141f1213966"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/layout/Layout.tsx": {
+    "mtime": 1780513791.187048,
+    "ast_hash": "fc5d9ae24e9d442a7b6f6c9812bf0860",
+    "semantic_hash": "fc5d9ae24e9d442a7b6f6c9812bf0860"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/layout/NavigationMenu.tsx": {
+    "mtime": 1780513791.187048,
+    "ast_hash": "59963252e5b2a40abbabe5106301fdb7",
+    "semantic_hash": "59963252e5b2a40abbabe5106301fdb7"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/layout/Sidebar.tsx": {
+    "mtime": 1780513791.187048,
+    "ast_hash": "172bbc969f313e25d468a40ba29cbc97",
+    "semantic_hash": "172bbc969f313e25d468a40ba29cbc97"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/layouts/AppLayout.tsx": {
+    "mtime": 1780513791.187048,
+    "ast_hash": "d4a94644924da476451145278207b39e",
+    "semantic_hash": "d4a94644924da476451145278207b39e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/accordion.tsx": {
+    "mtime": 1780513791.1870842,
+    "ast_hash": "1543fc386d0aba4654f3199bf017eaab",
+    "semantic_hash": "1543fc386d0aba4654f3199bf017eaab"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/alert-dialog.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "86dbecac536c036590ab50ff897fae93",
+    "semantic_hash": "86dbecac536c036590ab50ff897fae93"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/alert.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "48dac79c18e0c3ff687c320c6fcf1590",
+    "semantic_hash": "48dac79c18e0c3ff687c320c6fcf1590"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/aspect-ratio.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "ea9c6ff6c2931b5089972bfba3fa5c1f",
+    "semantic_hash": "ea9c6ff6c2931b5089972bfba3fa5c1f"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/avatar.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "ce4fe60f4c48c01a5a601d9835648b40",
+    "semantic_hash": "ce4fe60f4c48c01a5a601d9835648b40"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/badge.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "f9c097d427c421f83eb92772a4b8ec06",
+    "semantic_hash": "f9c097d427c421f83eb92772a4b8ec06"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/breadcrumb.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "377763c80b5d08aa7748a2d532bb290e",
+    "semantic_hash": "377763c80b5d08aa7748a2d532bb290e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/button.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "33f8ef5c351115f8904b2a2f3decef54",
+    "semantic_hash": "33f8ef5c351115f8904b2a2f3decef54"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/calendar.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "b10cdbdfa9fc224657db70ba662f1d37",
+    "semantic_hash": "b10cdbdfa9fc224657db70ba662f1d37"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/card.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "e5394576e1d0ae239d4945b8d371689f",
+    "semantic_hash": "e5394576e1d0ae239d4945b8d371689f"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/carousel.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "005a47594c5c8f09e27f0ed1f02197cd",
+    "semantic_hash": "005a47594c5c8f09e27f0ed1f02197cd"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/chart.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "8d4b13c80ec8ade9908712155bf0d117",
+    "semantic_hash": "8d4b13c80ec8ade9908712155bf0d117"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/checkbox.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "ca06e9d95214f6c4b90a760098d21830",
+    "semantic_hash": "ca06e9d95214f6c4b90a760098d21830"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/collapsible.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "8bcc61ee503a05663fb77ad9b7ec064a",
+    "semantic_hash": "8bcc61ee503a05663fb77ad9b7ec064a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/command.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "f7bf707fa618dc27429ec5f1c19028c6",
+    "semantic_hash": "f7bf707fa618dc27429ec5f1c19028c6"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/context-menu.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "d4964b3b39ddf550f9b30c104e0080d8",
+    "semantic_hash": "d4964b3b39ddf550f9b30c104e0080d8"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/dialog.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "1b6ffa607ea3a77fde618f846662dd0b",
+    "semantic_hash": "1b6ffa607ea3a77fde618f846662dd0b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/drawer.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "1caf6dac62a50b2558dd36d6d7644891",
+    "semantic_hash": "1caf6dac62a50b2558dd36d6d7644891"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/dropdown-menu.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "cf7fe61c5c91eae0bdb3b3864508d48d",
+    "semantic_hash": "cf7fe61c5c91eae0bdb3b3864508d48d"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/form.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "0ed732617aace88aa93d42fe438dd281",
+    "semantic_hash": "0ed732617aace88aa93d42fe438dd281"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/hover-card.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "004259115672f57e95da0b72ea2c613e",
+    "semantic_hash": "004259115672f57e95da0b72ea2c613e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/input-otp.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "084089343296a7ebcb40fff14c62cb30",
+    "semantic_hash": "084089343296a7ebcb40fff14c62cb30"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/input.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "c43179ae676671e86c9a7e6b5f5085cf",
+    "semantic_hash": "c43179ae676671e86c9a7e6b5f5085cf"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/label.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "7ea839d3fa873fb063a9709a79e47561",
+    "semantic_hash": "7ea839d3fa873fb063a9709a79e47561"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/menubar.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "a3a53eadb4e2d52cb841ebd2a910d33d",
+    "semantic_hash": "a3a53eadb4e2d52cb841ebd2a910d33d"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/navigation-menu.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "630417e56e3f5f9a5f323565ed86d430",
+    "semantic_hash": "630417e56e3f5f9a5f323565ed86d430"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/pagination.tsx": {
+    "mtime": 1780513791.1872776,
+    "ast_hash": "de159ac89490951ee82b4991f604e394",
+    "semantic_hash": "de159ac89490951ee82b4991f604e394"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/popover.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "b177b8aa44e03c0a5d2a9f00b11d55be",
+    "semantic_hash": "b177b8aa44e03c0a5d2a9f00b11d55be"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/progress.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "9202867eacff0cb1b253a05d5d65bfc0",
+    "semantic_hash": "9202867eacff0cb1b253a05d5d65bfc0"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/radio-group.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "3ace644678cd101153deee82d72048d9",
+    "semantic_hash": "3ace644678cd101153deee82d72048d9"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/resizable.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "cf5896bc9f1524c3f3fb2d4f24eb54bf",
+    "semantic_hash": "cf5896bc9f1524c3f3fb2d4f24eb54bf"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/scroll-area.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "c4d63c56a99feb600ed0e9bbcfd70829",
+    "semantic_hash": "c4d63c56a99feb600ed0e9bbcfd70829"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/select.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "77068b06fc2963e49074a0b272972922",
+    "semantic_hash": "77068b06fc2963e49074a0b272972922"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/separator.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "e970901b62fe8b73d2b9254fad77f583",
+    "semantic_hash": "e970901b62fe8b73d2b9254fad77f583"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/sheet.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "cecc64767f4252384897a8076925a503",
+    "semantic_hash": "cecc64767f4252384897a8076925a503"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/sidebar.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "27c8db4816b123901768861c586f1cdb",
+    "semantic_hash": "27c8db4816b123901768861c586f1cdb"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/skeleton.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "a5a4d6d5551d4c7feb8176a23e7eb07c",
+    "semantic_hash": "a5a4d6d5551d4c7feb8176a23e7eb07c"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/slider.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "ccbb4f4470af296eafa94f9972e8a4f9",
+    "semantic_hash": "ccbb4f4470af296eafa94f9972e8a4f9"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/sonner.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "5cc4d43770ff3cffb5ba65d5ea3ee26d",
+    "semantic_hash": "5cc4d43770ff3cffb5ba65d5ea3ee26d"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/switch.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "1210b13831d433e8a9488bab91432dd4",
+    "semantic_hash": "1210b13831d433e8a9488bab91432dd4"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/table.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "efdbaeb9710b2f60de7c0e18bd4e3528",
+    "semantic_hash": "efdbaeb9710b2f60de7c0e18bd4e3528"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/tabs.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "edad06f905be7a7e3634fdbe1b6ad61a",
+    "semantic_hash": "edad06f905be7a7e3634fdbe1b6ad61a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/textarea.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "fa6feefbd3190aacb1cd7ea06b3c511b",
+    "semantic_hash": "fa6feefbd3190aacb1cd7ea06b3c511b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/toast.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "c1dc6ee9ae569d0b6a798e16a1c42005",
+    "semantic_hash": "c1dc6ee9ae569d0b6a798e16a1c42005"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/toaster.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "5277189066bfd11d1f70c7afc67d1cc0",
+    "semantic_hash": "5277189066bfd11d1f70c7afc67d1cc0"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/toggle-group.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "6338f2936a2474998e1e546c6a1664a6",
+    "semantic_hash": "6338f2936a2474998e1e546c6a1664a6"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/toggle.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "5840a6d0f51ab73d9f40592fd0db4899",
+    "semantic_hash": "5840a6d0f51ab73d9f40592fd0db4899"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/tooltip.tsx": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "336ca01a98037c9a1dfe936bde3ee549",
+    "semantic_hash": "336ca01a98037c9a1dfe936bde3ee549"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/ui/use-toast.ts": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "a823439caf4d18573ad01e98ba9057b8",
+    "semantic_hash": "a823439caf4d18573ad01e98ba9057b8"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/config/api-urls.ts": {
+    "mtime": 1780513791.1880841,
+    "ast_hash": "624a092138cbe9eaab7d7407c89db0b1",
+    "semantic_hash": "624a092138cbe9eaab7d7407c89db0b1"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/config/env.ts": {
+    "mtime": 1780513791.1890554,
+    "ast_hash": "a635671a464dd7012240d6dc8feaf39f",
+    "semantic_hash": "a635671a464dd7012240d6dc8feaf39f"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/config/navigation.ts": {
+    "mtime": 1780513791.1890554,
+    "ast_hash": "6bb282b5506d08d8f4d219f732be0abe",
+    "semantic_hash": "6bb282b5506d08d8f4d219f732be0abe"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/contexts/AuthContext.tsx": {
+    "mtime": 1780513791.1890554,
+    "ast_hash": "1fb6c59997b9b621c0f9dd1b919da523",
+    "semantic_hash": "1fb6c59997b9b621c0f9dd1b919da523"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/hooks/useIssues.ts": {
+    "mtime": 1780513791.189084,
+    "ast_hash": "c203ed30766b08c891fe6865d245f659",
+    "semantic_hash": "c203ed30766b08c891fe6865d245f659"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/hooks/useMessages.ts": {
+    "mtime": 1780513791.1892576,
+    "ast_hash": "f43fd26a44a08bb708e3a6c943765c20",
+    "semantic_hash": "f43fd26a44a08bb708e3a6c943765c20"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/hooks/useMetamodels.ts": {
+    "mtime": 1780513791.1892576,
+    "ast_hash": "7527b773212b7b71dc2c3f9d55941c96",
+    "semantic_hash": "7527b773212b7b71dc2c3f9d55941c96"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/hooks/useRepositories.ts": {
+    "mtime": 1780513791.1892576,
+    "ast_hash": "7d5e433a313f2bcc40667bb2f538508c",
+    "semantic_hash": "7d5e433a313f2bcc40667bb2f538508c"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/lib/utils.ts": {
+    "mtime": 1780513791.1892576,
+    "ast_hash": "5a6fd53fdcf2be529e9cc0b718fde352",
+    "semantic_hash": "5a6fd53fdcf2be529e9cc0b718fde352"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/main.tsx": {
+    "mtime": 1780513791.1892576,
+    "ast_hash": "15da54e39d48ef50de2df869b054c181",
+    "semantic_hash": "15da54e39d48ef50de2df869b054c181"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/Dashboard.tsx": {
+    "mtime": 1780513791.1892576,
+    "ast_hash": "2e74d9dba110079d5ac5d3eecc43d743",
+    "semantic_hash": "2e74d9dba110079d5ac5d3eecc43d743"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/NotFound.tsx": {
+    "mtime": 1780513791.1895742,
+    "ast_hash": "22ea4d56dc75e26385a29c3f255bc640",
+    "semantic_hash": "22ea4d56dc75e26385a29c3f255bc640"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/auth/AuthCallback.tsx": {
+    "mtime": 1780513791.1895742,
+    "ast_hash": "8a945a43d281abab36d67fa2ebe4cab0",
+    "semantic_hash": "8a945a43d281abab36d67fa2ebe4cab0"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/auth/Login.tsx": {
+    "mtime": 1780513791.1896615,
+    "ast_hash": "6de3b8221058a50cf4d8e82586fa0016",
+    "semantic_hash": "6de3b8221058a50cf4d8e82586fa0016"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/common/BaseDetailsPage.tsx": {
+    "mtime": 1780513791.1896615,
+    "ast_hash": "e5fd72e5f32c3e8361c73005c41afd8b",
+    "semantic_hash": "e5fd72e5f32c3e8361c73005c41afd8b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/development/issues/IssueDetails.tsx": {
+    "mtime": 1780513791.1897995,
+    "ast_hash": "bac8b7fa1e9cc6c7b5576a0b059d7941",
+    "semantic_hash": "bac8b7fa1e9cc6c7b5576a0b059d7941"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/development/issues/Issues.tsx": {
+    "mtime": 1780513791.1898828,
+    "ast_hash": "be39ca41a15ea010a3f840d4da3de91b",
+    "semantic_hash": "be39ca41a15ea010a3f840d4da3de91b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/development/messages/Messages.tsx": {
+    "mtime": 1780513791.1898828,
+    "ast_hash": "8669717f034387c39e7ad9f460511e3f",
+    "semantic_hash": "8669717f034387c39e7ad9f460511e3f"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/development/metamodels/MetamodelDetails.tsx": {
+    "mtime": 1780513791.1898828,
+    "ast_hash": "8928884063a02234d09e81a9a0aec468",
+    "semantic_hash": "8928884063a02234d09e81a9a0aec468"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/development/metamodels/MetamodelForm.tsx": {
+    "mtime": 1780513791.1900842,
+    "ast_hash": "612f65640f0ab97e6609c7097f0b7291",
+    "semantic_hash": "612f65640f0ab97e6609c7097f0b7291"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/development/metamodels/Metamodels.tsx": {
+    "mtime": 1780513791.1900842,
+    "ast_hash": "8efd3e9154ae2e6c7eabd7428729614a",
+    "semantic_hash": "8efd3e9154ae2e6c7eabd7428729614a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/development/metamodels/types.ts": {
+    "mtime": 1780513791.1900842,
+    "ast_hash": "85066fc49ba3fa4077688324fe814867",
+    "semantic_hash": "85066fc49ba3fa4077688324fe814867"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/development/repository/Repositories.tsx": {
+    "mtime": 1780513791.1900842,
+    "ast_hash": "2bb315a0a531fab7cbddccd01800e64f",
+    "semantic_hash": "2bb315a0a531fab7cbddccd01800e64f"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/development/repository/RepositoryDetails.tsx": {
+    "mtime": 1780513791.1903787,
+    "ast_hash": "54a7b4715601849d9f9b9e201950cfa9",
+    "semantic_hash": "54a7b4715601849d9f9b9e201950cfa9"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/pages/profile/Profile.tsx": {
+    "mtime": 1780513791.1903787,
+    "ast_hash": "567198f81782e2ec1f837f750533d3e6",
+    "semantic_hash": "567198f81782e2ec1f837f750533d3e6"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/api.service.ts": {
+    "mtime": 1780513791.1903787,
+    "ast_hash": "7854dd98ad4bb27b9f32c640bd5ee704",
+    "semantic_hash": "7854dd98ad4bb27b9f32c640bd5ee704"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/attributeService.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "63fc78a1395c8ff34349f9e186114397",
+    "semantic_hash": "63fc78a1395c8ff34349f9e186114397"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/base.service.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "9359ba004d79cf663dddfc8b277a5191",
+    "semantic_hash": "9359ba004d79cf663dddfc8b277a5191"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/conceptService.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "5022f4a500fcc836ec1b5daceb72877b",
+    "semantic_hash": "5022f4a500fcc836ec1b5daceb72877b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/copilot.service.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "c5037cc9a1db04478f4a4008caab5249",
+    "semantic_hash": "c5037cc9a1db04478f4a4008caab5249"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/edgeService.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "215fcb2de3e80ec6ce6affc80d9df7b9",
+    "semantic_hash": "215fcb2de3e80ec6ce6affc80d9df7b9"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/index.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "7b538695a40fd61152ed126284077d7a",
+    "semantic_hash": "7b538695a40fd61152ed126284077d7a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/issue.service.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "a6303a82b49fb6cdb088f36155569b64",
+    "semantic_hash": "a6303a82b49fb6cdb088f36155569b64"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/m3Service.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "7515094258bdac3cc090c5cec6ace0c4",
+    "semantic_hash": "7515094258bdac3cc090c5cec6ace0c4"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/message.service.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "c497b9a175312f9a3d039556e83aa87b",
+    "semantic_hash": "c497b9a175312f9a3d039556e83aa87b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/metamodelService.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "491bd4e32193f600b57b7716a40ea226",
+    "semantic_hash": "491bd4e32193f600b57b7716a40ea226"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/relationshipService.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "fd0069cd7cc6f68c91c6a39fd93f6bbf",
+    "semantic_hash": "fd0069cd7cc6f68c91c6a39fd93f6bbf"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/services/repository.service.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "42eb3e0db6833ec4652b822cb91e4592",
+    "semantic_hash": "42eb3e0db6833ec4652b822cb91e4592"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/types/index.ts": {
+    "mtime": 1780513791.1905816,
+    "ast_hash": "f5945c384b4c1a01e5efa50ac8fee7d6",
+    "semantic_hash": "f5945c384b4c1a01e5efa50ac8fee7d6"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/types/issue.ts": {
+    "mtime": 1780513791.1910126,
+    "ast_hash": "0468afa1daf25ffd058390700490da71",
+    "semantic_hash": "0468afa1daf25ffd058390700490da71"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/types/m3.ts": {
+    "mtime": 1780513791.1910126,
+    "ast_hash": "a0719c3e8ff5c3bf6853fb6b736a6243",
+    "semantic_hash": "a0719c3e8ff5c3bf6853fb6b736a6243"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/types/message.ts": {
+    "mtime": 1780513791.1910126,
+    "ast_hash": "f5462edfbc885ee0ca854076d65cc29b",
+    "semantic_hash": "f5462edfbc885ee0ca854076d65cc29b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/types/metamodel.ts": {
+    "mtime": 1780513791.1910126,
+    "ast_hash": "665dfdbaba1c981a62f40efedd4ce120",
+    "semantic_hash": "665dfdbaba1c981a62f40efedd4ce120"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/types/repository.ts": {
+    "mtime": 1780513791.1910126,
+    "ast_hash": "9f8bc8bb9702024b45392ee210128820",
+    "semantic_hash": "9f8bc8bb9702024b45392ee210128820"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/types/user.ts": {
+    "mtime": 1780513791.1910126,
+    "ast_hash": "184f8b067efb4d084ffaaa07bae08e8b",
+    "semantic_hash": "184f8b067efb4d084ffaaa07bae08e8b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/utils/dateFormatter.ts": {
+    "mtime": 1780513791.1910841,
+    "ast_hash": "11b8d1b5af290ad0ddb90193c5787777",
+    "semantic_hash": "11b8d1b5af290ad0ddb90193c5787777"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/vite-env.d.ts": {
+    "mtime": 1780513791.1910841,
+    "ast_hash": "0352474ba2918efe13895edbc3780d94",
+    "semantic_hash": "0352474ba2918efe13895edbc3780d94"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/tailwind.config.ts": {
+    "mtime": 1780513791.1910841,
+    "ast_hash": "474185a5ee16347cce38d8b519888895",
+    "semantic_hash": "474185a5ee16347cce38d8b519888895"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/tsconfig.app.json": {
+    "mtime": 1780513791.1910841,
+    "ast_hash": "ffe0e5efeba4bb692e7cf562160c6c5e",
+    "semantic_hash": "ffe0e5efeba4bb692e7cf562160c6c5e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/tsconfig.json": {
+    "mtime": 1780513791.1910841,
+    "ast_hash": "0fc7b2489a984ece8406dc8d6acbbfce",
+    "semantic_hash": "0fc7b2489a984ece8406dc8d6acbbfce"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/tsconfig.node.json": {
+    "mtime": 1780513791.1910841,
+    "ast_hash": "1417fb05378a1d1102f085e60b20db0e",
+    "semantic_hash": "1417fb05378a1d1102f085e60b20db0e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/vite.config.ts": {
+    "mtime": 1780513791.1910841,
+    "ast_hash": "28f6035b6730dacb19917a0a9251c280",
+    "semantic_hash": "28f6035b6730dacb19917a0a9251c280"
+  },
+  "/home/joanix/Documents/Auto-code-v1/setup.sh": {
+    "mtime": 1780513791.1910841,
+    "ast_hash": "95d13b65bf4207eccdcf50a620773ed4",
+    "semantic_hash": "95d13b65bf4207eccdcf50a620773ed4"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/INSTRUCTION.md": {
+    "mtime": 1780513837.9697866,
+    "ast_hash": "d55297473178093b185bbfaaeed7b7c7",
+    "semantic_hash": "d55297473178093b185bbfaaeed7b7c7"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/board.yaml": {
+    "mtime": 1780513837.9606342,
+    "ast_hash": "e64e9ef1a7cb8c9a76338fea6646334e",
+    "semantic_hash": "e64e9ef1a7cb8c9a76338fea6646334e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_5h7bir_ajouters_les_agents.md": {
+    "mtime": 1780514247.2732582,
+    "ast_hash": "33ca123b3dcfdd3c66706c64f315b658",
+    "semantic_hash": "33ca123b3dcfdd3c66706c64f315b658"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_9low10_ajouter_les_docs.md": {
+    "mtime": 1780514259.9050114,
+    "ast_hash": "22e71602ce5ec8504612f870f408dc1a",
+    "semantic_hash": "22e71602ce5ec8504612f870f408dc1a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_a1b2c3_bug_fixes.md": {
+    "mtime": 1780514294.8127117,
+    "ast_hash": "405c045ef16a25f56d8f1f929df6dd72",
+    "semantic_hash": "405c045ef16a25f56d8f1f929df6dd72"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_b8c9d0_generation_videos.md": {
+    "mtime": 1780514307.9995189,
+    "ast_hash": "fedc5c8b3f39246612e0e25b2cddfe77",
+    "semantic_hash": "fedc5c8b3f39246612e0e25b2cddfe77"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_d4e5f6_refactor_controller.md": {
+    "mtime": 1780514296.090595,
+    "ast_hash": "6ad00b753850c4ca23cb879797cf3cfc",
+    "semantic_hash": "6ad00b753850c4ca23cb879797cf3cfc"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_e1f2g3_features_futures.md": {
+    "mtime": 1780514309.6523714,
+    "ast_hash": "1b40a81b9003e2eb2ac3f3ba562e0cc6",
+    "semantic_hash": "1b40a81b9003e2eb2ac3f3ba562e0cc6"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_g7h8i9_messages_pr.md": {
+    "mtime": 1780514297.3784773,
+    "ast_hash": "5a978c1cbe4661eb2fae5906eca9b28d",
+    "semantic_hash": "5a978c1cbe4661eb2fae5906eca9b28d"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_hce0a9_cr_er_les_tickets.md": {
+    "mtime": 1780514362.401033,
+    "ast_hash": "125c4276b8d1af7597df082d355edefd",
+    "semantic_hash": "125c4276b8d1af7597df082d355edefd"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_j0k1l2_amelioration_metier.md": {
+    "mtime": 1780514298.77935,
+    "ast_hash": "5c525e49a068054c2a40647bc250a55f",
+    "semantic_hash": "5c525e49a068054c2a40647bc250a55f"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_l2bzdr_install_graphify.md": {
+    "mtime": 1780514230.4687061,
+    "ast_hash": "b2d836d260c8a123cee85f33196eeabc",
+    "semantic_hash": "b2d836d260c8a123cee85f33196eeabc"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_m3n4o5_mde_graph_editor.md": {
+    "mtime": 1780514301.8590708,
+    "ast_hash": "68427b0645b500370f931498dad5f92d",
+    "semantic_hash": "68427b0645b500370f931498dad5f92d"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_p6q7r8_infrastructure.md": {
+    "mtime": 1780514302.8669798,
+    "ast_hash": "2c04ad53adc456c16422a0a234f3112b",
+    "semantic_hash": "2c04ad53adc456c16422a0a234f3112b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_s0t1u2_gestion_projet.md": {
+    "mtime": 1780514304.1358654,
+    "ast_hash": "28b858fe92fc4d33e79df4e11b9c5253",
+    "semantic_hash": "28b858fe92fc4d33e79df4e11b9c5253"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_t2lpah_ajouter_les_linters.md": {
+    "mtime": 1780514238.7318525,
+    "ast_hash": "d24796927a50efec0ca05e7c78248026",
+    "semantic_hash": "d24796927a50efec0ca05e7c78248026"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_v2w3x4_analyse_besoin.md": {
+    "mtime": 1780514305.5037425,
+    "ast_hash": "0b49fffd85bdbda162d39e7a79168102",
+    "semantic_hash": "0b49fffd85bdbda162d39e7a79168102"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.agentkanban/tasks/task_20260603_y5z6a7_marketing.md": {
+    "mtime": 1780514306.8496218,
+    "ast_hash": "fb0cd9047ad3ea6e0d126589f9a4efd3",
+    "semantic_hash": "fb0cd9047ad3ea6e0d126589f9a4efd3"
+  },
+  "/home/joanix/Documents/Auto-code-v1/.github/workflows/aws.yml": {
+    "mtime": 1780513791.1727047,
+    "ast_hash": "2f2f6d25119ebef4a5961a8fb891fe26",
+    "semantic_hash": "2f2f6d25119ebef4a5961a8fb891fe26"
+  },
+  "/home/joanix/Documents/Auto-code-v1/AGENTS.md": {
+    "mtime": 1780514291.153552,
+    "ast_hash": "398cea3cbda5de8ef1562341f61c990b",
+    "semantic_hash": "398cea3cbda5de8ef1562341f61c990b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/IaC/doc/AWS.md": {
+    "mtime": 1780513791.1729639,
+    "ast_hash": "4134d21f99c5958f68165b1f15934653",
+    "semantic_hash": "4134d21f99c5958f68165b1f15934653"
+  },
+  "/home/joanix/Documents/Auto-code-v1/IaC/doc/SSH.md": {
+    "mtime": 1780513791.1730494,
+    "ast_hash": "602e38377805182a04dfe6adc2cca858",
+    "semantic_hash": "602e38377805182a04dfe6adc2cca858"
+  },
+  "/home/joanix/Documents/Auto-code-v1/IaC/doc/TERRAFORM.md": {
+    "mtime": 1780513791.1730494,
+    "ast_hash": "c2352004fe8a24ac0eb5d8c793c8d73c",
+    "semantic_hash": "c2352004fe8a24ac0eb5d8c793c8d73c"
+  },
+  "/home/joanix/Documents/Auto-code-v1/OBJECTIFS.md": {
+    "mtime": 1780513791.1730838,
+    "ast_hash": "47a9146b23f0b9112dad0f882f665894",
+    "semantic_hash": "47a9146b23f0b9112dad0f882f665894"
+  },
+  "/home/joanix/Documents/Auto-code-v1/README.md": {
+    "mtime": 1780513791.1730838,
+    "ast_hash": "557abb20debb39be5955a4d7f52981eb",
+    "semantic_hash": "557abb20debb39be5955a4d7f52981eb"
+  },
+  "/home/joanix/Documents/Auto-code-v1/TODO.md": {
+    "mtime": 1780513791.1730838,
+    "ast_hash": "b36fa884e73c7940f8eb2815d7d40810",
+    "semantic_hash": "b36fa884e73c7940f8eb2815d7d40810"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/README.md": {
+    "mtime": 1780513791.1735566,
+    "ast_hash": "ec62f935db32e0f5373f32807e4e89cd",
+    "semantic_hash": "ec62f935db32e0f5373f32807e4e89cd"
+  },
+  "/home/joanix/Documents/Auto-code-v1/backend/requirements.txt": {
+    "mtime": 1780513791.1735566,
+    "ast_hash": "bf901d278ac0b9574348b03ddfaf392b",
+    "semantic_hash": "bf901d278ac0b9574348b03ddfaf392b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docker-compose.dev.yml": {
+    "mtime": 1780513791.1780953,
+    "ast_hash": "e149fc47c140633acc5480b1ed0ce7b8",
+    "semantic_hash": "e149fc47c140633acc5480b1ed0ce7b8"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docker-compose.neo4j.yml": {
+    "mtime": 1780513791.1780953,
+    "ast_hash": "f2e457e05d904bbfe1d87b0e2975d8d2",
+    "semantic_hash": "f2e457e05d904bbfe1d87b0e2975d8d2"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docker-compose.yml": {
+    "mtime": 1780513791.1780953,
+    "ast_hash": "b0415b3d73b07a6e59fde5b59411dca8",
+    "semantic_hash": "b0415b3d73b07a6e59fde5b59411dca8"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docs/COPILOT_ASSIGNMENT.md": {
+    "mtime": 1780513791.1780953,
+    "ast_hash": "2d3be28560f71b8ffed93beb86f3bcbc",
+    "semantic_hash": "2d3be28560f71b8ffed93beb86f3bcbc"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docs/GESTION-DE-PROJET-STEPPER.md": {
+    "mtime": 1780513791.178688,
+    "ast_hash": "3b9fdd305ca33668c19fb22ad3817231",
+    "semantic_hash": "3b9fdd305ca33668c19fb22ad3817231"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docs/GUIDE.md": {
+    "mtime": 1780513791.178688,
+    "ast_hash": "46f815982274ce77e173666a077bf13d",
+    "semantic_hash": "46f815982274ce77e173666a077bf13d"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docs/REFACTORING_ARCHITECTURE.md": {
+    "mtime": 1780513791.178688,
+    "ast_hash": "f63bcdaeaee203e57e5c7d19193b02d6",
+    "semantic_hash": "f63bcdaeaee203e57e5c7d19193b02d6"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docs/STRUCTURE-METIER.md": {
+    "mtime": 1780513791.178688,
+    "ast_hash": "b5961ecc1c32f681c4231a7e11187d51",
+    "semantic_hash": "b5961ecc1c32f681c4231a7e11187d51"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docs/pseudo_code.md": {
+    "mtime": 1780513791.182084,
+    "ast_hash": "e9b4d3b6d9b30d3afa4d451cd7a2dc3b",
+    "semantic_hash": "e9b4d3b6d9b30d3afa4d451cd7a2dc3b"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/README.md": {
+    "mtime": 1780513791.1823397,
+    "ast_hash": "71310dacbf4be5b69ebac305a506476a",
+    "semantic_hash": "71310dacbf4be5b69ebac305a506476a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/index.html": {
+    "mtime": 1780513791.1823397,
+    "ast_hash": "b968dc9b8bd3d6f72361c7ac0fde8a3e",
+    "semantic_hash": "b968dc9b8bd3d6f72361c7ac0fde8a3e"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/public/robots.txt": {
+    "mtime": 1780513791.1843863,
+    "ast_hash": "f9dff89adf98833e676de2205921996a",
+    "semantic_hash": "f9dff89adf98833e676de2205921996a"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/src/components/common/GraphViewer/README.md": {
+    "mtime": 1780513791.1853733,
+    "ast_hash": "a8b40a5765ea00bdfa8e4e2356897488",
+    "semantic_hash": "a8b40a5765ea00bdfa8e4e2356897488"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docs/images/analyse_du_besoin.png": {
+    "mtime": 1780513791.179084,
+    "ast_hash": "31e3fbbf87890522eeec85b6872e8dfe",
+    "semantic_hash": "31e3fbbf87890522eeec85b6872e8dfe"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docs/images/architecture.png": {
+    "mtime": 1780513791.180084,
+    "ast_hash": "cb34967d623d4b87752a6c021056bf31",
+    "semantic_hash": "cb34967d623d4b87752a6c021056bf31"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docs/images/estimation.png": {
+    "mtime": 1780513791.180084,
+    "ast_hash": "e6135d4f1bc50d3f6e11db9c70f009b2",
+    "semantic_hash": "e6135d4f1bc50d3f6e11db9c70f009b2"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docs/images/flow.png": {
+    "mtime": 1780513791.181084,
+    "ast_hash": "19e75165416de42b58e3c77dd62f0c08",
+    "semantic_hash": "19e75165416de42b58e3c77dd62f0c08"
+  },
+  "/home/joanix/Documents/Auto-code-v1/docs/images/gestion_de_projet.png": {
+    "mtime": 1780513791.181084,
+    "ast_hash": "beefa101e45d4084c44f191b9a05ffb9",
+    "semantic_hash": "beefa101e45d4084c44f191b9a05ffb9"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/public/logo_ticket_code.svg": {
+    "mtime": 1780513791.1840842,
+    "ast_hash": "e70d8a128050bbfd961e5c14831ecb6c",
+    "semantic_hash": "e70d8a128050bbfd961e5c14831ecb6c"
+  },
+  "/home/joanix/Documents/Auto-code-v1/frontend/public/placeholder.svg": {
+    "mtime": 1780513791.1843863,
+    "ast_hash": "35707bd9960ba5281c72af927b79291f",
+    "semantic_hash": "35707bd9960ba5281c72af927b79291f"
+  },
+  "/home/joanix/Documents/Auto-code-v1/image.png": {
+    "mtime": 1780513791.1910841,
+    "ast_hash": "c951488cf453eb31c7ac3dcfbc479d8d",
+    "semantic_hash": "c951488cf453eb31c7ac3dcfbc479d8d"
+  }
+}

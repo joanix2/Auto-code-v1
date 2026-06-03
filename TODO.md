@@ -253,7 +253,7 @@ Gatt
 
 estimation de temps
 
-cf docs/GESTION-DE-PROJET-STEPPER.md
+cf docs/project-management/GESTION-DE-PROJET-STEPPER.md
 
 # Analyse du besoin
 
