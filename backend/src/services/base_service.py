@@ -1,81 +1,83 @@
 """
 Base Service - Abstract interfaces for all services
 """
-from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, List, Optional, Dict, Any
-import httpx
+
 import logging
+from abc import ABC, abstractmethod
+from typing import Any, Generic, TypeVar
+
+import httpx
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class BaseService(ABC, Generic[T]):
     """Base interface for all services with CRUD operations"""
-    
+
     @abstractmethod
-    async def create(self, data: Dict[str, Any]) -> T:
+    async def create(self, data: dict[str, Any]) -> T:
         """
         Create a new entity
-        
+
         Args:
             data: Entity data
-            
+
         Returns:
             Created entity
         """
         pass
-    
+
     @abstractmethod
-    async def get_by_id(self, entity_id: str) -> Optional[T]:
+    async def get_by_id(self, entity_id: str) -> T | None:
         """
         Get entity by ID
-        
+
         Args:
             entity_id: Entity ID
-            
+
         Returns:
             Entity if found, None otherwise
         """
         pass
-    
+
     @abstractmethod
-    async def get_all(self, skip: int = 0, limit: int = 100) -> List[T]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> list[T]:
         """
         Get all entities with pagination
-        
+
         Args:
             skip: Number of entities to skip (pagination)
             limit: Maximum number of entities to return
-            
+
         Returns:
             List of entities
         """
         pass
-    
+
     @abstractmethod
-    async def update(self, entity_id: str, update_data: Dict[str, Any]) -> Optional[T]:
+    async def update(self, entity_id: str, update_data: dict[str, Any]) -> T | None:
         """
         Update an entity
-        
+
         Args:
             entity_id: Entity ID
             update_data: Fields to update
-            
+
         Returns:
             Updated entity if found
         """
         pass
-    
+
     @abstractmethod
     async def delete(self, entity_id: str) -> bool:
         """
         Delete an entity
-        
+
         Args:
             entity_id: Entity ID
-            
+
         Returns:
             True if deleted successfully
         """
@@ -84,38 +86,30 @@ class BaseService(ABC, Generic[T]):
 
 class SyncableService(ABC, Generic[T]):
     """Interface for services that can sync with external APIs (GitHub)"""
-    
+
     @abstractmethod
-    async def sync_from_github(
-        self,
-        access_token: str,
-        **kwargs
-    ) -> List[T]:
+    async def sync_from_github(self, access_token: str, **kwargs) -> list[T]:
         """
         Synchronize entities from GitHub API
-        
+
         Args:
             access_token: GitHub access token
             **kwargs: Additional sync parameters
-            
+
         Returns:
             List of synchronized entities
         """
         pass
-    
+
     @abstractmethod
-    async def fetch_from_github_api(
-        self,
-        access_token: str,
-        **kwargs
-    ) -> List[Dict[str, Any]]:
+    async def fetch_from_github_api(self, access_token: str, **kwargs) -> list[dict[str, Any]]:
         """
         Fetch raw data from GitHub API (without creating DB records)
-        
+
         Args:
             access_token: GitHub access token
             **kwargs: API parameters
-            
+
         Returns:
             List of raw GitHub API responses
         """
@@ -127,164 +121,151 @@ class GitHubSyncService(BaseService[T], SyncableService[T], ABC, Generic[T]):
     Abstract service for entities that sync with GitHub and support CRUD operations
     Orchestrates operations between GitHub API and database
     """
-    
+
     # Abstract methods for GitHub API operations (to be implemented by child classes)
-    
+
     @abstractmethod
-    async def create_on_github(
-        self,
-        access_token: str,
-        **kwargs
-    ) -> Dict[str, Any]:
+    async def create_on_github(self, access_token: str, **kwargs) -> dict[str, Any]:
         """
         Create entity on GitHub
-        
+
         Args:
             access_token: GitHub access token
             **kwargs: Entity-specific creation parameters
-            
+
         Returns:
             GitHub API response
-            
+
         Raises:
             httpx.HTTPStatusError: If GitHub API call fails
         """
         pass
-    
+
     @abstractmethod
-    async def update_on_github(
-        self,
-        access_token: str,
-        **kwargs
-    ) -> Dict[str, Any]:
+    async def update_on_github(self, access_token: str, **kwargs) -> dict[str, Any]:
         """
         Update entity on GitHub
-        
+
         Args:
             access_token: GitHub access token
             **kwargs: Entity-specific update parameters
-            
+
         Returns:
             GitHub API response
-            
+
         Raises:
             httpx.HTTPStatusError: If GitHub API call fails
         """
         pass
-    
+
     @abstractmethod
-    async def delete_on_github(
-        self,
-        access_token: str,
-        entity: T,
-        **kwargs
-    ) -> bool:
+    async def delete_on_github(self, access_token: str, entity: T, **kwargs) -> bool:
         """
         Delete entity on GitHub
-        
+
         Args:
             access_token: GitHub access token
             entity: The entity object to delete
             **kwargs: Entity-specific delete parameters
-            
+
         Returns:
             True if deleted successfully
-            
+
         Raises:
             httpx.HTTPStatusError: If GitHub API call fails
         """
         pass
-    
+
     @abstractmethod
-    async def map_github_to_db(self, github_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def map_github_to_db(self, github_data: dict[str, Any]) -> dict[str, Any]:
         """
         Map GitHub API response to database entity format
-        
+
         Args:
             github_data: Raw data from GitHub API
-            
+
         Returns:
             Database entity data
         """
         pass
-    
+
     # Template methods for orchestration (can be overridden if needed)
-    
-    async def create(self, data: Dict[str, Any]) -> T:
+
+    async def create(self, data: dict[str, Any]) -> T:
         """
         Create entity on GitHub AND in database (orchestration)
-        
+
         Expects data to contain 'access_token' key
         """
         access_token = data.pop("access_token")
-        
+
         # 1. Create on GitHub first
         github_response = await self.create_on_github(access_token=access_token, **data)
-        
+
         # 2. Map GitHub response to DB format
         db_data = await self.map_github_to_db(github_response)
-        
+
         # 3. Create in database
         return await self._create_in_db(db_data)
-    
-    async def update(self, entity_id: str, update_data: Dict[str, Any]) -> Optional[T]:
+
+    async def update(self, entity_id: str, update_data: dict[str, Any]) -> T | None:
         """
         Update entity on GitHub AND in database (orchestration)
-        
+
         Expects update_data to optionally contain 'access_token' key
         """
         # 1. Get current entity
         entity = await self.get_by_id(entity_id)
         if not entity:
             return None
-        
+
         access_token = update_data.pop("access_token", None)
-        
+
         # 2. Check if we need to update on GitHub
         github_syncable_fields = self._get_github_syncable_fields()
         needs_github_update = any(field in update_data for field in github_syncable_fields)
-        
+
         if needs_github_update and access_token:
             # Update on GitHub first
             github_response = await self.update_on_github(
-                access_token=access_token,
-                entity_id=entity_id,
-                **update_data
+                access_token=access_token, entity_id=entity_id, **update_data
             )
-            
+
             # Map GitHub response to DB format
             db_updates = await self.map_github_to_db(github_response)
-            
+
             # Add any other non-GitHub fields
             for key, value in update_data.items():
                 if key not in github_syncable_fields:
                     db_updates[key] = value
-            
+
             # 3. Update in database
             return await self._update_in_db(entity_id, db_updates)
-        
+
         # No GitHub update needed, just update database
         return await self._update_in_db(entity_id, update_data)
-    
-    async def delete(self, entity_id: str, access_token: Optional[str] = None, **kwargs) -> bool:
+
+    async def delete(self, entity_id: str, access_token: str | None = None, **kwargs) -> bool:
         """
         Delete entity on GitHub AND in database (orchestration)
-        
+
         Args:
             entity_id: Entity ID
             access_token: GitHub access token
             **kwargs: Additional parameters to pass to delete_on_github (e.g., repository_full_name)
         """
-        logger.info(f"🔍 GitHubSyncService.delete called: entity_id={entity_id}, has_token={bool(access_token)}, kwargs={kwargs}")
-        
+        logger.info(
+            f"🔍 GitHubSyncService.delete called: entity_id={entity_id}, has_token={bool(access_token)}, kwargs={kwargs}"
+        )
+
         # 1. Get current entity
         entity = await self.get_by_id(entity_id)
         if not entity:
             logger.warning(f"⚠️ Entity not found: {entity_id}")
             return False
-        
+
         logger.info(f"✅ Entity found: {entity_id}")
-        
+
         # 2. Delete from GitHub first if token provided
         if access_token:
             logger.info(f"🚀 Calling delete_on_github for {entity_id}")
@@ -297,40 +278,39 @@ class GitHubSyncService(BaseService[T], SyncableService[T], ABC, Generic[T]):
                 if not (e.response and e.response.status_code == 404):
                     logger.error(f"❌ GitHub API error during delete: {e.response.status_code}")
                     raise
-                logger.info(f"ℹ️ GitHub returned 404, entity already gone")
+                logger.info("ℹ️ GitHub returned 404, entity already gone")
         else:
-            logger.warning(f"⚠️ No access_token provided, skipping GitHub delete")
-        
+            logger.warning("⚠️ No access_token provided, skipping GitHub delete")
+
         # 3. Delete from database
         logger.info(f"🗑️ Deleting from database: {entity_id}")
         result = await self._delete_from_db(entity_id)
         logger.info(f"✅ Database delete completed: {entity_id}, result={result}")
         return result
-    
+
     # Helper methods to be implemented by child classes
-    
+
     @abstractmethod
-    async def _create_in_db(self, data: Dict[str, Any]) -> T:
+    async def _create_in_db(self, data: dict[str, Any]) -> T:
         """Create entity in database"""
         pass
-    
+
     @abstractmethod
-    async def _update_in_db(self, entity_id: str, data: Dict[str, Any]) -> Optional[T]:
+    async def _update_in_db(self, entity_id: str, data: dict[str, Any]) -> T | None:
         """Update entity in database"""
         pass
-    
+
     @abstractmethod
     async def _delete_from_db(self, entity_id: str) -> bool:
         """Delete entity from database"""
         pass
-    
-    def _get_github_syncable_fields(self) -> List[str]:
+
+    def _get_github_syncable_fields(self) -> list[str]:
         """
         Return list of fields that should be synced with GitHub
         Override in child classes to specify which fields trigger GitHub updates
-        
+
         Returns:
             List of field names that sync with GitHub
         """
         return []
-

@@ -1,9 +1,11 @@
 """
 Node - Abstract base class for graph nodes
 """
+
 from abc import ABC, abstractmethod
+from typing import Any
+
 from pydantic import Field
-from typing import Optional, Dict, Any
 
 from ..base import BaseEntity, BaseSemanticModel
 from .node_type import NodeType
@@ -12,10 +14,10 @@ from .node_type import NodeType
 class Node(BaseEntity, BaseSemanticModel, ABC):
     """
     Abstract Node - Represents a vertex in a graph
-    
+
     All nodes in a graph (Concept, Attribute, Relationship) inherit from this class.
     Nodes are stored as nodes in Neo4j.
-    
+
     Multiple inheritance:
     - BaseEntity: provides id, created_at, updated_at
     - BaseSemanticModel: provides name, description
@@ -24,11 +26,15 @@ class Node(BaseEntity, BaseSemanticModel, ABC):
     # Graph metadata
     graph_id: str = Field(..., description="ID of the parent graph (metamodel)")
     node_type: NodeType = Field(..., description="Type definition of this node (M3 metadata)")
-    
+
     # Position for graph visualization
-    x_position: Optional[float] = Field(default=None, description="X coordinate in graph visualization")
-    y_position: Optional[float] = Field(default=None, description="Y coordinate in graph visualization")
-    
+    x_position: float | None = Field(
+        default=None, description="X coordinate in graph visualization"
+    )
+    y_position: float | None = Field(
+        default=None, description="Y coordinate in graph visualization"
+    )
+
     @abstractmethod
     def get_display_label(self) -> str:
         """
@@ -36,17 +42,17 @@ class Node(BaseEntity, BaseSemanticModel, ABC):
         Must be implemented by subclasses
         """
         pass
-    
-    def get_position(self) -> tuple[Optional[float], Optional[float]]:
+
+    def get_position(self) -> tuple[float | None, float | None]:
         """Get the (x, y) position of this node"""
         return (self.x_position, self.y_position)
-    
+
     def set_position(self, x: float, y: float) -> None:
         """Set the position of this node"""
         self.x_position = x
         self.y_position = y
-    
-    def to_graph_dict(self) -> Dict[str, Any]:
+
+    def to_graph_dict(self) -> dict[str, Any]:
         """
         Convert to dictionary suitable for graph visualization
         Override in subclasses to add specific properties
@@ -62,6 +68,6 @@ class Node(BaseEntity, BaseSemanticModel, ABC):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
-    
+
     class Config:
         from_attributes = True

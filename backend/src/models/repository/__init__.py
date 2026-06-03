@@ -1,6 +1,6 @@
-from .issue import IssueCreate, IssueUpdate, Issue
-from .message import MessageCreate, MessageUpdate, Message
-from .repository import RepositoryCreate, RepositoryUpdate, Repository
+from .issue import Issue, IssueCreate, IssueUpdate
+from .message import Message, MessageCreate, MessageUpdate
+from .repository import Repository, RepositoryCreate, RepositoryUpdate
 
 __all__ = [
     "IssueCreate",
@@ -11,5 +11,5 @@ __all__ = [
     "Message",
     "RepositoryCreate",
     "RepositoryUpdate",
-    "Repository"
+    "Repository",
 ]

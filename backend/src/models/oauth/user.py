@@ -1,32 +1,39 @@
 """
 User model - OAuth2 Authentication
 """
-from pydantic import BaseModel, Field, EmailStr
-from typing import Optional
+
+from pydantic import BaseModel, EmailStr, Field
+
 from ..base import BaseEntity
 
 
 class User(BaseEntity):
     """User model for OAuth2 authentication"""
+
     username: str = Field(..., min_length=3, max_length=50, description="GitHub username")
-    email: Optional[EmailStr] = Field(None, description="Email address")
-    avatar_url: Optional[str] = Field(None, description="Avatar URL")
-    github_id: Optional[int] = Field(None, description="GitHub user ID")
-    github_token: Optional[str] = Field(None, exclude=True, description="GitHub access token (never exposed)")
+    email: EmailStr | None = Field(None, description="Email address")
+    avatar_url: str | None = Field(None, description="Avatar URL")
+    github_id: int | None = Field(None, description="GitHub user ID")
+    github_token: str | None = Field(
+        None, exclude=True, description="GitHub access token (never exposed)"
+    )
     is_active: bool = Field(default=True, description="User is active")
 
 
 class UserPublic(BaseModel):
     """Public user representation (without sensitive data)"""
+
     id: str
     username: str
-    email: Optional[EmailStr]
-    avatar_url: Optional[str]
+    email: EmailStr | None
+    avatar_url: str | None
     is_active: bool
-    github_token: Optional[bool] = Field(None, description="Indicates if GitHub token is set (without exposing it)")
-    
+    github_token: bool | None = Field(
+        None, description="Indicates if GitHub token is set (without exposing it)"
+    )
+
     @staticmethod
-    def from_user(user: 'User') -> 'UserPublic':
+    def from_user(user: "User") -> "UserPublic":
         """Create UserPublic from User, hiding the actual token value"""
         return UserPublic(
             id=user.id,
@@ -34,20 +41,21 @@ class UserPublic(BaseModel):
             email=user.email,
             avatar_url=user.avatar_url,
             is_active=user.is_active,
-            github_token=bool(user.github_token) if hasattr(user, 'github_token') else False
+            github_token=bool(user.github_token) if hasattr(user, "github_token") else False,
         )
 
 
 class UserCreate(BaseModel):
     """Data needed to create a user"""
+
     username: str = Field(..., min_length=3, max_length=50)
-    email: Optional[EmailStr] = None
-    github_id: Optional[int] = None
+    email: EmailStr | None = None
+    github_id: int | None = None
 
 
 class UserUpdate(BaseModel):
     """Data for updating a user"""
-    email: Optional[EmailStr] = None
-    avatar_url: Optional[str] = None
-    is_active: Optional[bool] = None
 
+    email: EmailStr | None = None
+    avatar_url: str | None = None
+    is_active: bool | None = None

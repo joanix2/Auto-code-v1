@@ -1,9 +1,11 @@
 """
 Edge - Abstract base class for graph edges
 """
+
 from abc import ABC, abstractmethod
+from typing import Any
+
 from pydantic import Field
-from typing import Optional, Dict, Any
 
 from ..base import BaseEntity, BaseSemanticModel
 
@@ -11,15 +13,15 @@ from ..base import BaseEntity, BaseSemanticModel
 class Edge(BaseEntity, BaseSemanticModel, ABC):
     """
     Abstract Edge - Represents a relationship/connection between two nodes in a graph
-    
+
     Edges connect nodes and are stored as relationships in Neo4j.
     In the MDE context, Relationship entities are edges between Concept nodes.
-    
+
     Multiple inheritance:
     - BaseEntity: provides id, created_at, updated_at
     - BaseSemanticModel: provides name, description
     """
-     
+
     # Graph metadata
     graph_id: str = Field(..., description="ID of the parent graph (metamodel)")
     edge_type: str = Field(..., description="Type of this edge")
@@ -27,11 +29,11 @@ class Edge(BaseEntity, BaseSemanticModel, ABC):
     # Source and target nodes
     source_id: str = Field(..., description="ID of the source node")
     target_id: str = Field(..., description="ID of the target node")
-    
+
     # Optional labels
-    source_label: Optional[str] = Field(default=None, description="Label of source node (cached)")
-    target_label: Optional[str] = Field(default=None, description="Label of target node (cached)")
-    
+    source_label: str | None = Field(default=None, description="Label of source node (cached)")
+    target_label: str | None = Field(default=None, description="Label of target node (cached)")
+
     @abstractmethod
     def get_edge_type(self) -> str:
         """
@@ -39,7 +41,7 @@ class Edge(BaseEntity, BaseSemanticModel, ABC):
         Must be implemented by subclasses
         """
         pass
-    
+
     @abstractmethod
     def get_display_label(self) -> str:
         """
@@ -47,7 +49,7 @@ class Edge(BaseEntity, BaseSemanticModel, ABC):
         Must be implemented by subclasses
         """
         pass
-    
+
     @abstractmethod
     def is_directed(self) -> bool:
         """
@@ -55,16 +57,16 @@ class Edge(BaseEntity, BaseSemanticModel, ABC):
         Return False for undirected edges
         """
         pass
-    
+
     def get_endpoints(self) -> tuple[str, str]:
         """Get the (source_id, target_id) endpoints of this edge"""
         return (self.source_id, self.target_id)
-    
+
     def reverse(self) -> tuple[str, str]:
         """Get the reverse direction (target_id, source_id)"""
         return (self.target_id, self.source_id)
-    
-    def to_graph_dict(self) -> Dict[str, Any]:
+
+    def to_graph_dict(self) -> dict[str, Any]:
         """
         Convert to dictionary suitable for graph visualization
         Override in subclasses to add specific properties
@@ -83,6 +85,6 @@ class Edge(BaseEntity, BaseSemanticModel, ABC):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
-    
+
     class Config:
         from_attributes = True

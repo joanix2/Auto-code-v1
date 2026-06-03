@@ -1,11 +1,12 @@
 """
 MetamodelEdge Repository - Database operations for metamodel edges (DOMAIN, RANGE, HAS_ATTRIBUTE, SUBCLASS_OF)
 """
-from typing import List, Dict, Any, Optional
+
 import logging
 
-from ...base import BaseRepository, convert_neo4j_types
 from src.models.MDE.M2 import MetamodelEdge, MetamodelEdgeType
+
+from ...base import BaseRepository
 
 logger = logging.getLogger(__name__)
 
@@ -16,44 +17,44 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
     def __init__(self, db):
         super().__init__(db, MetamodelEdge, "MetamodelEdge")
 
-    async def get_by_metamodel(self, metamodel_id: str) -> List[MetamodelEdge]:
+    async def get_by_metamodel(self, metamodel_id: str) -> list[MetamodelEdge]:
         """
         Get all edges (connections) for a specific metamodel
-        
+
         Récupère tous les types d'edges:
         - DOMAIN: (Relation)-[:DOMAIN]->(Concept)
         - RANGE: (Relation)-[:RANGE]->(Concept)
         - HAS_ATTRIBUTE: (Concept)-[:HAS_ATTRIBUTE]->(Attribute)
         - SUBCLASS_OF: (Concept)-[:SUBCLASS_OF]->(Concept)
-        
+
         Args:
             metamodel_id: ID du metamodel
-            
+
         Returns:
             List[MetamodelEdge]: Liste de tous les edges du metamodel
         """
         edges = []
-        
+
         # 1. Récupérer les edges DOMAIN (Relation → Concept source)
         domain_edges = await self._get_domain_edges(metamodel_id)
         edges.extend(domain_edges)
-        
+
         # 2. Récupérer les edges RANGE (Relation → Concept target)
         range_edges = await self._get_range_edges(metamodel_id)
         edges.extend(range_edges)
-        
+
         # 3. Récupérer les edges HAS_ATTRIBUTE (Concept → Attribute)
         attribute_edges = await self._get_has_attribute_edges(metamodel_id)
         edges.extend(attribute_edges)
-        
+
         # 4. Récupérer les edges SUBCLASS_OF (Concept → Concept parent)
         subclass_edges = await self._get_subclass_of_edges(metamodel_id)
         edges.extend(subclass_edges)
-        
+
         logger.info(f"Found {len(edges)} edges for metamodel {metamodel_id}")
         return edges
 
-    async def _get_domain_edges(self, metamodel_id: str) -> List[MetamodelEdge]:
+    async def _get_domain_edges(self, metamodel_id: str) -> list[MetamodelEdge]:
         """Récupérer les edges DOMAIN: (Relation)-[:DOMAIN]->(Concept)"""
         query = """
         MATCH (metamodel:Metamodel {id: $metamodel_id})
@@ -67,9 +68,9 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
             'domain' as edge_type,
             $metamodel_id as graph_id
         """
-        
+
         result = self.db.execute_query(query, {"metamodel_id": metamodel_id})
-        
+
         edges = []
         for record in result:
             edge_data = {
@@ -81,14 +82,14 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
                 "source_label": record["source_label"],
                 "target_label": record["target_label"],
                 "graph_id": metamodel_id,
-                "description": f"Domain of {record['source_label']}"
+                "description": f"Domain of {record['source_label']}",
             }
             edges.append(MetamodelEdge(**edge_data))
-        
+
         logger.debug(f"Found {len(edges)} DOMAIN edges")
         return edges
 
-    async def _get_range_edges(self, metamodel_id: str) -> List[MetamodelEdge]:
+    async def _get_range_edges(self, metamodel_id: str) -> list[MetamodelEdge]:
         """Récupérer les edges RANGE: (Relation)-[:RANGE]->(Concept)"""
         query = """
         MATCH (metamodel:Metamodel {id: $metamodel_id})
@@ -102,9 +103,9 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
             'range' as edge_type,
             $metamodel_id as graph_id
         """
-        
+
         result = self.db.execute_query(query, {"metamodel_id": metamodel_id})
-        
+
         edges = []
         for record in result:
             edge_data = {
@@ -116,14 +117,14 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
                 "source_label": record["source_label"],
                 "target_label": record["target_label"],
                 "graph_id": metamodel_id,
-                "description": f"Range of {record['source_label']}"
+                "description": f"Range of {record['source_label']}",
             }
             edges.append(MetamodelEdge(**edge_data))
-        
+
         logger.debug(f"Found {len(edges)} RANGE edges")
         return edges
 
-    async def _get_has_attribute_edges(self, metamodel_id: str) -> List[MetamodelEdge]:
+    async def _get_has_attribute_edges(self, metamodel_id: str) -> list[MetamodelEdge]:
         """Récupérer les edges HAS_ATTRIBUTE: (Concept)-[:HAS_ATTRIBUTE]->(Attribute)"""
         query = """
         MATCH (metamodel:Metamodel {id: $metamodel_id})
@@ -137,9 +138,9 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
             'has_attribute' as edge_type,
             $metamodel_id as graph_id
         """
-        
+
         result = self.db.execute_query(query, {"metamodel_id": metamodel_id})
-        
+
         edges = []
         for record in result:
             edge_data = {
@@ -151,14 +152,14 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
                 "source_label": record["source_label"],
                 "target_label": record["target_label"],
                 "graph_id": metamodel_id,
-                "description": f"{record['source_label']} has {record['target_label']}"
+                "description": f"{record['source_label']} has {record['target_label']}",
             }
             edges.append(MetamodelEdge(**edge_data))
-        
+
         logger.debug(f"Found {len(edges)} HAS_ATTRIBUTE edges")
         return edges
 
-    async def _get_subclass_of_edges(self, metamodel_id: str) -> List[MetamodelEdge]:
+    async def _get_subclass_of_edges(self, metamodel_id: str) -> list[MetamodelEdge]:
         """Récupérer les edges SUBCLASS_OF: (Concept)-[:SUBCLASS_OF]->(Concept parent)"""
         query = """
         MATCH (metamodel:Metamodel {id: $metamodel_id})
@@ -172,9 +173,9 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
             'subclass_of' as edge_type,
             $metamodel_id as graph_id
         """
-        
+
         result = self.db.execute_query(query, {"metamodel_id": metamodel_id})
-        
+
         edges = []
         for record in result:
             edge_data = {
@@ -186,21 +187,23 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
                 "source_label": record["source_label"],
                 "target_label": record["target_label"],
                 "graph_id": metamodel_id,
-                "description": f"{record['source_label']} is a {record['target_label']}"
+                "description": f"{record['source_label']} is a {record['target_label']}",
             }
             edges.append(MetamodelEdge(**edge_data))
-        
+
         logger.debug(f"Found {len(edges)} SUBCLASS_OF edges")
         return edges
 
-    async def get_by_type(self, metamodel_id: str, edge_type: MetamodelEdgeType) -> List[MetamodelEdge]:
+    async def get_by_type(
+        self, metamodel_id: str, edge_type: MetamodelEdgeType
+    ) -> list[MetamodelEdge]:
         """
         Get edges of a specific type for a metamodel
-        
+
         Args:
             metamodel_id: ID du metamodel
             edge_type: Type d'edge (DOMAIN, RANGE, HAS_ATTRIBUTE, SUBCLASS_OF)
-            
+
         Returns:
             List[MetamodelEdge]: Liste des edges du type spécifié
         """
@@ -217,24 +220,20 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
             return []
 
     async def create_edge(
-        self, 
-        metamodel_id: str,
-        source_id: str,
-        target_id: str,
-        edge_type: MetamodelEdgeType
+        self, metamodel_id: str, source_id: str, target_id: str, edge_type: MetamodelEdgeType
     ) -> MetamodelEdge:
         """
         Create a new edge between two nodes
-        
+
         Args:
             metamodel_id: ID du metamodel
             source_id: ID du noeud source
             target_id: ID du noeud cible
             edge_type: Type d'edge à créer
-            
+
         Returns:
             MetamodelEdge: L'edge créé
-            
+
         Raises:
             ValueError: Si l'edge existe déjà
         """
@@ -244,17 +243,16 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
         MATCH (source {{id: $source_id}})-[edge:{edge_rel_type}]->(target {{id: $target_id}})
         RETURN count(edge) as edge_count
         """
-        
+
         check_result = self.db.execute_query(
-            check_query,
-            {"source_id": source_id, "target_id": target_id}
+            check_query, {"source_id": source_id, "target_id": target_id}
         )
-        
+
         if check_result and check_result[0]["edge_count"] > 0:
             raise ValueError(
                 f"Un lien de type {edge_type.value} existe déjà entre {source_id} et {target_id}"
             )
-        
+
         # Déterminer les types de noeuds selon le type d'edge
         if edge_type == MetamodelEdgeType.DOMAIN:
             # DOMAIN: Relation → Concept
@@ -295,15 +293,14 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
             """
         else:
             raise ValueError(f"Unknown edge type: {edge_type}")
-        
-        result = self.db.execute_query(
-            query,
-            {"source_id": source_id, "target_id": target_id}
-        )
-        
+
+        result = self.db.execute_query(query, {"source_id": source_id, "target_id": target_id})
+
         if not result:
-            raise ValueError(f"Failed to create {edge_type.value} edge from {source_id} to {target_id}")
-        
+            raise ValueError(
+                f"Failed to create {edge_type.value} edge from {source_id} to {target_id}"
+            )
+
         record = result[0]
         edge_data = {
             "id": f"{edge_type.value}-{source_id}-{target_id}",
@@ -314,49 +311,43 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
             "source_label": record["source_label"],
             "target_label": record["target_label"],
             "graph_id": metamodel_id,
-            "description": f"{edge_type.value} edge"
+            "description": f"{edge_type.value} edge",
         }
-        
+
         edge = MetamodelEdge(**edge_data)
         logger.info(f"Created {edge_type.value} edge: {source_id} → {target_id}")
         return edge
 
     async def delete_edge(
-        self,
-        source_id: str,
-        target_id: str,
-        edge_type: MetamodelEdgeType
+        self, source_id: str, target_id: str, edge_type: MetamodelEdgeType
     ) -> bool:
         """
         Delete an edge between two nodes
-        
+
         Args:
             source_id: ID du noeud source
             target_id: ID du noeud cible
             edge_type: Type d'edge à supprimer
-            
+
         Returns:
             bool: True si l'edge a été supprimé
         """
         # Construire le nom de la relation Neo4j
         rel_type = edge_type.value.upper().replace("_", "_")
-        
+
         query = f"""
         MATCH (source {{id: $source_id}})-[edge:{rel_type}]->(target {{id: $target_id}})
         DELETE edge
         RETURN count(edge) as deleted_count
         """
-        
-        result = self.db.execute_query(
-            query,
-            {"source_id": source_id, "target_id": target_id}
-        )
-        
+
+        result = self.db.execute_query(query, {"source_id": source_id, "target_id": target_id})
+
         deleted = result[0]["deleted_count"] > 0 if result else False
-        
+
         if deleted:
             logger.info(f"Deleted {edge_type.value} edge: {source_id} → {target_id}")
         else:
             logger.warning(f"Edge not found: {edge_type.value} {source_id} → {target_id}")
-        
+
         return deleted

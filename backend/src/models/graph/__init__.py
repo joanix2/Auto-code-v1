@@ -1,12 +1,13 @@
 """
 Graph Models Package - Abstract classes for graph structures
 """
+
+from .edge import Edge
 from .graph import Graph
 from .node import Node
-from .edge import Edge
 
 __all__ = [
     "Graph",
-    "Node", 
+    "Node",
     "Edge",
 ]

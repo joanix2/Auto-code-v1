@@ -1,38 +1,39 @@
 """
 Pydantic models for all entities
 """
+
 from .base import BaseEntity, TimestampMixin
-from .oauth.user import User, UserCreate, UserUpdate, UserPublic
-from .repository.repository import Repository, RepositoryCreate, RepositoryUpdate
-from .repository.issue import Issue, IssueCreate, IssueUpdate, IssueStatus, IssuePriority, IssueType
-from .repository.message import Message, MessageCreate, MessageUpdate, MessageAuthorType
 from .MDE import (
-    Metamodel, 
-    MetamodelCreate, 
-    MetamodelUpdate, 
-    MetamodelResponse,
-    MetamodelGraphResponse,
-    MetamodelStatus,
-    Concept,
-    ConceptCreate,
-    ConceptUpdate,
-    ConceptResponse,
     Attribute,
     AttributeCreate,
-    AttributeUpdate,
     AttributeResponse,
     AttributeType,
+    AttributeUpdate,
+    Concept,
+    ConceptCreate,
+    ConceptResponse,
+    ConceptUpdate,
+    Metamodel,
+    MetamodelCreate,
+    MetamodelEdge,
+    MetamodelEdgeCreate,
+    MetamodelEdgeResponse,
+    MetamodelEdgeType,
+    MetamodelEdgeUpdate,
+    MetamodelGraphResponse,
+    MetamodelResponse,
+    MetamodelStatus,
+    MetamodelUpdate,
     Relationship,
     RelationshipCreate,
-    RelationshipUpdate,
     RelationshipResponse,
     RelationshipType,
-    MetamodelEdge,
-    MetamodelEdgeType,
-    MetamodelEdgeCreate,
-    MetamodelEdgeUpdate,
-    MetamodelEdgeResponse
+    RelationshipUpdate,
 )
+from .oauth.user import User, UserCreate, UserPublic, UserUpdate
+from .repository.issue import Issue, IssueCreate, IssuePriority, IssueStatus, IssueType, IssueUpdate
+from .repository.message import Message, MessageAuthorType, MessageCreate, MessageUpdate
+from .repository.repository import Repository, RepositoryCreate, RepositoryUpdate
 
 __all__ = [
     # Base
@@ -84,6 +85,3 @@ __all__ = [
     "RelationshipResponse",
     "RelationshipType",
 ]
-
-
-

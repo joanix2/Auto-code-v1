@@ -1,10 +1,11 @@
 """
 User repository - Data access layer for users
 """
-from typing import Optional
-from ..base import BaseRepository, convert_neo4j_types
-from ...models.oauth.user import User
+
 import logging
+
+from ...models.oauth.user import User
+from ..base import BaseRepository, convert_neo4j_types
 
 logger = logging.getLogger(__name__)
 
@@ -15,13 +16,13 @@ class UserRepository(BaseRepository[User]):
     def __init__(self, db):
         super().__init__(db, User, "User")
 
-    async def get_by_username(self, username: str) -> Optional[User]:
+    async def get_by_username(self, username: str) -> User | None:
         """
         Get user by username
-        
+
         Args:
             username: Username to search for
-            
+
         Returns:
             User or None if not found
         """
@@ -34,13 +35,13 @@ class UserRepository(BaseRepository[User]):
             return None
         return self.model(**convert_neo4j_types(result[0]["n"]))
 
-    async def get_by_github_id(self, github_id: int) -> Optional[User]:
+    async def get_by_github_id(self, github_id: int) -> User | None:
         """
         Get user by GitHub ID
-        
+
         Args:
             github_id: GitHub user ID
-            
+
         Returns:
             User or None if not found
         """
@@ -53,14 +54,14 @@ class UserRepository(BaseRepository[User]):
             return None
         return self.model(**convert_neo4j_types(result[0]["n"]))
 
-    async def update_github_token(self, user_id: str, github_token: str) -> Optional[User]:
+    async def update_github_token(self, user_id: str, github_token: str) -> User | None:
         """
         Update user's GitHub token
-        
+
         Args:
             user_id: User ID
             github_token: New GitHub access token
-            
+
         Returns:
             Updated user or None if not found
         """

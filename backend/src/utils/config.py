@@ -1,28 +1,30 @@
 """Configuration utilities"""
+
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Load .env file from project root
-env_path = Path(__file__).parent.parent.parent / '.env'
+env_path = Path(__file__).parent.parent.parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
 
 class Config:
     """Application configuration"""
-    
+
     # Neo4j Settings
     NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
     NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
     NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
-    
+
     # API Settings
     API_HOST = os.getenv("API_HOST", "0.0.0.0")
     API_PORT = int(os.getenv("API_PORT", "8000"))
-    
+
     # Frontend URL
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-    
+
     # JWT Settings
     SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production")
     ALGORITHM = "HS256"

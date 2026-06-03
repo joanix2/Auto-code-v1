@@ -1,15 +1,17 @@
 """
 Edge Controller - API endpoints for metamodel edges
 """
-from fastapi import APIRouter, HTTPException, Depends, status
-from typing import List, Dict, Any
-import logging
 
-from src.models.MDE.M2 import MetamodelEdge, MetamodelEdgeType, MetamodelEdgeCreate
-from src.models.oauth.user import User
+import logging
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, status
+
 from src.database import get_db
-from src.utils.auth import get_current_user
+from src.models.MDE.M2 import MetamodelEdgeCreate, MetamodelEdgeType
+from src.models.oauth.user import User
 from src.repositories.MDE.M2.metamodel_edge_repository import MetamodelEdgeRepository
+from src.utils.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/edges", tags=["edges"])
 
 
-def get_edge_repository(db = Depends(get_db)):
+def get_edge_repository(db=Depends(get_db)):
     """Dependency to get edge repository"""
     return MetamodelEdgeRepository(db)
 
@@ -26,15 +28,15 @@ def get_edge_repository(db = Depends(get_db)):
 async def create_edge(
     edge_data: MetamodelEdgeCreate,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db),
-    edge_repo: MetamodelEdgeRepository = Depends(get_edge_repository)
-) -> Dict[str, Any]:
+    db=Depends(get_db),
+    edge_repo: MetamodelEdgeRepository = Depends(get_edge_repository),
+) -> dict[str, Any]:
     """
     Create a new edge between two nodes
-    
+
     Args:
         edge_data: Edge creation data (graph_id, source_id, target_id, edge_type)
-    
+
     Returns:
         Created edge
     """
@@ -47,37 +49,31 @@ async def create_edge(
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid edge type: {edge_data.edge_type}. Must be one of: {[e.value for e in MetamodelEdgeType]}"
+            detail=f"Invalid edge type: {edge_data.edge_type}. Must be one of: {[e.value for e in MetamodelEdgeType]}",
         )
-    
+
     logger.info(
         f"Creating edge: {edge_type_enum.value} from {edge_data.source_id} to {edge_data.target_id} "
         f"in metamodel {edge_data.graph_id}"
     )
-    
+
     try:
         edge = await edge_repo.create_edge(
-            edge_data.graph_id,
-            edge_data.source_id,
-            edge_data.target_id,
-            edge_type_enum
+            edge_data.graph_id, edge_data.source_id, edge_data.target_id, edge_type_enum
         )
-        
+
         logger.info(f"✅ Edge created successfully: {edge.id}")
         # Retourner le dictionnaire formaté pour le frontend avec le champ 'label'
         return edge.to_graph_dict()
-        
+
     except ValueError as e:
         logger.error(f"❌ Error creating edge: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(f"❌ Unexpected error creating edge: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create edge: {str(e)}"
+            detail=f"Failed to create edge: {str(e)}",
         )
 
 
@@ -87,17 +83,17 @@ async def delete_edge(
     target_id: str,
     edge_type: str,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db),
-    edge_repo: MetamodelEdgeRepository = Depends(get_edge_repository)
+    db=Depends(get_db),
+    edge_repo: MetamodelEdgeRepository = Depends(get_edge_repository),
 ):
     """
     Delete an edge between two nodes
-    
+
     Args:
         source_id: ID du noeud source
-        target_id: ID du noeud cible  
+        target_id: ID du noeud cible
         edge_type: Type d'edge (domain, range, has_attribute, subclass_of)
-    
+
     Returns:
         Success message
     """
@@ -107,22 +103,22 @@ async def delete_edge(
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid edge type: {edge_type}. Must be one of: {[e.value for e in MetamodelEdgeType]}"
+            detail=f"Invalid edge type: {edge_type}. Must be one of: {[e.value for e in MetamodelEdgeType]}",
         )
-    
+
     logger.info(f"Deleting edge: {edge_type} from {source_id} to {target_id}")
-    
+
     deleted = await edge_repo.delete_edge(source_id, target_id, edge_type_enum)
-    
+
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Edge not found: {edge_type} from {source_id} to {target_id}"
+            detail=f"Edge not found: {edge_type} from {source_id} to {target_id}",
         )
-    
+
     return {
         "message": "Edge deleted successfully",
         "source_id": source_id,
         "target_id": target_id,
-        "edge_type": edge_type
+        "edge_type": edge_type,
     }

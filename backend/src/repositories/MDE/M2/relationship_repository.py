@@ -1,12 +1,14 @@
 """
 Relationship Repository - Database operations for relationships between concepts
 """
-from typing import Optional, List, Dict, Any
-import logging
 
-from ...base import BaseRepository, convert_neo4j_types
+import logging
+from typing import Any
+
 from src.models.MDE.M2.relationship import Relationship, RelationshipType
 from src.models.MDE.M3.m3_config import RELATION_NODE_TYPE
+
+from ...base import BaseRepository, convert_neo4j_types
 
 logger = logging.getLogger(__name__)
 
@@ -17,46 +19,46 @@ class RelationshipRepository(BaseRepository[Relationship]):
     def __init__(self, db):
         super().__init__(db, Relationship, "Relationship")
 
-    def _add_node_type(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _add_node_type(self, data: dict[str, Any]) -> dict[str, Any]:
         """Add node_type to relationship data"""
         data["node_type"] = RELATION_NODE_TYPE
         return data
 
-    def _normalize_relationship_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalize_relationship_data(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Normalize relationship data to match Node model fields
         Relationship is a Node, not an Edge
         """
         normalized = {**data}
-        
+
         # Ensure graph_id is set from metamodel_id if present
         if "metamodel_id" in normalized and "graph_id" not in normalized:
             normalized["graph_id"] = normalized["metamodel_id"]
-        
+
         # Add node_type from M3 configuration
         normalized["node_type"] = RELATION_NODE_TYPE
-            
+
         return normalized
 
-    async def create_standalone(self, data: Dict[str, Any]) -> Relationship:
+    async def create_standalone(self, data: dict[str, Any]) -> Relationship:
         """
         Create a relationship node without DOMAIN/RANGE connections
-        
+
         Les connexions DOMAIN/RANGE seront créées séparément via le système d'edges.
         Cette méthode crée uniquement le noeud Relationship.
-        
+
         Structure in Neo4j:
         (Metamodel)-[:HAS_RELATION]->(Relationship:Node)
-        
+
         Args:
             data: Relationship data including name, type, description
-            
+
         Returns:
             Created relationship
         """
         metamodel_id = data.get("metamodel_id")
         name = data.get("name")
-        
+
         if not metamodel_id:
             raise ValueError("metamodel_id is required")
         if not name:
@@ -81,32 +83,26 @@ class RelationshipRepository(BaseRepository[Relationship]):
         CREATE (metamodel)-[:HAS_RELATION]->(r)
         RETURN r
         """
-        result = self.db.execute_query(
-            query, 
-            {
-                "metamodel_id": metamodel_id,
-                "props": rel_data
-            }
-        )
+        result = self.db.execute_query(query, {"metamodel_id": metamodel_id, "props": rel_data})
         if not result:
             raise ValueError("Failed to create Relationship")
-        
+
         node = convert_neo4j_types(result[0]["r"])
         logger.info(f"Created standalone Relationship '{node.get('name')}' (id={node.get('id')})")
         return self.model(**self._normalize_relationship_data(node))
 
-    async def create_with_concepts(self, data: Dict[str, Any]) -> Relationship:
+    async def create_with_concepts(self, data: dict[str, Any]) -> Relationship:
         """
         Create a relationship node and link it with DOMAIN and RANGE edges
-        
+
         Structure in Neo4j:
         (Metamodel)-[:HAS_RELATION]->(Relationship:Node)
         (Relationship)-[:DOMAIN]->(SourceConcept)
         (Relationship)-[:RANGE]->(TargetConcept)
-        
+
         Args:
             data: Relationship data with source_id and target_id in the dict
-            
+
         Returns:
             Created relationship
         """
@@ -118,7 +114,7 @@ class RelationshipRepository(BaseRepository[Relationship]):
 
         if not source_id or not target_id:
             raise ValueError("source_id and target_id are required in data dict")
-        
+
         # Prepare relationship data (it's a Node, not an Edge)
         rel_data = {
             "id": data.get("id"),
@@ -143,30 +139,34 @@ class RelationshipRepository(BaseRepository[Relationship]):
         RETURN r
         """
         result = self.db.execute_query(
-            query, 
+            query,
             {
                 "metamodel_id": metamodel_id,
-                "source_id": source_id, 
-                "target_id": target_id, 
-                "props": rel_data
-            }
+                "source_id": source_id,
+                "target_id": target_id,
+                "props": rel_data,
+            },
         )
         if not result:
             raise ValueError("Failed to create Relationship")
-        
+
         node = convert_neo4j_types(result[0]["r"])
-        logger.info(f"Created Relationship '{node.get('name')}' (id={node.get('id')}) with DOMAIN/RANGE edges")
+        logger.info(
+            f"Created Relationship '{node.get('name')}' (id={node.get('id')}) with DOMAIN/RANGE edges"
+        )
         return self.model(**self._normalize_relationship_data(node))
 
-    async def get_by_metamodel(self, metamodel_id: str, skip: int = 0, limit: int = 100) -> List[Relationship]:
+    async def get_by_metamodel(
+        self, metamodel_id: str, skip: int = 0, limit: int = 100
+    ) -> list[Relationship]:
         """
         Get all relationships for a specific metamodel via HAS_RELATION edge
-        
+
         Args:
             metamodel_id: Metamodel ID
             skip: Number to skip
             limit: Max results
-            
+
         Returns:
             List of relationships
         """
@@ -180,8 +180,10 @@ class RelationshipRepository(BaseRepository[Relationship]):
         SKIP $skip
         LIMIT $limit
         """
-        result = self.db.execute_query(query, {"metamodel_id": metamodel_id, "skip": skip, "limit": limit})
-        
+        result = self.db.execute_query(
+            query, {"metamodel_id": metamodel_id, "skip": skip, "limit": limit}
+        )
+
         relationships = []
         for row in result:
             rel_data = convert_neo4j_types(row["r"])
@@ -191,19 +193,21 @@ class RelationshipRepository(BaseRepository[Relationship]):
             rel_data["target_id"] = row["target_id"]
             rel_data["target_label"] = row["target_name"]
             rel_data["graph_id"] = metamodel_id
-            
+
             relationships.append(self.model(**self._normalize_relationship_data(rel_data)))
-        
+
         return relationships
 
-    async def get_by_type(self, metamodel_id: str, relationship_type: RelationshipType) -> List[Relationship]:
+    async def get_by_type(
+        self, metamodel_id: str, relationship_type: RelationshipType
+    ) -> list[Relationship]:
         """
         Get all relationships of a specific type in a metamodel
-        
+
         Args:
             metamodel_id: Metamodel ID
             relationship_type: Type of relationship
-            
+
         Returns:
             List of relationships
         """
@@ -215,8 +219,10 @@ class RelationshipRepository(BaseRepository[Relationship]):
                target.id as target_id, target.name as target_name
         ORDER BY r.created_at ASC
         """
-        result = self.db.execute_query(query, {"metamodel_id": metamodel_id, "type": relationship_type.value})
-        
+        result = self.db.execute_query(
+            query, {"metamodel_id": metamodel_id, "type": relationship_type.value}
+        )
+
         relationships = []
         for row in result:
             rel_data = convert_neo4j_types(row["r"])
@@ -226,17 +232,17 @@ class RelationshipRepository(BaseRepository[Relationship]):
             rel_data["target_label"] = row["target_name"]
             rel_data["graph_id"] = metamodel_id
             relationships.append(self.model(**self._normalize_relationship_data(rel_data)))
-        
+
         return relationships
 
-    async def get_between_concepts(self, source_id: str, target_id: str) -> Optional[Relationship]:
+    async def get_between_concepts(self, source_id: str, target_id: str) -> Relationship | None:
         """
         Get relationship between two specific concepts
-        
+
         Args:
             source_id: Source concept ID
             target_id: Target concept ID
-            
+
         Returns:
             Relationship or None
         """
@@ -249,22 +255,22 @@ class RelationshipRepository(BaseRepository[Relationship]):
         result = self.db.execute_query(query, {"source_id": source_id, "target_id": target_id})
         if not result:
             return None
-        
+
         rel_data = convert_neo4j_types(result[0]["r"])
         rel_data["source_id"] = result[0]["source_id"]
         rel_data["source_label"] = result[0]["source_name"]
         rel_data["target_id"] = result[0]["target_id"]
         rel_data["target_label"] = result[0]["target_name"]
-        
+
         return self.model(**self._normalize_relationship_data(rel_data))
 
     async def count_by_metamodel(self, metamodel_id: str) -> int:
         """
         Count relationships in a metamodel via HAS_RELATION edge
-        
+
         Args:
             metamodel_id: Metamodel ID
-            
+
         Returns:
             Number of relationships
         """
@@ -278,10 +284,10 @@ class RelationshipRepository(BaseRepository[Relationship]):
     async def delete(self, entity_id: str) -> bool:
         """
         Delete a relationship and its DOMAIN, RANGE, and HAS_RELATION edges
-        
+
         Args:
             entity_id: Relationship ID
-            
+
         Returns:
             True if deleted, False if not found
         """
@@ -296,10 +302,12 @@ class RelationshipRepository(BaseRepository[Relationship]):
         """
         result = self.db.execute_query(query, {"id": entity_id})
         deleted = result and len(result) > 0 and result[0]["deleted"] > 0
-        
+
         if deleted:
-            logger.info(f"🗑️ Deleted Relationship with id={entity_id} and its edges (DOMAIN, RANGE, HAS_RELATION)")
+            logger.info(
+                f"🗑️ Deleted Relationship with id={entity_id} and its edges (DOMAIN, RANGE, HAS_RELATION)"
+            )
         else:
             logger.warning(f"⚠️ Relationship with id={entity_id} not found for deletion")
-        
+
         return deleted

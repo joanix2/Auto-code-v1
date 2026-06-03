@@ -124,6 +124,44 @@ install-frontend:
 install-all: install-backend install-frontend
 	@echo "✅ All dependencies installed!"
 
+# Linting
+lint-backend:
+	@echo "🔍 Linting backend..."
+	cd backend && ./venv/bin/ruff check .
+	cd backend && ./venv/bin/ruff format --check .
+
+lint-backend-fix:
+	@echo "🔧 Fixing backend lint..."
+	cd backend && ./venv/bin/ruff check --fix .
+	cd backend && ./venv/bin/ruff format .
+
+lint-frontend:
+	@echo "🔍 Linting frontend..."
+	cd frontend && npm run lint
+	cd frontend && npm run format
+
+lint-frontend-fix:
+	@echo "🔧 Fixing frontend lint..."
+	cd frontend && npm run lint:fix
+	cd frontend && npm run format:fix
+
+lint-all: lint-backend lint-frontend
+	@echo "✅ All linters passed!"
+
+typecheck-backend:
+	@echo "🔍 Type checking backend..."
+	cd backend && ./venv/bin/mypy src/ --ignore-missing-imports
+
+typecheck-frontend:
+	@echo "🔍 Type checking frontend..."
+	cd frontend && npm run typecheck
+
+typecheck-all: typecheck-backend typecheck-frontend
+	@echo "✅ All type checks passed!"
+
+check-all: lint-all typecheck-all test-backend test-frontend
+	@echo "✅ All checks passed!"
+
 # Testing
 test-backend:
 	@echo "🧪 Running backend tests..."

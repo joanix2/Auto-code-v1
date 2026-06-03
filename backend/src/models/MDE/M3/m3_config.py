@@ -4,11 +4,10 @@ M3 Configuration - Meta-metamodel type definitions
 This defines the concrete types available in the metamodel layer.
 This is the single source of truth for node and edge types.
 """
-from typing import List, Dict
-from ...base import GenderType
-from ...graph.node_type import NodeType
-from ...graph.edge_type import EdgeType
 
+from ...base import GenderType
+from ...graph.edge_type import EdgeType
+from ...graph.node_type import NodeType
 
 # ==================== NODE TYPES ====================
 
@@ -18,7 +17,7 @@ CONCEPT_NODE_TYPE = NodeType(
     label="Concept",
     labelPlural="Concepts",
     gender=GenderType.MASCULIN,
-    article="le"
+    article="le",
 )
 
 ATTRIBUTE_NODE_TYPE = NodeType(
@@ -27,7 +26,7 @@ ATTRIBUTE_NODE_TYPE = NodeType(
     label="Attribut",
     labelPlural="Attributs",
     gender=GenderType.MASCULIN,
-    article="l'"
+    article="l'",
 )
 
 RELATION_NODE_TYPE = NodeType(
@@ -36,20 +35,18 @@ RELATION_NODE_TYPE = NodeType(
     label="Relation",
     labelPlural="Relations",
     gender=GenderType.FEMININ,
-    article="la"
+    article="la",
 )
 
 
 # Node types registry
-NODE_TYPES: List[NodeType] = [
+NODE_TYPES: list[NodeType] = [
     CONCEPT_NODE_TYPE,
     ATTRIBUTE_NODE_TYPE,
     RELATION_NODE_TYPE,
 ]
 
-NODE_TYPES_BY_ID: Dict[str, NodeType] = {
-    nt.name: nt for nt in NODE_TYPES
-}
+NODE_TYPES_BY_ID: dict[str, NodeType] = {nt.name: nt for nt in NODE_TYPES}
 
 
 # ==================== EDGE TYPES ====================
@@ -59,7 +56,7 @@ DOMAIN_EDGE_TYPE = EdgeType(
     description="Définit le concept de domaine d'une relation",
     sourceNodeTypes=["relation"],
     targetNodeTypes=["concept"],
-    directed=True
+    directed=True,
 )
 
 RANGE_EDGE_TYPE = EdgeType(
@@ -67,7 +64,7 @@ RANGE_EDGE_TYPE = EdgeType(
     description="Définit le concept de co-domaine (range) d'une relation",
     sourceNodeTypes=["relation"],
     targetNodeTypes=["concept"],
-    directed=True
+    directed=True,
 )
 
 HAS_ATTRIBUTE_EDGE_TYPE = EdgeType(
@@ -75,7 +72,7 @@ HAS_ATTRIBUTE_EDGE_TYPE = EdgeType(
     description="Associe un attribut à un concept",
     sourceNodeTypes=["concept"],
     targetNodeTypes=["attribute"],
-    directed=True
+    directed=True,
 )
 
 SUBCLASS_OF_EDGE_TYPE = EdgeType(
@@ -83,55 +80,54 @@ SUBCLASS_OF_EDGE_TYPE = EdgeType(
     description="Définit une relation d'héritage entre concepts",
     sourceNodeTypes=["concept"],
     targetNodeTypes=["concept"],
-    directed=True
+    directed=True,
 )
 
 
 # Edge types registry
-EDGE_TYPES: List[EdgeType] = [
+EDGE_TYPES: list[EdgeType] = [
     DOMAIN_EDGE_TYPE,
     RANGE_EDGE_TYPE,
     HAS_ATTRIBUTE_EDGE_TYPE,
     SUBCLASS_OF_EDGE_TYPE,
 ]
 
-EDGE_TYPES_BY_ID: Dict[str, EdgeType] = {
-    et.name: et for et in EDGE_TYPES
-}
+EDGE_TYPES_BY_ID: dict[str, EdgeType] = {et.name: et for et in EDGE_TYPES}
 
 
 # ==================== M3 CONFIGURATION ====================
+
 
 class M3Config:
     """
     M3 Configuration class providing access to all metamodel types
     """
-    
+
     @staticmethod
-    def get_node_types() -> List[NodeType]:
+    def get_node_types() -> list[NodeType]:
         """Get all available node types"""
         return NODE_TYPES
-    
+
     @staticmethod
     def get_node_type(type_id: str) -> NodeType:
         """Get a specific node type by ID"""
         return NODE_TYPES_BY_ID.get(type_id)
-    
+
     @staticmethod
-    def get_edge_types() -> List[EdgeType]:
+    def get_edge_types() -> list[EdgeType]:
         """Get all available edge types"""
         return EDGE_TYPES
-    
+
     @staticmethod
     def get_edge_type(type_id: str) -> EdgeType:
         """Get a specific edge type by ID"""
         return EDGE_TYPES_BY_ID.get(type_id)
-    
+
     @staticmethod
-    def get_edge_constraints() -> List[dict]:
+    def get_edge_constraints() -> list[dict]:
         """
         Get edge constraints for the graph editor
-        
+
         Returns constraints in the format expected by the frontend:
         {
             "edgeType": "DOMAIN",
@@ -145,30 +141,32 @@ class M3Config:
         for edge_type in EDGE_TYPES:
             for source_type in edge_type.sourceNodeTypes:
                 for target_type in edge_type.targetNodeTypes:
-                    constraints.append({
-                        "edgeType": edge_type.name.upper(),  # Uppercase for display
-                        "label": edge_type.name.upper(),
-                        "sourceNodeType": source_type,
-                        "targetNodeType": target_type,
-                        "directed": edge_type.directed
-                    })
+                    constraints.append(
+                        {
+                            "edgeType": edge_type.name.upper(),  # Uppercase for display
+                            "label": edge_type.name.upper(),
+                            "sourceNodeType": source_type,
+                            "targetNodeType": target_type,
+                            "directed": edge_type.directed,
+                        }
+                    )
         return constraints
-    
+
     @staticmethod
     def validate_edge(edge_type_id: str, source_type_id: str, target_type_id: str) -> bool:
         """
         Validate if an edge connection is allowed
-        
+
         Args:
             edge_type_id: ID of the edge type (lowercase)
             source_type_id: ID of the source node type
             target_type_id: ID of the target node type
-            
+
         Returns:
             True if the connection is valid, False otherwise
         """
         edge_type = EDGE_TYPES_BY_ID.get(edge_type_id)
         if not edge_type:
             return False
-        
+
         return edge_type.allows_connection(source_type_id, target_type_id)

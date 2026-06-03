@@ -1,11 +1,32 @@
 """
 Metamodel package - Contains all metamodel-related models
 """
-from .metamodel import Metamodel, MetamodelCreate, MetamodelUpdate, MetamodelResponse, MetamodelWithDetails, MetamodelGraphResponse, MetamodelStatus
-from .concept import Concept, ConceptCreate, ConceptUpdate, ConceptResponse
-from .attribute import Attribute, AttributeCreate, AttributeUpdate, AttributeResponse
-from .relationship import Relationship, RelationshipType, RelationshipCreate, RelationshipUpdate, RelationshipResponse
-from .metamodel_edge import MetamodelEdge, MetamodelEdgeType, MetamodelEdgeCreate, MetamodelEdgeUpdate, MetamodelEdgeResponse
+
+from .attribute import Attribute, AttributeCreate, AttributeResponse, AttributeUpdate
+from .concept import Concept, ConceptCreate, ConceptResponse, ConceptUpdate
+from .metamodel import (
+    Metamodel,
+    MetamodelCreate,
+    MetamodelGraphResponse,
+    MetamodelResponse,
+    MetamodelStatus,
+    MetamodelUpdate,
+    MetamodelWithDetails,
+)
+from .metamodel_edge import (
+    MetamodelEdge,
+    MetamodelEdgeCreate,
+    MetamodelEdgeResponse,
+    MetamodelEdgeType,
+    MetamodelEdgeUpdate,
+)
+from .relationship import (
+    Relationship,
+    RelationshipCreate,
+    RelationshipResponse,
+    RelationshipType,
+    RelationshipUpdate,
+)
 
 __all__ = [
     # Metamodel

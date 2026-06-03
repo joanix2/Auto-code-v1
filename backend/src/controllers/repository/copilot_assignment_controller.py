@@ -3,20 +3,20 @@ Copilot Assignment Controller
 Handles HTTP endpoints for assigning issues to GitHub Copilot
 Combined controller and routes in single file
 """
-import logging
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Depends
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from src.database import get_db
 from src.models.oauth.user import User
+from src.repositories.oauth.user_repository import UserRepository
 from src.repositories.repository.issue_repository import IssueRepository
 from src.repositories.repository.repository_repository import RepositoryRepository
-from src.repositories.oauth.user_repository import UserRepository
 from src.services.repository.copilot_agent_service import GitHubCopilotAgentService
 from src.services.repository.repository_initializer_service import RepositoryInitializerService
 from src.utils.auth import get_current_user
-from src.database import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +28,10 @@ router = APIRouter(prefix="/api/copilot", tags=["Copilot Assignment"])
 class AssignToCopilotRequest(BaseModel):
     """Request model for assigning issue to Copilot"""
 
-    base_branch: Optional[str] = Field(
+    base_branch: str | None = Field(
         None, description="Base branch for the PR (defaults to repository default branch)"
     )
-    custom_instructions: Optional[str] = Field(
-        "", description="Custom instructions for Copilot agent"
-    )
+    custom_instructions: str | None = Field("", description="Custom instructions for Copilot agent")
 
 
 class AssignToCopilotResponse(BaseModel):
@@ -43,7 +41,7 @@ class AssignToCopilotResponse(BaseModel):
     message: str
     issue_id: str
     assigned_to_copilot: bool
-    github_issue_number: Optional[int] = None
+    github_issue_number: int | None = None
 
 
 class CopilotAvailabilityResponse(BaseModel):
@@ -51,7 +49,7 @@ class CopilotAvailabilityResponse(BaseModel):
 
     available: bool
     message: str
-    bot_id: Optional[str] = None
+    bot_id: str | None = None
 
 
 class CopilotAssignmentController:
@@ -62,7 +60,7 @@ class CopilotAssignmentController:
         issue_repo: IssueRepository,
         repository_repo: RepositoryRepository,
         user_repo: UserRepository,
-        copilot_service: Optional[GitHubCopilotAgentService] = None,  # Unused, kept for compatibility
+        copilot_service: GitHubCopilotAgentService | None = None,  # Unused, kept for compatibility
     ):
         self.issue_repo = issue_repo
         self.repository_repo = repository_repo
@@ -72,9 +70,7 @@ class CopilotAssignmentController:
     async def _get_user_token(self, user: User) -> str:
         """Get GitHub access token for user"""
         if not user.github_token:
-            raise HTTPException(
-                status_code=401, detail="GitHub access token not found for user"
-            )
+            raise HTTPException(status_code=401, detail="GitHub access token not found for user")
         return user.github_token
 
     async def check_availability(
@@ -171,9 +167,9 @@ class CopilotAssignmentController:
             ready_result = await initializer_service.ensure_repository_ready(
                 owner=owner,
                 repo=repo,
-                auto_initialize=True  # Initialisation automatique si vide
+                auto_initialize=True,  # Initialisation automatique si vide
             )
-            
+
             if not ready_result["ready"]:
                 error_message = (
                     f"⚠️ Repository is empty and cannot be initialized.\n\n"
@@ -181,10 +177,10 @@ class CopilotAssignmentController:
                     f"Manual steps:\n" + "\n".join(ready_result.get("manual_steps", []))
                 )
                 raise HTTPException(status_code=412, detail=error_message)
-            
+
             # Log si auto-initialisé
             if ready_result.get("action_taken") == "created_readme":
-                logger.info(f"✅ Repository auto-initialized with README.md")
+                logger.info("✅ Repository auto-initialized with README.md")
 
             # Check if issue has GitHub issue number
             if not issue.github_issue_number:
@@ -223,7 +219,7 @@ class CopilotAssignmentController:
 
             return AssignToCopilotResponse(
                 success=True,
-                message=f"Issue successfully assigned to GitHub Copilot. Check your GitHub notifications for PR updates.",
+                message="Issue successfully assigned to GitHub Copilot. Check your GitHub notifications for PR updates.",
                 issue_id=issue_id,
                 assigned_to_copilot=True,
                 github_issue_number=issue.github_issue_number,
@@ -237,9 +233,7 @@ class CopilotAssignmentController:
                 status_code=500, detail=f"Error assigning issue to Copilot: {str(e)}"
             )
 
-    async def unassign_from_copilot(
-        self, issue_id: str, user: User
-    ) -> AssignToCopilotResponse:
+    async def unassign_from_copilot(self, issue_id: str, user: User) -> AssignToCopilotResponse:
         """
         Unassign an issue from GitHub Copilot coding agent.
 
@@ -304,7 +298,7 @@ class CopilotAssignmentController:
 
 
 # Factory function to create controller instance
-def get_controller(db = Depends(get_db)) -> CopilotAssignmentController:
+def get_controller(db=Depends(get_db)) -> CopilotAssignmentController:
     """Create and return a CopilotAssignmentController instance"""
     issue_repo = IssueRepository(db)
     repository_repo = RepositoryRepository(db)
@@ -314,11 +308,15 @@ def get_controller(db = Depends(get_db)) -> CopilotAssignmentController:
     copilot_service = None  # type: ignore
 
     return CopilotAssignmentController(
-        issue_repo, repository_repo, user_repo, copilot_service  # type: ignore
+        issue_repo,
+        repository_repo,
+        user_repo,
+        copilot_service,  # type: ignore
     )
 
 
 # ========== ROUTES ==========
+
 
 @router.get(
     "/availability/{repository_id}",

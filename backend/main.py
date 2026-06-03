@@ -1,31 +1,32 @@
 """
 Main FastAPI application
 """
-import uvicorn
+
 import logging
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from src.database import db
-from src.utils.config import config
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from src.controllers import (
     auth_router,
-    repository_router,
+    copilot_assignment_router,
     issue_router,
     message_router,
-    copilot_assignment_router,
+    repository_router,
 )
-from src.controllers.MDE.M3.m3_controller import router as m3_router
-from src.controllers.MDE.M2.metamodel_controller import router as metamodel_router
-from src.controllers.MDE.M2.concept_controller import router as concept_router
 from src.controllers.MDE.M2.attribute_controller import router as attribute_router
-from src.controllers.MDE.M2.relationship_controller import router as relationship_router
+from src.controllers.MDE.M2.concept_controller import router as concept_router
 from src.controllers.MDE.M2.edge_controller import router as edge_router
+from src.controllers.MDE.M2.metamodel_controller import router as metamodel_router
+from src.controllers.MDE.M2.relationship_controller import router as relationship_router
+from src.controllers.MDE.M3.m3_controller import router as m3_router
+from src.database import db
+from src.utils.config import config
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -36,16 +37,16 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("🚀 Starting Auto-Code Platform API...")
     db.connect()
-    
+
     if not db.verify_connectivity():
         logger.warning("⚠️  Unable to connect to Neo4j")
     else:
         logger.info("✓ Neo4j connected")
         db.init_constraints()
         logger.info("✓ Database constraints initialized")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("🛑 Shutting down...")
     db.close()
@@ -56,7 +57,7 @@ app = FastAPI(
     title="Auto-Code Platform API",
     description="API for automated development with AI agents",
     version="2.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Configure CORS
@@ -85,32 +86,21 @@ app.include_router(edge_router)
 @app.get("/")
 async def root():
     """Root endpoint"""
-    return {
-        "message": "Auto-Code Platform API",
-        "version": "2.0.0",
-        "docs": "/docs"
-    }
+    return {"message": "Auto-Code Platform API", "version": "2.0.0", "docs": "/docs"}
 
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
     neo4j_status = "healthy" if db.verify_connectivity() else "unhealthy"
-    
+
     return {
         "status": "healthy" if neo4j_status == "healthy" else "degraded",
-        "services": {
-            "api": "healthy",
-            "neo4j": neo4j_status
-        }
+        "services": {"api": "healthy", "neo4j": neo4j_status},
     }
 
 
 if __name__ == "__main__":
     uvicorn.run(
-        "main:app",
-        host=config.API_HOST,
-        port=config.API_PORT,
-        reload=True,
-        log_level="info"
+        "main:app", host=config.API_HOST, port=config.API_PORT, reload=True, log_level="info"
     )

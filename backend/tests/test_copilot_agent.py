@@ -6,9 +6,10 @@ Test script GitHub Copilot Coding Agent (assign issue -> Copilot ouvre une PR)
 - Crée une issue
 - Assigne l'issue au bot `copilot-swe-agent[bot]` via REST + agent_assignment
 """
+
 import asyncio
 import os
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import httpx
 from dotenv import load_dotenv
@@ -32,7 +33,7 @@ BLUE = "\033[94m"
 RESET = "\033[0m"
 
 
-def rest_headers(token: str) -> Dict[str, str]:
+def rest_headers(token: str) -> dict[str, str]:
     return {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -40,7 +41,7 @@ def rest_headers(token: str) -> Dict[str, str]:
     }
 
 
-def gql_headers(token: str) -> Dict[str, str]:
+def gql_headers(token: str) -> dict[str, str]:
     # D'après la doc, ce header est requis pour l'assign Copilot via API GraphQL
     # (et recommandé même si on ne fait "que" la vérif suggestedActors).
     return {
@@ -51,8 +52,15 @@ def gql_headers(token: str) -> Dict[str, str]:
     }
 
 
-async def graphql(client: httpx.AsyncClient, token: str, query: str, variables: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    r = await client.post(GQL_URL, headers=gql_headers(token), json={"query": query, "variables": variables or {}}, timeout=30.0)
+async def graphql(
+    client: httpx.AsyncClient, token: str, query: str, variables: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    r = await client.post(
+        GQL_URL,
+        headers=gql_headers(token),
+        json={"query": query, "variables": variables or {}},
+        timeout=30.0,
+    )
     r.raise_for_status()
     data = r.json()
     if "errors" in data:
@@ -67,7 +75,9 @@ async def get_default_branch(client: httpx.AsyncClient, owner: str, repo: str, t
     return r.json().get("default_branch", "main")
 
 
-async def check_copilot_enabled(client: httpx.AsyncClient, owner: str, repo: str, token: str) -> Tuple[bool, Optional[str]]:
+async def check_copilot_enabled(
+    client: httpx.AsyncClient, owner: str, repo: str, token: str
+) -> tuple[bool, str | None]:
     """
     Vérifie si le repo expose `copilot-swe-agent` dans suggestedActors(capabilities:[CAN_BE_ASSIGNED]).
     Retourne (True, bot_id) si dispo.
@@ -89,9 +99,7 @@ async def check_copilot_enabled(client: httpx.AsyncClient, owner: str, repo: str
     }
     """
     data = await graphql(client, token, q, {"owner": owner, "name": repo})
-    nodes = (data.get("repository", {})
-                .get("suggestedActors", {})
-                .get("nodes", []))
+    nodes = data.get("repository", {}).get("suggestedActors", {}).get("nodes", [])
 
     # La doc indique que si c'est activé, `copilot-swe-agent` apparait (souvent en premier).
     for n in nodes:
@@ -107,7 +115,9 @@ async def check_copilot_enabled(client: httpx.AsyncClient, owner: str, repo: str
     return False, None
 
 
-async def create_test_issue(client: httpx.AsyncClient, owner: str, repo: str, token: str) -> Tuple[Optional[int], Optional[str]]:
+async def create_test_issue(
+    client: httpx.AsyncClient, owner: str, repo: str, token: str
+) -> tuple[int | None, str | None]:
     print(f"\n{BLUE}📝 Création d'une issue de test...{RESET}")
     url = f"{REST_BASE}/repos/{owner}/{repo}/issues"
 
@@ -146,6 +156,7 @@ Repository: Auto-code-v1
     print(f"   📎 {issue['html_url']}")
     return issue["number"], issue["html_url"]
 
+
 async def assign_issue_to_copilot(
     client: httpx.AsyncClient,
     owner: str,
@@ -163,7 +174,7 @@ async def assign_issue_to_copilot(
 
     url = f"{REST_BASE}/repos/{owner}/{repo}/issues/{issue_number}/assignees"
 
-    payload: Dict[str, Any] = {
+    payload: dict[str, Any] = {
         "assignees": ["copilot-swe-agent[bot]"],
         "agent_assignment": {
             "target_repo": f"{owner}/{repo}",
@@ -188,9 +199,9 @@ async def assign_issue_to_copilot(
 
 
 async def main() -> None:
-    print(f"\n{BLUE}{'='*60}{RESET}")
+    print(f"\n{BLUE}{'=' * 60}{RESET}")
     print(f"{BLUE}  Test GitHub Copilot coding agent (API){RESET}")
-    print(f"{BLUE}{'='*60}{RESET}")
+    print(f"{BLUE}{'=' * 60}{RESET}")
 
     if not GITHUB_TOKEN:
         print(f"\n{RED}❌ ERREUR: GITHUB_TOKEN non défini{RESET}")
@@ -204,7 +215,9 @@ async def main() -> None:
         # 1) Vérif fiable via GraphQL
         enabled, _bot_id = await check_copilot_enabled(client, OWNER, REPO, GITHUB_TOKEN)
         if not enabled:
-            print(f"\n{YELLOW}⚠️  Copilot coding agent n'est pas activé / pas dispo sur ce repo.{RESET}")
+            print(
+                f"\n{YELLOW}⚠️  Copilot coding agent n'est pas activé / pas dispo sur ce repo.{RESET}"
+            )
             print(f"{YELLOW}   (Vérifie plan Copilot + activation repo/org + droits write.){RESET}")
             return
 
@@ -230,9 +243,10 @@ async def main() -> None:
         if not ok:
             return
 
-        print(f"\n{GREEN}{'='*60}{RESET}")
+        print(f"\n{GREEN}{'=' * 60}{RESET}")
         print(f"{GREEN}✅ Terminé. Issue: {issue_url}{RESET}")
-        print(f"{GREEN}{'='*60}{RESET}")
+        print(f"{GREEN}{'=' * 60}{RESET}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
