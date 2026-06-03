@@ -1,6 +1,6 @@
 ---
 title: Fix bugs graph visualization
-lane: todo
+lane: qa
 priority: P0
 created: 2026-06-03T22:35:00+02:00
 updated: 2026-06-03T22:35:00+02:00

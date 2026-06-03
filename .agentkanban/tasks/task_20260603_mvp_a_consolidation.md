@@ -1,6 +1,6 @@
 ---
 title: MVP A — Consolidation IR/API/Frontend
-lane: done
+lane: qa
 created: 2026-06-03T21:30:00+02:00
 updated: 2026-06-03T21:30:00+02:00
 priority: P1

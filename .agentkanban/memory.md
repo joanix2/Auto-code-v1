@@ -26,10 +26,17 @@
 - `bug_error_helper` ✅
 - `bug_ticket_status_sync` ✅
 
-### P0 Restants
+### QA — Vérification manuelle requise
 
-- `bug_relation_update` — Fix mise à jour relations
-- `bug_graph_mobile` — Bugs graph D3.js (drag, attraction, flèches, logs)
+- `bug_graph_mobile` — Bugs D3.js (drag mobile, attraction, flèches)
+- `bug_relation_update` — Mise à jour des relations
+- `mvp_a_consolidation` — IR schema, endpoints roundtrip
+
+### Board
+
+```
+todo  →  doing  →  qa  →  done
+```
 
 ### Agents opencode disponibles (`.opencode/agents/`)
 
