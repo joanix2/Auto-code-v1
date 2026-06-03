@@ -3,6 +3,7 @@ title: MVP F — Ontologie et Inférence
 lane: todo
 created: 2026-06-03T21:30:00+02:00
 updated: 2026-06-03T21:30:00+02:00
+priority: P4
 description: Couche ontologique Open World, règles d'inférence, compilation vers l'IR (Phases 11-12, 15)
 ---
 

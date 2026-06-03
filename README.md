@@ -35,6 +35,12 @@ A headless server platform that orchestrates AI development agents to automate c
 └─────────────┘
 ```
 
+## 📸 Aperçus
+
+| Interface | Aperçu |
+|-----------|--------|
+| Frontend | ![App](docs/images/app-screenshot.png) |
+
 ## 📦 Tech Stack
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS

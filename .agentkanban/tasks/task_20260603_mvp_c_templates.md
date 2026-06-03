@@ -3,6 +3,7 @@ title: MVP C — Templates et Génération
 lane: todo
 created: 2026-06-03T21:30:00+02:00
 updated: 2026-06-03T21:30:00+02:00
+priority: P3
 description: Système de templates Jinja2 et plans de génération (Phases 5-6)
 ---
 

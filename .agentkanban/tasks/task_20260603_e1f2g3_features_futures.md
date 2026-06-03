@@ -3,6 +3,7 @@ title: Fonctionnalités Futures
 lane: todo
 created: 2026-06-03T19:15:00+02:00
 updated: 2026-06-03T19:15:00+02:00
+priority: P4
 description: Fonctionnalités à long terme : KG, ontologies, commande vocale, workflow multi-agent
 ---
 

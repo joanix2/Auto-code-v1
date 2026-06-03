@@ -3,6 +3,7 @@ title: Infrastructure et Déploiement
 lane: todo
 created: 2026-06-03T19:15:00+02:00
 updated: 2026-06-03T19:15:00+02:00
+priority: P2
 description: Mise en place de l'infrastructure de déploiement et CI/CD
 ---
 

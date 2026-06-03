@@ -3,6 +3,7 @@ title: Analyse du Besoin
 lane: todo
 created: 2026-06-03T19:15:00+02:00
 updated: 2026-06-03T19:15:00+02:00
+priority: P4
 description: Module d'analyse du besoin client avec avatar, CRM et solutions techniques
 ---
 

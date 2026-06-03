@@ -3,6 +3,7 @@ title: Gestion de Projet
 lane: todo
 created: 2026-06-03T19:15:00+02:00
 updated: 2026-06-03T19:15:00+02:00
+priority: P3
 description: Outils de gestion de projet intégrés à la plateforme
 ---
 

@@ -3,6 +3,7 @@ title: MDE - Améliorations du Graph Editor
 lane: todo
 created: 2026-06-03T19:15:00+02:00
 updated: 2026-06-03T19:15:00+02:00
+priority: P2
 description: Améliorations continues de l'éditeur de graphe MDE
 ---
 

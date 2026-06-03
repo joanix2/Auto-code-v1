@@ -3,6 +3,7 @@ title: MVP B — Système de Requêtes
 lane: todo
 created: 2026-06-03T21:30:00+02:00
 updated: 2026-06-03T21:30:00+02:00
+priority: P2
 description: Implémenter le système de requêtes sur le graphe (Phase 4)
 ---
 

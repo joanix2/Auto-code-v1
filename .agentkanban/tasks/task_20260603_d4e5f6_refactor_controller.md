@@ -3,6 +3,7 @@ title: Refactoring des Controllers
 lane: todo
 created: 2026-06-03T19:15:00+02:00
 updated: 2026-06-03T19:15:00+02:00
+priority: P1
 description: Refactoring de l'architecture des controllers avec double héritage
 ---
 

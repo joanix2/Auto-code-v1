@@ -299,3 +299,30 @@ créer la video
 valider et modifier la video
 
 uploader la video
+
+# Code Review — Migrations
+> Issues issues de la code review du 2026-06-03
+
+## 🔴 Urgent — 81 erreurs mypy
+- [ ] Corriger le typage des controllers (validate_create/validate_update retournent dict au lieu du modèle)
+- [ ] Ajouter les attributs manquants (repository, sync, metamodel_id, title)
+- [ ] Gérer les None avec des gardes explicites
+- Voir `.agentkanban/tasks/task_20260603_fix_mypy_errors.md`
+
+## 🟡 Faible — 2 erreurs ESLint frontend
+- [ ] Fix interface vide dans textarea.tsx
+- [ ] Examiner les 9 warnings react-refresh
+- Voir `.agentkanban/tasks/task_20260603_fix_eslint_frontend.md`
+
+## 🧪 Tests
+- [ ] Convertir test_copilot_agent.py en vrai test pytest
+- [ ] Ajouter tests unitaires backend (modèles, repositories, services, controllers)
+- [ ] Mettre en place Vitest + RTL pour le frontend
+- [ ] Ajouter tests pour GraphViewer, hooks, pages
+- Voir `.agentkanban/tasks/task_20260603_add_backend_tests.md`
+- Voir `.agentkanban/tasks/task_20260603_add_frontend_tests.md`
+
+## 📸 Screenshots
+- [x] Installer playwright
+- [x] Screenshot frontend → `docs/images/app-screenshot.png`
+- [x] Screenshot API docs → `docs/images/api-docs-screenshot.png`

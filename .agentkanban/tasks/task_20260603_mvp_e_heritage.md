@@ -3,6 +3,7 @@ title: MVP E — Héritage et Composition
 lane: todo
 created: 2026-06-03T21:30:00+02:00
 updated: 2026-06-03T21:30:00+02:00
+priority: P4
 description: Graphes parent/enfant, héritage multiple, composition (Phases 9-10)
 ---
 

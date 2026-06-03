@@ -3,6 +3,7 @@ title: Bug Fixes
 lane: todo
 created: 2026-06-03T19:15:00+02:00
 updated: 2026-06-03T19:15:00+02:00
+priority: P0
 description: Résolution des bugs restants identifiés dans le TODO
 ---
 

@@ -3,6 +3,7 @@ title: MVP D — Validation et Réécriture
 lane: todo
 created: 2026-06-03T21:30:00+02:00
 updated: 2026-06-03T21:30:00+02:00
+priority: P3
 description: Validation de contraintes et moteur de réécriture du graphe (Phases 7-8)
 ---
 
