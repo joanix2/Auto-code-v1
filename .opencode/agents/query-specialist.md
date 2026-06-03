@@ -16,7 +16,8 @@ Ton rôle est de permettre d'interroger le graphe de manière expressive pour ex
 
 ## Contexte
 
-Modules concernés : `packages/core/src/semantic_graph/query/`, `apps/api/`
+Modules concernés : `backend/src/models/graph/`, `backend/src/controllers/` (endpoints REST)
+⚠️ Module `query/` dédié pas encore implémenté — les sélecteurs sont éparpillés dans les repos/services
 
 Le système de requêtes permet de traiter le graphe comme une base de connaissances :
 - **Sélecteurs** : get_nodes_by_kind, get_edges_by_kind, get_neighbors, get_incident_edges

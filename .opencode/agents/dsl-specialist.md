@@ -23,7 +23,7 @@ Le système repose sur une IR en JSON avec :
 - **Kinds** : registre des types de nœuds et d'arêtes (couleur, label)
 - **Métadonnées** : schema_version, name, description
 
-Modules concernés : `packages/core/src/semantic_graph/ir/`
+Modules concernés : `backend/src/models/` (Pydantic models), `backend/src/models/graph/`
 
 ## Responsabilités
 

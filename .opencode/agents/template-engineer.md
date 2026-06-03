@@ -17,7 +17,7 @@ Ton rôle est de concevoir le système de templates qui transforme les données 
 
 ## Contexte
 
-Modules concernés : `packages/core/src/semantic_graph/templates/`
+Modules concernés : `backend/src/models/MDE/templates.py` (Template model), `backend/src/services/repository/`
 
 Pipeline : Graphe → Requête (arbre JSON) → Template → Fichier généré
 

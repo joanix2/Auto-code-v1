@@ -16,7 +16,7 @@ Ton rôle est d'implémenter le moteur de transformation automatique du graphe p
 
 ## Contexte
 
-Modules concernés : `packages/core/src/semantic_graph/rewrite/`
+Modules concernés : (pas encore implémenté — TODO) `backend/src/rewrite/`
 
 Le moteur de réécriture permet de transformer le graphe automatiquement :
 - **Pattern matching** : détection de sous-graphes correspondant à une condition

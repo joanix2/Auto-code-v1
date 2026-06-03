@@ -16,7 +16,7 @@ Ton rôle est de gérer le versioning, les snapshots et l'intégration des artef
 
 ## Contexte
 
-Modules concernés : `packages/core/src/semantic_graph/versioning/`
+Modules concernés : (pas encore implémenté — TODO) `backend/src/versioning/`
 
 Le système versionne à plusieurs niveaux :
 - **Snapshots IR** : versions successives du graphe JSON (graph.v001.json, graph.v002.json)

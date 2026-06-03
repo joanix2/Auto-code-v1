@@ -17,7 +17,7 @@ Ton rôle est d'implémenter toutes les couches de validation qui garantissent l
 
 ## Contexte
 
-Modules concernés : `packages/core/src/semantic_graph/validation/`
+Modules concernés : (pas encore implémenté — TODO) `backend/src/validation/`
 
 La validation se fait à plusieurs niveaux :
 - **Validation structurelle** : IDs uniques, champs requis, types corrects, références valides

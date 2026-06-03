@@ -22,7 +22,7 @@ Le système utilise NetworkX comme moteur graphe backend :
 - **Mutations** : add_node, update_node, delete_node, add_edge, update_edge, delete_edge
 - **Validité** : vérification des références, gestion des dépendances avant suppression
 
-Modules concernés : `packages/core/src/semantic_graph/graph/`
+Modules concernés : `backend/src/models/graph/` (Node, Edge, Graph models)
 
 ## Responsabilités
 

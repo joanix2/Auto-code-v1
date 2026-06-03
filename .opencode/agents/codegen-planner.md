@@ -16,7 +16,8 @@ Ton rôle est de concevoir le métaprogramme de génération : un programme déc
 
 ## Contexte
 
-Modules concernés : `packages/core/src/semantic_graph/generation/`
+Modules concernés : `backend/src/services/repository/copilot_agent_service.py` (dev auto), `frontend/src/services/copilot.service.ts`
+⚠️ Module `generation/` dédié pas encore implémenté — la logique est dans copilot_agent_service
 
 Le métaprogramme de génération permet de décrire :
 - **Étapes** : chaque étape est une action (render template, transformation, validation)
