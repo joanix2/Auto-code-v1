@@ -264,6 +264,44 @@ class RelationshipRepository(BaseRepository[Relationship]):
 
         return self.model(**self._normalize_relationship_data(rel_data))
 
+    async def get_by_source_concept(self, concept_id: str) -> list[Relationship]:
+        """Get relationships where this concept is the source (DOMAIN)"""
+        query = """
+        MATCH (r:Relationship)-[:DOMAIN]->(source:Concept {id: $concept_id})
+        OPTIONAL MATCH (r)-[:RANGE]->(target:Concept)
+        RETURN r, target.id as target_id, target.name as target_name
+        ORDER BY r.created_at DESC
+        """
+        result = self.db.execute_query(query, {"concept_id": concept_id})
+        rels = []
+        for row in result:
+            data = convert_neo4j_types(row["r"])
+            data["source_id"] = concept_id
+            data["target_id"] = row["target_id"]
+            data["source_label"] = data.get("name")
+            data["target_label"] = row["target_name"]
+            rels.append(self.model(**self._normalize_relationship_data(data)))
+        return rels
+
+    async def get_by_target_concept(self, concept_id: str) -> list[Relationship]:
+        """Get relationships where this concept is the target (RANGE)"""
+        query = """
+        MATCH (r:Relationship)-[:RANGE]->(target:Concept {id: $concept_id})
+        OPTIONAL MATCH (r)-[:DOMAIN]->(source:Concept)
+        RETURN r, source.id as source_id, source.name as source_name
+        ORDER BY r.created_at DESC
+        """
+        result = self.db.execute_query(query, {"concept_id": concept_id})
+        rels = []
+        for row in result:
+            data = convert_neo4j_types(row["r"])
+            data["source_id"] = row["source_id"]
+            data["target_id"] = concept_id
+            data["source_label"] = row["source_name"]
+            data["target_label"] = data.get("name")
+            rels.append(self.model(**self._normalize_relationship_data(data)))
+        return rels
+
     async def count_by_metamodel(self, metamodel_id: str) -> int:
         """
         Count relationships in a metamodel via HAS_RELATION edge

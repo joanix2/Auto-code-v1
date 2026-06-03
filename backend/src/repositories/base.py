@@ -206,8 +206,8 @@ class BaseRepository(ABC, Generic[T]):
         Returns:
             Updated entity or None if not found
         """
-        # Remove None values
-        updates = {k: v for k, v in updates.items() if v is not None}
+        # Remove internal/private fields that shouldn't be persisted
+        updates = {k: v for k, v in updates.items() if not k.startswith("_")}
 
         if not updates:
             return await self.get_by_id(entity_id)
