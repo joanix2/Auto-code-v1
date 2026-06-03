@@ -60,6 +60,8 @@ class MetamodelController(BaseController[Metamodel, MetamodelCreate, MetamodelUp
         result["owner_id"] = current_user.username
         if result.get("description") is None:
             result["description"] = ""
+        if "id" not in result or not result.get("id"):
+            result["id"] = str(uuid.uuid4())
 
         logger.info(f"🔍 Data to create: {result}")
         return result
