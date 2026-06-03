@@ -13,9 +13,9 @@ Audit et refactor de l'existant pour coller au format IR JSON standardisé. Ajou
 
 ## Sous-tâches
 
-- [ ] Auditer les modèles existants vs le format IR cible (`graph.json` avec nodes/edges/kinds)
-- [ ] Ajouter le support du format IR JSON natif (endpoints `/graph/load`, `/graph/save`)
-- [ ] Définir et valider un JSON schema formel pour l'IR
-- [ ] Garantir l'indépendance de l'IR vis-à-vis du frontend/backend
-- [ ] Ajouter les endpoints manquants (PATCH/DELETE edges, GET /graph)
-- [ ] Tests de roundtrip (load → modify → save → load)
+- [x] Auditer les modèles existants vs le format IR cible
+- [x] Ajouter le support du format IR JSON natif (endpoints `/ir/save`, `/ir/load`, `/ir/files`)
+- [x] Définir et valider un JSON schema formel pour l'IR (`backend/src/models/graph/schema.py`)
+- [x] Garantir l'indépendance de l'IR vis-à-vis du frontend/backend
+- [x] Ajouter les endpoints manquants (PATCH/DELETE edges, GET /graph complet)
+- [x] Tests de roundtrip (30 tests dans `test_ir_roundtrip.py`)

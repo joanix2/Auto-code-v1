@@ -13,6 +13,7 @@ Refondre les controllers pour qu'ils aient un double héritage : synchronisation
 
 ## Sous-tâches
 
-- [ ] Les controllers doivent avoir un double héritage, synchronisation GitHub et base controller
+- [x] Extraire `GitHubSyncMixin` dans `src/controllers/mixins/github_sync.py`
+- [x] Appliquer double héritage : RepositoryController, IssueController, MessageController
 - [ ] Plus de relations en base
-- [ ] Copier NodeType et EdgeType côté API
+- [x] Copier NodeType et EdgeType côté API (déjà présent dans m3_controller.py)
