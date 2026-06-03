@@ -476,7 +476,10 @@ class IssueService(GitHubSyncService[Issue]):
                 issue_data["repository_id"] = repository_id
 
             if existing_issue:
-                # Update existing issue
+                # Preserve local status if GitHub state is still "open"
+                # (GitHub only has open/closed, we have in_progress/review)
+                if github_data["state"] == "open" and existing_issue.status not in ("open", "closed"):
+                    issue_data["status"] = existing_issue.status
                 issue = await self.issue_repo.update(existing_issue.id, issue_data)
                 logger.debug(f"Updated issue #{gh_issue['number']}")
             else:
