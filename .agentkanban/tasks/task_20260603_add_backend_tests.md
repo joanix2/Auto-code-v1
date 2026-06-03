@@ -13,8 +13,8 @@ Actuellement seuls 3 tests d'auth existent. Le backend a ~80 fichiers source san
 
 ## Sous-tâches
 
+- [x] Ajouter tests pour les modèles (NodeType, EdgeType, IssueCreate, RepositoryCreate)
 - [ ] Convertir `test_copilot_agent.py` en vrai test pytest avec mocks GitHub API
-- [ ] Ajouter tests pour les modèles (Node, Edge, Graph, Metamodel, Concept, Attribute, Relationship)
 - [ ] Ajouter tests pour les repositories (CRUD de base)
 - [ ] Ajouter tests pour les services (logique métier)
 - [ ] Ajouter tests pour les controllers (endpoints API avec TestClient FastAPI)

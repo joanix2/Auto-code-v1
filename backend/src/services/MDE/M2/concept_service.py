@@ -121,7 +121,7 @@ class ConceptService(BaseService[Concept]):
         if "name" in updates:
             logger.info(f"🔍 Checking for duplicate name: {updates['name']}")
             existing = await self.concept_repo.get_by_name(
-                existing_concept.metamodel_id, updates["name"]
+                existing_concept.graph_id, updates["name"]
             )
             if existing and existing.id != concept_id:
                 raise ValueError(

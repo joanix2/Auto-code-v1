@@ -346,7 +346,7 @@ async def assign_to_copilot(
             gh = Github(current_user.github_token)
             gh_repo = gh.get_repo(repository.full_name)
 
-            gh_issue = gh_repo.create_issue(title=issue.title, body=issue.description)
+            gh_issue = gh_repo.create_issue(title=issue.name, body=issue.description)
 
             # Update our issue with GitHub data
             await issue_repository.link_to_github(

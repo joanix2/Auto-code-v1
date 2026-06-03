@@ -109,7 +109,7 @@ class M3Config:
         return NODE_TYPES
 
     @staticmethod
-    def get_node_type(type_id: str) -> NodeType:
+    def get_node_type(type_id: str) -> NodeType | None:
         """Get a specific node type by ID"""
         return NODE_TYPES_BY_ID.get(type_id)
 
@@ -119,7 +119,7 @@ class M3Config:
         return EDGE_TYPES
 
     @staticmethod
-    def get_edge_type(type_id: str) -> EdgeType:
+    def get_edge_type(type_id: str) -> EdgeType | None:
         """Get a specific edge type by ID"""
         return EDGE_TYPES_BY_ID.get(type_id)
 

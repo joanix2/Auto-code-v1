@@ -27,6 +27,7 @@ class RepositoryController(BaseController[Repository, RepositoryCreate, Reposito
 
     def __init__(self, repository: RepositoryRepository):
         super().__init__(repository)
+        self.repository = repository
         self.service = RepositoryService(repository)
 
     def get_resource_name(self) -> str:
@@ -237,7 +238,7 @@ async def sync_repositories(
     controller: RepositoryController = Depends(get_repository_controller),
 ):
     """Sync all repositories from GitHub for current user"""
-    return await controller.sync(current_user.github_token, current_user, db)
+    return await controller.sync_from_github(current_user.github_token, current_user)
 
 
 @router.get("/", response_model=list[Repository])

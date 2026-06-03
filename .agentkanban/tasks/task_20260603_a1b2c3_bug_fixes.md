@@ -13,13 +13,10 @@ Correction des bugs et problèmes identifiés dans le TODO.md.
 
 ## Sous-tâches
 
-- [ ] Helper pour la gestion des erreur dans le controller
-- [ ] Bug fix : les tickets en attente de validation passent en open (même chose pour en cours)
-- [ ] Problème de mise à jour des relations
-- [ ] Le drag ne marche pas en mobile
-- [ ] Pas d'attraction entre les noeuds
-- [ ] Style de la flèche ne doit pas partir du centre
-- [ ] Supprimer les logs
-- [ ] Si un noeud est modifié, les edges doivent continuer de pointer vers le noeud (nom unique)
-- [ ] Si j'ai deux liaisons, je ne dois pas avoir deux fois le même noeud
-- [ ] Dessin de la flèche doit partir de la bordure du noeud source
+Sous-tickets (segmentation) :
+- `bug_error_helper` — Helper gestion d'erreurs controllers
+- `bug_relation_update` — Fix mise à jour des relations
+- `bug_graph_mobile` — Fix bugs graph visualization (drag mobile, attraction, flèches, logs)
+
+Bugs restants :
+- [ ] Tickets en attente de validation passent en open (idem pour en cours)

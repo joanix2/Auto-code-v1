@@ -36,7 +36,7 @@ class UserService(BaseService[User], SyncableService[User]):
         """Get user by ID"""
         return await self.user_repo.get_by_id(entity_id)
 
-    async def get_all(self, filters: dict[str, Any] | None = None) -> list[User]:
+    async def get_all(self, skip: int = 0, limit: int = 100, **kwargs) -> list[User]:  # type: ignore[override]
         """Get all users"""
         return await self.user_repo.get_all()
 
@@ -50,7 +50,7 @@ class UserService(BaseService[User], SyncableService[User]):
 
     # Implementation of SyncableService interface
 
-    async def fetch_from_github_api(
+    async def fetch_from_github_api(  # type: ignore[override]
         self, access_token: str, username: str | None = None
     ) -> list[dict[str, Any]]:
         """
@@ -114,6 +114,7 @@ class UserService(BaseService[User], SyncableService[User]):
         if existing_user:
             # Update existing user
             user = await self.user_repo.update(existing_user.id, user_data)
+            assert user is not None
             logger.info(f"Updated user {user.username} from GitHub")
         else:
             # Create new user

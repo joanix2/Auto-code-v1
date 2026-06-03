@@ -15,6 +15,7 @@ description: Résoudre les 2 erreurs ESLint dans le frontend React
 
 ## Sous-tâches
 
-- [ ] Fix `textarea.tsx` : supprimer l'interface vide ou l'étendre correctement
-- [ ] Examiner les 9 warnings react-refresh (fichiers qui exportent constants + composants)
-- [ ] Vérifier que `npm run lint` passe sans erreurs
+- [x] Fix `textarea.tsx` : supprimer l'interface vide → type alias
+- [x] Fix `command.tsx` : supprimer l'interface vide → type alias
+- [ ] Examiner les 9 warnings react-refresh (fichiers qui exportent constants + composants) — non bloquant
+- [x] Vérifier que `npm run lint` passe sans erreurs

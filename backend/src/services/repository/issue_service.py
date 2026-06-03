@@ -437,9 +437,9 @@ class IssueService(GitHubSyncService[Issue]):
     async def sync_from_github(
         self,
         access_token: str,
-        repository_id: str = None,
-        owner: str = None,
-        repo: str = None,
+        repository_id: str | None = None,
+        owner: str | None = None,
+        repo: str | None = None,
         **kwargs,
     ) -> list[Issue]:
         """

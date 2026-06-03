@@ -4,6 +4,7 @@ Utilitaires d'authentification
 
 import os
 from datetime import datetime, timedelta
+from typing import Any
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -75,7 +76,8 @@ async def get_current_user(
     if payload is None:
         raise credentials_exception
 
-    username: str = payload.get("sub")
+    sub: Any | None = payload.get("sub")
+    username: str = sub if isinstance(sub, str) else ""
     if username is None:
         raise credentials_exception
 

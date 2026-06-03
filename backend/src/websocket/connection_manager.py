@@ -22,7 +22,7 @@ class ConnectionManager:
         # Global connections (receive all updates)
         self.global_connections: set[WebSocket] = set()
 
-    async def connect(self, websocket: WebSocket, issue_id: str = None):
+    async def connect(self, websocket: WebSocket, issue_id: str | None = None):
         """
         Accept a new WebSocket connection.
 
@@ -41,7 +41,7 @@ class ConnectionManager:
             self.global_connections.add(websocket)
             logger.info("Global WebSocket connected")
 
-    def disconnect(self, websocket: WebSocket, issue_id: str = None):
+    def disconnect(self, websocket: WebSocket, issue_id: str | None = None):
         """
         Remove a WebSocket connection.
 
@@ -104,10 +104,10 @@ class ConnectionManager:
         ticket_id: str,
         status: str,
         message: str,
-        step: str = None,
-        progress: int = None,
-        error: str = None,
-        data: dict = None,
+        step: str | None = None,
+        progress: int | None = None,
+        error: str | None = None,
+        data: dict | None = None,
     ):
         """
         Send a status update for a ticket.
@@ -130,15 +130,15 @@ class ConnectionManager:
         }
 
         if step:
-            update["step"] = step
+            update["step"] = step  # type: ignore[assignment]
         if progress is not None:
-            update["progress"] = progress
+            update["progress"] = str(progress)
         if error:
-            update["error"] = error
+            update["error"] = error  # type: ignore[assignment]
         if data:
-            update["data"] = data
+            update["data"] = str(data)
 
-        await self.broadcast_to_ticket(ticket_id, update)
+        await self.broadcast_to_issue(ticket_id, update)
 
     async def send_log(self, ticket_id: str, log_level: str, log_message: str):
         """
@@ -157,7 +157,7 @@ class ConnectionManager:
             "timestamp": None,
         }
 
-        await self.broadcast_to_ticket(ticket_id, log_event)
+        await self.broadcast_to_issue(ticket_id, log_event)
 
 
 # Global connection manager instance

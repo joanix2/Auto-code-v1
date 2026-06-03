@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class MessageService(GitHubSyncService[Message]):
     """Service for message business logic with GitHub PR comments sync"""
 
-    def __init__(self, message_repo: MessageRepository, issue_repo: IssueRepository = None):
+    def __init__(self, message_repo: MessageRepository, issue_repo: IssueRepository | None = None):
         """
         Initialize message service
 
@@ -186,8 +186,8 @@ class MessageService(GitHubSyncService[Message]):
         access_token: str,
         owner: str,
         repo_name: str,
-        pr_number: int = None,
-        issue_number: int = None,
+        pr_number: int | None = None,
+        issue_number: int | None = None,
         **kwargs,
     ) -> list[dict[str, Any]]:
         """
@@ -226,11 +226,11 @@ class MessageService(GitHubSyncService[Message]):
     async def sync_from_github(
         self,
         access_token: str,
-        issue_id: str = None,
-        owner: str = None,
-        repo_name: str = None,
-        pr_number: int = None,
-        issue_number: int = None,
+        issue_id: str | None = None,
+        owner: str | None = None,
+        repo_name: str | None = None,
+        pr_number: int | None = None,
+        issue_number: int | None = None,
         **kwargs,
     ) -> list[Message]:
         """

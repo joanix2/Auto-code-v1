@@ -72,9 +72,10 @@ class ConceptController(BaseController[Concept, ConceptCreate, ConceptUpdate]):
         logger.info(f"✅ Successfully updated concept {id}")
         return updated_concept
 
-    async def delete(self, id: str, current_user: User, db) -> bool:
+    async def delete(self, id: str, current_user: User, db) -> dict[str, str]:
         """Delete a concept"""
-        return await self.service.delete(id)
+        await self.service.delete(id)
+        return {"message": "Concept deleted successfully"}
 
     # Additional concept-specific methods
     async def get_by_metamodel(

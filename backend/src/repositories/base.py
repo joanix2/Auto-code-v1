@@ -32,25 +32,20 @@ def prepare_neo4j_properties(data: dict[str, Any]) -> dict[str, Any]:
     Returns:
         Dictionary with Neo4j-compatible types
     """
-    prepared = {}
+    prepared: dict[str, Any] = {}
     for key, value in data.items():
         if value is None:
             prepared[key] = None
         elif isinstance(value, (str, int, float, bool)):
-            # Primitive types are OK
             prepared[key] = value
         elif isinstance(value, list):
-            # Check if it's a list of primitives
             if all(isinstance(item, (str, int, float, bool)) for item in value):
                 prepared[key] = value
             else:
-                # List of complex objects - serialize to JSON
                 prepared[key] = json.dumps(value)
         elif isinstance(value, dict):
-            # Dict - serialize to JSON string
             prepared[key] = json.dumps(value)
         else:
-            # Other types - convert to string
             logger.warning(f"Converting non-standard type {type(value)} to string for key '{key}'")
             prepared[key] = str(value)
 
@@ -71,7 +66,7 @@ def convert_neo4j_types(node: dict[str, Any]) -> dict[str, Any]:
     """
     from neo4j.time import DateTime as Neo4jDateTime
 
-    converted = {}
+    converted: dict[str, Any] = {}
     for key, value in node.items():
         if isinstance(value, Neo4jDateTime):
             # Convert Neo4j DateTime to Python datetime

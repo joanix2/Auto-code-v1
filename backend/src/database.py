@@ -95,7 +95,7 @@ class Neo4jConnection:
         except Exception as e:
             print(f"⚠️  Erreur lors de l'initialisation des contraintes : {e}")
 
-    def execute_query(self, query: str, parameters: dict = None):
+    def execute_query(self, query: str, parameters: dict | None = None):
         """Exécute une requête Cypher et retourne les résultats"""
         with self.get_session() as session:
             result = session.run(query, parameters or {})

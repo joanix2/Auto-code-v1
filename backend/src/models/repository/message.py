@@ -38,17 +38,3 @@ class MessageUpdate(BaseModel):
     """Data for updating a message"""
 
     content: str | None = None
-
-    content: str
-    metadata: dict | None = None
-    model: str | None = None
-    tokens_used: int | None = None
-    step: str | None = None
-
-
-class MessageUpdate(BaseModel):
-    """Schema for updating a message"""
-
-    content: str | None = None
-    metadata: dict | None = None
-    tokens_used: int | None = None

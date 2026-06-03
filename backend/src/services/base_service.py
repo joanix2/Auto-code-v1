@@ -43,13 +43,14 @@ class BaseService(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    async def get_all(self, skip: int = 0, limit: int = 100) -> list[T]:
+    async def get_all(self, skip: int = 0, limit: int = 100, **kwargs) -> list[T]:
         """
         Get all entities with pagination
 
         Args:
             skip: Number of entities to skip (pagination)
             limit: Maximum number of entities to return
+            **kwargs: Additional filters
 
         Returns:
             List of entities

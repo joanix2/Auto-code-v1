@@ -39,7 +39,7 @@ class BaseController(ABC, Generic[T, TCreate, TUpdate]):
         self.service = service
 
     @abstractmethod
-    async def validate_create(self, data: TCreate, current_user: User, db) -> TCreate:
+    async def validate_create(self, data: TCreate, current_user: User, db) -> TCreate | dict[str, Any]:
         """
         Validate and prepare data for creation
         Returns: Validated data
@@ -48,7 +48,7 @@ class BaseController(ABC, Generic[T, TCreate, TUpdate]):
         pass
 
     @abstractmethod
-    async def validate_update(self, id: str, data: TUpdate, current_user: User, db) -> TUpdate:
+    async def validate_update(self, id: str, data: TUpdate, current_user: User, db) -> TUpdate | dict[str, Any] | None:
         """
         Validate update operation
         Returns: Validated update data
@@ -245,9 +245,12 @@ class GitHubSyncController(BaseController[T, TCreate, TUpdate]):
             validated_data = await self.validate_create(data, current_user, db)
 
             # Convert to dict and add ID
-            data_dict = (
-                validated_data.dict() if hasattr(validated_data, "dict") else dict(validated_data)
-            )
+            if isinstance(validated_data, dict):
+                data_dict = validated_data
+            elif hasattr(validated_data, "dict"):
+                data_dict = validated_data.dict()
+            else:
+                data_dict = dict(validated_data)  # type: ignore[arg-type]
             data_dict["id"] = await self.generate_id(data_dict)
 
             resource = await self.service.create(data_dict)
