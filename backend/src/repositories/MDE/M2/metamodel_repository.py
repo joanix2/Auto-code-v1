@@ -1,4 +1,5 @@
 import logging
+import uuid
 from typing import Any
 
 from src.models.MDE.M2 import Metamodel
@@ -24,6 +25,10 @@ class MetamodelRepository(BaseRepository[Metamodel]):
         """
         logger.info(f"🔍 Creating metamodel: {data.get('name')}")
         logger.info(f"🔍 Owner ID: {data.get('owner_id')}")
+
+        # Generate ID if not provided
+        if "id" not in data or not data.get("id"):
+            data["id"] = str(uuid.uuid4())
 
         # Prepare data for Neo4j
         prepared_data = prepare_neo4j_properties(data)
