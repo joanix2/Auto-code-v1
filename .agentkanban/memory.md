@@ -22,18 +22,14 @@
 - `add_frontend_tests` ✅ 22 tests (GraphViewer, hooks, services)
 - `mvp_a_consolidation` ✅ IR schema, endpoints roundtrip, PATCH/DELETE edges
 - `refactor_controller` ✅ GitHubSyncMixin extrait, double héritage appliqué
+- `bug_metamodel_create` ✅ Fixé (filtrage champs MetamodelCreate)
 
-### P0 Restants (segmentés)
+### P0 Restants (non commencés)
 
 - `bug_error_helper` — Helper erreurs controllers
 - `bug_relation_update` — Fix mise à jour relations
 - `bug_graph_mobile` — Bugs graph D3.js (drag, attraction, flèches, logs)
 - Bug ticket status (en attente → open)
-- `bug_metamodel_create` — Metamodel creation fails: id Field required (extra fields MetamodelCreate → Metamodel)
-
-### Bugs connus
-
-- **Création Metamodel** : `MetamodelCreate` a des champs (`settings`, `metadata`, `type`, `tags`, `is_public`, `repository_path`) qui n'existent pas sur `Metamodel`. Stockés dans Neo4j mais causent des erreurs Pydantic au retour. Voir `.agentkanban/tasks/task_20260603_bug_metamodel_create.md`
 
 ### Commits récents
 

@@ -1,6 +1,6 @@
 ---
 title: Fix 81 erreurs mypy (typage controllers)
-lane: todo
+lane: done
 created: 2026-06-03T21:45:00+02:00
 updated: 2026-06-03T22:30:00+02:00
 priority: P0

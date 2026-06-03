@@ -1,6 +1,6 @@
 ---
 title: Ajout tests frontend
-lane: todo
+lane: done
 created: 2026-06-03T21:45:00+02:00
 updated: 2026-06-03T21:45:00+02:00
 priority: P1

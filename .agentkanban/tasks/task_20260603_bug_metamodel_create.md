@@ -1,6 +1,6 @@
 ---
 title: Fix Metamodel creation (id Field required)
-lane: todo
+lane: done
 priority: P0
 created: 2026-06-03T23:00:00+02:00
 updated: 2026-06-03T23:00:00+02:00
