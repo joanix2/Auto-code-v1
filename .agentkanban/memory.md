@@ -1,6 +1,6 @@
 # Memory — Contexte persistant
 
-## Dernière mise à jour : 2026-06-03
+## Dernière mise à jour : 2026-06-03T23:00
 
 ### Statut MVPs
 
@@ -29,6 +29,11 @@
 - `bug_relation_update` — Fix mise à jour relations
 - `bug_graph_mobile` — Bugs graph D3.js (drag, attraction, flèches, logs)
 - Bug ticket status (en attente → open)
+- `bug_metamodel_create` — Metamodel creation fails: id Field required (extra fields MetamodelCreate → Metamodel)
+
+### Bugs connus
+
+- **Création Metamodel** : `MetamodelCreate` a des champs (`settings`, `metadata`, `type`, `tags`, `is_public`, `repository_path`) qui n'existent pas sur `Metamodel`. Stockés dans Neo4j mais causent des erreurs Pydantic au retour. Voir `.agentkanban/tasks/task_20260603_bug_metamodel_create.md`
 
 ### Commits récents
 

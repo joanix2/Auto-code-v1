@@ -55,14 +55,19 @@ class MetamodelController(BaseController[Metamodel, MetamodelCreate, MetamodelUp
                 detail=f"Metamodel with name '{data.name}' already exists",
             )
 
-        # Prepare data with owner info
+        # Prepare data with owner info - only keep fields that Metamodel accepts
         result = data.model_dump()
         result["owner_id"] = current_user.username
 
-        # Debug: log the data being sent to repository
-        logger.info(f"🔍 Data to create: {result}")
+        # Filter to only Metamodel fields (exclude MetamodelCreate-only fields)
+        metamodel_fields = set(Metamodel.model_fields.keys())
+        filtered = {k: v for k, v in result.items() if k in metamodel_fields or k == "owner_id"}
+        # Ensure description is string, not None
+        if "description" in filtered and filtered["description"] is None:
+            filtered["description"] = ""
 
-        return result
+        logger.info(f"🔍 Data to create: {filtered}")
+        return filtered
 
     async def validate_update(
         self, resource_id: str, updates: MetamodelUpdate, current_user: User, db
