@@ -244,6 +244,19 @@ class AttributeRepository(BaseRepository[Attribute]):
         result = self.db.execute_query(query, {"concept_id": concept_id})
         return result[0]["count"] if result else 0
 
+    async def delete_all_by_metamodel(self, metamodel_id: str) -> int:
+        """Delete all attributes for a metamodel."""
+        query = """
+        MATCH (a:Attribute {graph_id: $metamodel_id})
+        WITH a, count(a) as node_count
+        DETACH DELETE a
+        RETURN node_count as deleted
+        """
+        result = self.db.execute_query(query, {"metamodel_id": metamodel_id})
+        deleted = result[0]["deleted"] if result else 0
+        logger.info(f"Deleted {deleted} attributes for metamodel {metamodel_id}")
+        return deleted
+
     async def delete(self, entity_id: str) -> bool:
         """
         Delete an attribute and its relationship

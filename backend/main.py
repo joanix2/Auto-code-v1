@@ -16,6 +16,7 @@ from src.controllers import (
     message_router,
     repository_router,
 )
+from src.controllers.ir_controller import router as ir_router
 from src.controllers.MDE.M2.attribute_controller import router as attribute_router
 from src.controllers.MDE.M2.concept_controller import router as concept_router
 from src.controllers.MDE.M2.edge_controller import router as edge_router
@@ -81,6 +82,7 @@ app.include_router(concept_router)
 app.include_router(attribute_router)
 app.include_router(relationship_router)
 app.include_router(edge_router)
+app.include_router(ir_router)
 
 
 @app.get("/")

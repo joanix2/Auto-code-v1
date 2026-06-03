@@ -3,6 +3,7 @@ MetamodelEdge Repository - Database operations for metamodel edges (DOMAIN, RANG
 """
 
 import logging
+from typing import Any
 
 from src.models.MDE.M2 import MetamodelEdge, MetamodelEdgeType
 
@@ -317,6 +318,60 @@ class MetamodelEdgeRepository(BaseRepository[MetamodelEdge]):
         edge = MetamodelEdge(**edge_data)
         logger.info(f"Created {edge_type.value} edge: {source_id} → {target_id}")
         return edge
+
+    async def update_edge(
+        self, source_id: str, target_id: str, edge_type: MetamodelEdgeType, updates: dict[str, Any]
+    ) -> MetamodelEdge | None:
+        """
+        Update an edge's metadata (e.g. description)
+
+        Args:
+            source_id: ID du noeud source
+            target_id: ID du noeud cible
+            edge_type: Type d'edge
+            updates: Fields to update on the edge relationship
+
+        Returns:
+            Updated MetamodelEdge or None if not found
+        """
+        rel_type = edge_type.value.upper()
+
+        set_clauses = ", ".join(
+            f"edge.{k} = ${k}" for k in updates if k not in ("source_id", "target_id", "edge_type")
+        )
+        if not set_clauses:
+            # Just return existing edge
+            return None
+
+        params = {"source_id": source_id, "target_id": target_id, **updates}
+
+        query = f"""
+        MATCH (source {{id: $source_id}})-[edge:{rel_type}]->(target {{id: $target_id}})
+        SET {set_clauses}
+        SET edge.updated_at = datetime()
+        RETURN edge
+        """
+
+        result = self.db.execute_query(query, params)
+
+        if not result:
+            logger.warning(
+                f"Edge not found for update: {edge_type.value} {source_id} → {target_id}"
+            )
+            return None
+
+        logger.info(f"Updated {edge_type.value} edge: {source_id} → {target_id}")
+        # Return a constructed edge object (Neo4j relationships have limited properties)
+        edge_data = {
+            "id": f"{edge_type.value}-{source_id}-{target_id}",
+            "name": f"{edge_type.value}-edge",
+            "edge_type": edge_type,
+            "source_id": source_id,
+            "target_id": target_id,
+            "graph_id": "",
+            "description": updates.get("description", ""),
+        }
+        return MetamodelEdge(**edge_data)
 
     async def delete_edge(
         self, source_id: str, target_id: str, edge_type: MetamodelEdgeType

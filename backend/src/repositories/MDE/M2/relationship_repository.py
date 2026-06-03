@@ -281,6 +281,19 @@ class RelationshipRepository(BaseRepository[Relationship]):
         result = self.db.execute_query(query, {"metamodel_id": metamodel_id})
         return result[0]["count"] if result else 0
 
+    async def delete_all_by_metamodel(self, metamodel_id: str) -> int:
+        """Delete all relationships for a metamodel."""
+        query = """
+        MATCH (r:Relationship {graph_id: $metamodel_id})
+        WITH r, count(r) as node_count
+        DETACH DELETE r
+        RETURN node_count as deleted
+        """
+        result = self.db.execute_query(query, {"metamodel_id": metamodel_id})
+        deleted = result[0]["deleted"] if result else 0
+        logger.info(f"Deleted {deleted} relationships for metamodel {metamodel_id}")
+        return deleted
+
     async def delete(self, entity_id: str) -> bool:
         """
         Delete a relationship and its DOMAIN, RANGE, and HAS_RELATION edges
