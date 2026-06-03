@@ -30,6 +30,7 @@
 
 - `bug_graph_mobile` — Bugs D3.js (drag mobile, attraction, flèches)
 - `bug_relation_update` — Mise à jour des relations
+- `bug_metamodel_create` — Création Metamodel (id généré automatiquement)
 - `mvp_a_consolidation` — IR schema, endpoints roundtrip
 
 ### Board
