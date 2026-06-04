@@ -1,17 +1,15 @@
 import React from "react";
-import { MetamodelCreate } from "@/types/metamodel";
-import { metamodelService } from "@/services/metamodelService";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
-import { useBaseDetails } from "../../common/BaseDetailsPage";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Form } from "@/components/common/Form/Form";
+import { TextField } from "@/components/common/Form/Fields/TextField";
+import { TextAreaField } from "@/components/common/Form/Fields/TextAreaField";
+import { metamodelService } from "@/services/metamodelService";
+import { MetamodelCreate } from "@/types/metamodel";
 
 interface MetamodelFormData {
   name: string;
@@ -19,54 +17,110 @@ interface MetamodelFormData {
   version: string;
 }
 
-export function MetamodelForm() {
-  const { toast } = useToast();
-  const { user } = useAuth();
+class MetamodelFormComponent extends Form<MetamodelFormData> {
+  protected validate(data: MetamodelFormData): Record<string, string> {
+    const errors: Record<string, string> = {};
+    if (!data.name.trim()) errors.name = "Le nom est requis";
+    if (!data.version.trim()) errors.version = "La version est requise";
+    return errors;
+  }
 
-  const { formData, loading, loadingEntity, error, isEditMode, handleSubmit, handleCancel, updateFormData } = useBaseDetails<MetamodelFormData>(
-    "id",
-    {
-      name: "",
-      description: "",
-      version: "1.0.0",
-    },
-    {
-      onLoadEntity: async (id: string) => {
-        const data = await metamodelService.getById(id);
-        return {
-          name: data.name,
-          description: data.description || "",
-          version: data.version,
-        };
-      },
-      onCreateEntity: async (data: MetamodelFormData) => {
-        const createData: MetamodelCreate = {
-          ...data,
-          node_count: 0,
-          edge_count: 0,
-          status: "draft",
-        };
-        await metamodelService.create(createData);
-        toast({
-          title: "Métamodèle créé",
-          description: "Le métamodèle a été créé avec succès.",
-        });
-      },
-      onUpdateEntity: async (id: string, data: MetamodelFormData) => {
+  protected renderFields(): React.ReactNode {
+    const { data, errors } = this.state;
+
+    return (
+      <>
+        <div className="mb-6 flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={this.handleCancel}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">{this.props.isCreation ? "Nouveau métamodèle" : "Modifier le métamodèle"}</h1>
+            <p className="text-muted-foreground">Remplissez les informations du métamodèle</p>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Informations du métamodèle</CardTitle>
+            <CardDescription>Les champs marqués d'un * sont obligatoires</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <TextField
+              name="name"
+              label="Nom"
+              value={data.name || ""}
+              onChange={this.handleFieldChange}
+              edit={true}
+              required
+              placeholder="E-Commerce"
+              error={errors.name}
+            />
+            <TextAreaField
+              name="description"
+              label="Description"
+              value={data.description || ""}
+              onChange={this.handleFieldChange}
+              edit={true}
+              placeholder="Description du métamodèle..."
+              rows={4}
+              error={errors.description}
+            />
+            <TextField
+              name="version"
+              label="Version"
+              value={data.version || ""}
+              onChange={this.handleFieldChange}
+              edit={true}
+              required
+              placeholder="1.0.0"
+              error={errors.version}
+            />
+          </CardContent>
+        </Card>
+      </>
+    );
+  }
+}
+
+export function MetamodelForm() {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id?: string }>();
+  const isEditMode = !!id;
+  const [loadingEntity, setLoadingEntity] = React.useState(isEditMode);
+  const [initialData, setInitialData] = React.useState<MetamodelFormData | undefined>();
+  const [error, setError] = React.useState("");
+
+  React.useEffect(() => {
+    if (!isEditMode || !id) {
+      setLoadingEntity(false);
+      return;
+    }
+    metamodelService
+      .getById(id)
+      .then((data) => {
+        setInitialData({ name: data.name, description: data.description || "", version: data.version });
+      })
+      .catch((err) => {
+        setError(err?.message || "Erreur lors du chargement");
+      })
+      .finally(() => setLoadingEntity(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, id]);
+
+  const handleSubmit = async (data: MetamodelFormData) => {
+    try {
+      if (isEditMode && id) {
         await metamodelService.update(id, data);
-        toast({
-          title: "Métamodèle modifié",
-          description: "Le métamodèle a été modifié avec succès.",
-        });
-      },
-      validateForm: (data: MetamodelFormData) => {
-        if (!data.name.trim()) return "Le nom est requis";
-        if (!data.version.trim()) return "La version est requise";
-        return null;
-      },
-      defaultSuccessPath: "/development/metamodeles",
-    },
-  );
+      } else {
+        const createData: MetamodelCreate = { ...data, node_count: 0, edge_count: 0, status: "draft" };
+        await metamodelService.create(createData);
+      }
+      navigate("/development/metamodeles");
+    } catch (err) {
+      setError(err?.message || `Erreur lors de ${isEditMode ? "la mise à jour" : "la création"}`);
+    }
+  };
 
   if (loadingEntity) {
     return (
@@ -80,18 +134,6 @@ export function MetamodelForm() {
 
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="mb-6 flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={handleCancel}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">{isEditMode ? "Modifier le métamodèle" : "Nouveau métamodèle"}</h1>
-          <p className="text-muted-foreground">Remplissez les informations du métamodèle</p>
-        </div>
-      </div>
-
-      {/* Error Alert */}
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
@@ -99,58 +141,13 @@ export function MetamodelForm() {
         </Alert>
       )}
 
-      {/* Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informations du métamodèle</CardTitle>
-          <CardDescription>Les champs marqués d'un * sont obligatoires</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">
-                Nom <span className="text-destructive">*</span>
-              </Label>
-              <Input id="name" placeholder="E-Commerce" value={formData.name} onChange={(e) => updateFormData({ name: e.target.value })} required />
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" placeholder="Description du métamodèle..." value={formData.description} onChange={(e) => updateFormData({ description: e.target.value })} rows={4} />
-            </div>
-
-            {/* Version */}
-            <div className="space-y-2">
-              <Label htmlFor="version">
-                Version <span className="text-destructive">*</span>
-              </Label>
-              <Input id="version" placeholder="1.0.0" value={formData.version} onChange={(e) => updateFormData({ version: e.target.value })} required />
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-4 justify-end">
-              <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
-                Annuler
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {isEditMode ? "Mise à jour..." : "Création..."}
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isEditMode ? "Mettre à jour" : "Enregistrer"}
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <MetamodelFormComponent
+        initialData={initialData}
+        edit={true}
+        isCreation={!isEditMode}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate("/development/metamodeles")}
+      />
     </div>
   );
 }
