@@ -1,81 +1,104 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft, Save } from "lucide-react";
-import { useProjects } from "@/hooks/useProjects";
+import { Form } from "@/components/common/Form/Form";
+import { TextField } from "@/components/common/Form/Fields/TextField";
+import { TextAreaField } from "@/components/common/Form/Fields/TextAreaField";
+import { projectService } from "@/services/project.service";
 import { useToast } from "@/components/ui/use-toast";
+import { Project } from "@/types/project";
+
+interface ProjectFormData {
+  name: string;
+  description: string;
+}
+
+export class ProjectFormComponent extends Form<ProjectFormData> {
+  protected validate(data: ProjectFormData): Record<string, string> {
+    const errors: Record<string, string> = {};
+    if (!data.name || data.name.trim().length < 1) {
+      errors.name = "Le nom du projet est requis.";
+    }
+    return errors;
+  }
+
+  protected renderFields(): React.ReactNode {
+    const { data, errors } = this.state;
+
+    return (
+      <>
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            {this.props.isCreation ? "Nouveau projet" : "Modifier le projet"}
+          </h1>
+        </div>
+        <TextField
+          name="name"
+          label="Nom du projet"
+          value={data.name || ""}
+          onChange={this.handleFieldChange}
+          edit={true}
+          required
+          placeholder="Mon projet"
+          error={errors.name}
+        />
+        <TextAreaField
+          name="description"
+          label="Description"
+          value={data.description || ""}
+          onChange={this.handleFieldChange}
+          edit={true}
+          placeholder="Description du projet..."
+          rows={4}
+          error={errors.description}
+        />
+      </>
+    );
+  }
+}
 
 export function ProjectForm() {
   const { projectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { getProject, createProject, updateProject } = useProjects();
+  const [loading, setLoading] = React.useState(!!projectId);
+  const [initialData, setInitialData] = React.useState<ProjectFormData | undefined>();
   const isEditing = !!projectId;
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(isEditing);
-
-  useEffect(() => {
+  React.useEffect(() => {
     if (isEditing && projectId) {
-      getProject(projectId)
-        .then((project) => {
-          setName(project.name);
-          setDescription(project.description || "");
+      projectService
+        .getById(projectId)
+        .then((project: Project) => {
+          setInitialData({ name: project.name, description: project.description || "" });
         })
         .catch(() => {
-          toast({
-            title: "Erreur",
-            description: "Impossible de charger le projet.",
-            variant: "destructive",
-          });
+          toast({ title: "Erreur", description: "Impossible de charger le projet.", variant: "destructive" });
           navigate("/development/projets");
         })
         .finally(() => setLoading(false));
     }
-  }, [isEditing, projectId, getProject, navigate, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, isEditing]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      toast({
-        title: "Validation",
-        description: "Le nom du projet est requis.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSaving(true);
+  const handleSubmit = async (data: ProjectFormData) => {
     try {
       if (isEditing && projectId) {
-        await updateProject(projectId, { name, description });
-        toast({
-          title: "Projet mis à jour",
-          description: "Le projet a été modifié avec succès.",
-        });
+        await projectService.update(projectId, { name: data.name, description: data.description });
+        toast({ title: "Projet mis à jour", description: "Le projet a été modifié avec succès." });
+        navigate(`/development/projets/${projectId}`);
       } else {
-        const project = await createProject({ name, description });
-        toast({
-          title: "Projet créé",
-          description: "Le projet a été créé avec succès.",
-        });
+        const project = await projectService.create({ name: data.name, description: data.description });
+        toast({ title: "Projet créé", description: "Le projet a été créé avec succès." });
         navigate(`/development/projets/${project.id}`);
-        return;
       }
-      navigate(`/development/projets/${projectId}`);
     } catch {
       toast({
         title: "Erreur",
         description: isEditing ? "Impossible de modifier le projet." : "Impossible de créer le projet.",
         variant: "destructive",
       });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -96,31 +119,13 @@ export function ProjectForm() {
         Retour aux projets
       </Button>
 
-      <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{isEditing ? "Modifier le projet" : "Nouveau projet"}</h1>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="name">Nom du projet</Label>
-          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Mon projet" required />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description du projet..." rows={4} />
-        </div>
-
-        <div className="flex gap-3">
-          <Button type="submit" disabled={saving}>
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? "Enregistrement..." : isEditing ? "Enregistrer" : "Créer le projet"}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => navigate("/development/projets")}>
-            Annuler
-          </Button>
-        </div>
-      </form>
+      <ProjectFormComponent
+        initialData={initialData}
+        edit={true}
+        isCreation={!isEditing}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate("/development/projets")}
+      />
     </div>
   );
 }

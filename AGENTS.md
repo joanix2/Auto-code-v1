@@ -82,6 +82,7 @@ Les agents LLM ne génèrent **jamais** le code final directement. Ils produisen
 | `@git-integrator` | Snapshots, diff, rollback, commits | Versioning |
 | `@reviewer` | Vérification architecture, qualité, invariants | Revue |
 | `@kanban-manager` | Création/mise à jour/archivage des tickets kanban | Gestion |
+| `@dsl-abstractions` | Gestion des classes abstraites (UI : Form, Field, Card, List, Graph — API : Service, Repository, Controller), langage DSL, projection UI/API | Abstractions |
 
 ---
 
@@ -136,6 +137,30 @@ Tu es un agent de développement senior spécialisé sur ce projet. Tu produis d
 - ADRs dans `docs/decisions/` pour chaque décision structurante
 - `memory.md` pour le contexte persistant
 - README par module complexe si nécessaire
+
+## Langage d'abstractions (DSL déclaratif)
+
+Les classes abstraites (`Form<T>`, `Field<T>`, `BaseCard<T>`, `BaseCardList<T>`, `BaseService<T>`, `BaseRepository<T>`) constituent **un langage déclaratif** propre au projet.
+
+### Règles du langage
+
+1. **Tout composant UI est une projection du langage** : formulaire → `Form<T>`, carte → `BaseCard<T>`, liste → `BaseCardList<T>`, champ → `Field<T>`
+2. **Tout endpoint API est une projection du langage** : service → `BaseService<T>`, repository → `BaseRepository<T>`, contrôleur → `BaseController`
+3. **Le langage évolue par généralisation** : si un pattern apparaît dans 3+ implémentations, l'abstraction doit être généralisée
+4. **Pas de spécialisation locale** : ne jamais contourner une abstraction pour un cas particulier — faire évoluer l'abstraction
+5. **Cohérence trans-couche** : les modes lecture/édition (`edit` prop) et création/modification (`isCreation`) sont présents dans toutes les abstractions
+6. **L'agent `@dsl-abstractions`** est le gardien de ce langage : il vérifie, catalogue et fait évoluer les abstractions
+
+### Exemples concrets
+
+| Classe abstraite | Implémentations | Projette |
+|---|---|---|
+| `Form<T>` | `ProjectForm`, `ConceptForm`, `AttributeForm`, `RelationForm` | Un formulaire CRUD |
+| `Field<T>` | `TextField`, `TextAreaField`, `SelectField`, `BooleanField` | Un champ de formulaire |
+| `BaseCard<T>` | `ProjectCard`, `RepositoryCard`, `IssueCard`, `MetamodelCard` | Une carte d'affichage |
+| `BaseCardList<T>` | `ProjectList`, `RepositoryList`, `IssueList`, `MetamodelList` | Une liste filtrée |
+| `BaseService<T>` | `ProjectService`, `IssueService`, `RepositoryService` | Un service métier |
+| `BaseRepository<T>` | `ProjectRepository`, `UserRepository` | Un repository Neo4j |
 
 ## Principe final
 

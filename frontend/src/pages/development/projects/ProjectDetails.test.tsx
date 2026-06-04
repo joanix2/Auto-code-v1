@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ProjectDetails } from "./ProjectDetails";
@@ -24,9 +23,9 @@ const mockProject = {
   updated_at: "2024-06-10T00:00:00Z",
 };
 
-function renderProjectDetails(projectId: string = "proj-1") {
+function renderProjectDetails(projectId: string = "proj-1", tab: string = "tickets") {
   return render(
-    <MemoryRouter initialEntries={[`/development/projets/${projectId}`]}>
+    <MemoryRouter initialEntries={[`/development/projets/${projectId}?tab=${tab}`]}>
       <Routes>
         <Route path="/development/projets/:projectId" element={<ProjectDetails />} />
         <Route path="/development/projets" element={<div>Projects List</div>} />
@@ -40,69 +39,35 @@ describe("ProjectDetails page", () => {
     vi.clearAllMocks();
   });
 
-  it("renders project name and description", async () => {
+  it("renders tickets content by default", async () => {
     vi.mocked(projectService.getById).mockResolvedValue(mockProject);
     renderProjectDetails();
-    expect(await screen.findByText("Mon Projet Test")).toBeInTheDocument();
-    expect(screen.getByText("Description du projet de test")).toBeInTheDocument();
+    expect(await screen.findByText("Tous")).toBeInTheDocument();
   });
 
-  it("renders all 5 sub-tabs", async () => {
+  it("shows ontologie content when tab=ontologie", async () => {
     vi.mocked(projectService.getById).mockResolvedValue(mockProject);
-    renderProjectDetails();
-    await screen.findByText("Mon Projet Test");
-    expect(screen.getByText("Tickets")).toBeInTheDocument();
-    expect(screen.getByText("Ontologie")).toBeInTheDocument();
-    expect(screen.getByText("Architecture")).toBeInTheDocument();
-    expect(screen.getByText("Déploiement")).toBeInTheDocument();
-    expect(screen.getByText("Monitoring")).toBeInTheDocument();
+    renderProjectDetails("proj-1", "ontologie");
+    expect(await screen.findByText("Graphe d'ontologie")).toBeInTheDocument();
   });
 
-  it("shows Tickets tab content by default", async () => {
+  it("shows architecture content when tab=architecture", async () => {
     vi.mocked(projectService.getById).mockResolvedValue(mockProject);
-    renderProjectDetails();
-    await screen.findByText("Mon Projet Test");
-    expect(screen.getByText("Tickets du projet")).toBeInTheDocument();
+    renderProjectDetails("proj-1", "architecture");
+    expect(await screen.findByText("Modèles d'architecture")).toBeInTheDocument();
   });
 
-  it("switches to Ontologie tab on click", async () => {
+  it("shows deploiement content when tab=deploiement", async () => {
     vi.mocked(projectService.getById).mockResolvedValue(mockProject);
-    renderProjectDetails();
-    await screen.findByText("Mon Projet Test");
-    await userEvent.click(screen.getByText("Ontologie"));
-    expect(screen.getByText("Graphe d'ontologie")).toBeInTheDocument();
+    renderProjectDetails("proj-1", "deploiement");
+    expect(await screen.findByText("Déploiement continu")).toBeInTheDocument();
   });
 
-  it("switches to Architecture tab on click", async () => {
+  it("shows monitoring content when tab=monitoring", async () => {
     vi.mocked(projectService.getById).mockResolvedValue(mockProject);
-    renderProjectDetails();
-    await screen.findByText("Mon Projet Test");
-    await userEvent.click(screen.getByText("Architecture"));
-    expect(screen.getByText("Modèles d'architecture")).toBeInTheDocument();
-  });
-
-  it("switches to Déploiement tab on click", async () => {
-    vi.mocked(projectService.getById).mockResolvedValue(mockProject);
-    renderProjectDetails();
-    await screen.findByText("Mon Projet Test");
-    await userEvent.click(screen.getByText("Déploiement"));
-    expect(screen.getByText("Déploiement continu")).toBeInTheDocument();
-  });
-
-  it("switches to Monitoring tab on click", async () => {
-    vi.mocked(projectService.getById).mockResolvedValue(mockProject);
-    renderProjectDetails();
-    await screen.findByText("Mon Projet Test");
-    await userEvent.click(screen.getByText("Monitoring"));
-    expect(screen.getAllByText("Monitoring").length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("navigates back to projects list when clicking retour", async () => {
-    vi.mocked(projectService.getById).mockResolvedValue(mockProject);
-    renderProjectDetails();
-    await screen.findByText("Mon Projet Test");
-    await userEvent.click(screen.getByText("Retour aux projets"));
-    expect(screen.getByText("Projects List")).toBeInTheDocument();
+    renderProjectDetails("proj-1", "monitoring");
+    const monitoring = await screen.findAllByText("Monitoring");
+    expect(monitoring.length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows loading state while fetching project", async () => {

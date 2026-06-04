@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components/layout/Layout";
 import { Login } from "./pages/auth/Login";
@@ -14,6 +14,7 @@ import { MetamodelForm } from "./pages/development/metamodels/MetamodelForm";
 import { Projects } from "./pages/development/projects/Projects";
 import { ProjectDetails } from "./pages/development/projects/ProjectDetails";
 import { ProjectForm } from "./pages/development/projects/ProjectForm";
+import { ProjectDetailLayout } from "./components/layout/ProjectDetailLayout";
 import Profile from "./pages/profile/Profile";
 import { NotFound } from "./pages/NotFound";
 import { Toaster } from "@/components/ui/toaster";
@@ -41,6 +42,18 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
     <Layout user={user} onSignOut={signOut}>
       {children}
     </Layout>
+  );
+}
+
+// Project Detail Wrapper (no sidebar, tabs in header/bottom nav)
+function ProjectDetailPageWrapper({ children }: { children: React.ReactNode }) {
+  const { projectId } = useParams<{ projectId: string }>();
+  const { user, signOut } = useAuth();
+
+  return (
+    <ProjectDetailLayout projectId={projectId || ""} user={user} onSignOut={signOut}>
+      {children}
+    </ProjectDetailLayout>
   );
 }
 
@@ -130,9 +143,9 @@ function App() {
             path="/development/projets/:projectId"
             element={
               <ProtectedRoute>
-                <AuthenticatedLayout>
+                <ProjectDetailPageWrapper>
                   <ProjectDetails />
-                </AuthenticatedLayout>
+                </ProjectDetailPageWrapper>
               </ProtectedRoute>
             }
           />

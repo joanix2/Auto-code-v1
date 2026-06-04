@@ -46,12 +46,12 @@ describe("ProjectForm", () => {
       renderCreateForm();
       expect(screen.getByText("Nouveau projet")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("Mon projet")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /Créer le projet/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Enregistrer/i })).toBeInTheDocument();
     });
 
     it("prevents submission when name is empty", async () => {
       renderCreateForm();
-      const submitBtn = screen.getByRole("button", { name: /Créer le projet/i });
+      const submitBtn = screen.getByRole("button", { name: /Enregistrer/i });
       expect(submitBtn).toBeInTheDocument();
       await userEvent.click(submitBtn);
       expect(projectService.create).not.toHaveBeenCalled();
@@ -71,7 +71,7 @@ describe("ProjectForm", () => {
         screen.getByPlaceholderText("Description du projet..."),
         "Desc"
       );
-      await userEvent.click(screen.getByRole("button", { name: /Créer le projet/i }));
+      await userEvent.click(screen.getByRole("button", { name: /Enregistrer/i }));
       expect(projectService.create).toHaveBeenCalledWith({ name: "Test", description: "Desc" });
     });
   });

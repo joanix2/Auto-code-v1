@@ -30,7 +30,8 @@ export function Projects() {
   };
 
   const handleClick = (id: string) => {
-    navigate(`/development/projets/${id}`);
+    const project = projects.find((p) => p.id === id);
+    navigate(`/development/projets/${id}`, { state: { projectName: project?.name } });
   };
 
   return (

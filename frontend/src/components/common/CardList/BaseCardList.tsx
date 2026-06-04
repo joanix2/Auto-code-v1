@@ -10,7 +10,8 @@ export interface BaseCardListProps<T> {
   onSearch?: (query: string) => void;
   loading?: boolean;
   createUrl?: string;
-  showSync?: boolean; // Option pour afficher/masquer le bouton de sync
+  showSync?: boolean;
+  renderBeforeCards?: React.ReactNode;
 }
 
 export abstract class BaseCardList<T extends { id: string }> extends React.Component<BaseCardListProps<T>, { searchQuery: string; syncing: boolean }> {
@@ -82,6 +83,9 @@ export abstract class BaseCardList<T extends { id: string }> extends React.Compo
             </Button>
           )}
         </div>
+
+        {/* Extra content before cards (e.g. filters) */}
+        {this.props.renderBeforeCards}
 
         {/* Cards grid */}
         {loading ? (
