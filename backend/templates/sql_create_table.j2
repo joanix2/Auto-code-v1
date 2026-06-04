@@ -1,0 +1,42 @@
+-- ============================================================================
+-- CREATE TABLE: {{ entity.name | snake_case | upper }}
+-- Generated from entity: {{ entity.id }}
+-- Description: {{ entity.description or entity.name }}
+-- ============================================================================
+
+CREATE TABLE {{ entity.name | snake_case }} (
+    -- Primary key
+    id VARCHAR(36) PRIMARY KEY,
+
+    -- Basic fields
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+{% if fields %}
+    {% for field in fields %}
+    {% set fname = field.entity.name | snake_case %}
+    {% set ftype = field.entity.get('type', 'string') %}
+    {% set req = field.entity.get('is_required', False) %}
+    {{ fname }} {{ 'VARCHAR(255)' if ftype in ('string', 'str') else 'INTEGER' if ftype in ('int', 'integer') else 'TEXT' }}{{ ' NOT NULL' if req else ' NULL' }},
+    {% endfor %}
+{% endif %}
+{% if relations %}
+    {% for rel in relations %}
+    {% set rname = rel.entity.name | snake_case %}
+    {{ rname }}_id VARCHAR(36),
+    {% endfor %}
+{% endif %}
+    -- Metadata
+    created_by VARCHAR(36),
+    updated_by VARCHAR(36)
+);
+
+-- Indexes
+CREATE INDEX idx_{{ entity.name | snake_case }}_name ON {{ entity.name | snake_case }}(name);
+{% for field in fields %}
+{% if field.entity.get('is_unique', False) %}
+CREATE UNIQUE INDEX idx_{{ entity.name | snake_case }}_{{ field.entity.name | snake_case }}
+    ON {{ entity.name | snake_case }}({{ field.entity.name | snake_case }});
+{% endif %}
+{% endfor %}

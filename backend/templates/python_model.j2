@@ -1,0 +1,41 @@
+"""
+{{ entity.name | PascalCase }} - Auto-generated Pydantic model
+Generated from entity: {{ entity.id }}
+{% if entity.description %}
+{{ entity.description }}
+{% endif %}
+"""
+
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any, Optional
+
+from pydantic import BaseModel, Field
+
+
+class {{ entity.name | PascalCase }}(BaseModel):
+    """Pydantic model for {{ entity.name }}."""
+
+    id: str = Field(description="Unique identifier")
+    name: str = Field(description="Name of the {{ entity.name | snake_case }}")
+    description: Optional[str] = Field(default=None, description="Description")
+    created_at: Optional[datetime] = Field(default=None)
+    updated_at: Optional[datetime] = Field(default=None)
+{% if fields %}
+    {% for field in fields %}
+    {% set fname = field.entity.name | snake_case %}
+    {% set ftype = field.entity.get('type', 'str') %}
+    {% set req = field.entity.get('is_required', False) %}
+    {{ fname }}: {{ "Optional[" + ftype + "]" if not req else ftype }} = {{ "..." if req else "None" }}
+    {% endfor %}
+{% endif %}
+{% if relations %}
+    # Relations
+    {% for rel in relations %}
+    {% set rname = rel.entity.name | snake_case %}
+    {{ rname }}: Optional[list[{{ rel.entity.name | PascalCase }}]] = None
+    {% endfor %}
+{% endif %}
+
+    model_config = {"from_attributes": True}

@@ -1,18 +1,20 @@
 # Memory — Contexte persistant
 
-## Dernière mise à jour : 2026-06-03T23:00
+## Dernière mise à jour : 2026-06-04T12:30
 
 ### Statut MVPs
 
 | MVP | Statut | Notes |
 |-----|--------|-------|
 | A — Consolidation IR | ✅ Terminé | JSON schema, endpoints graph/load/save, PATCH/DELETE edges, roundtrip tests |
-| B — Requêtes | ❌ Non commencé | Dépend de A |
-| C — Templates | ❌ Non commencé | Dépend de B |
-| D — Validation | ❌ Non commencé | |
-| E — Héritage | ❌ Non commencé | |
-| F — Ontologie | ❌ Non commencé | |
-| G — Agents | ❌ Non commencé | |
+| B — Requêtes | ✅ Terminé | QueryService (selectors, entity tree, pattern matching), API endpoints, 32 tests |
+| C — Templates | ✅ Terminé | TemplateRegistry, TemplateRenderer (Jinja2), GenerationPlan, PlanExecutor, exemples templates, 117 tests |
+| D — Validation & Réécriture | ✅ Terminé | Structural/business validators, ValidationReport, RewriteEngine, PatternMatcher, default rules, 96 tests |
+| E — Héritage | ✅ Terminé | Single/multiple inheritance, chain resolution, element origin tracing, conflict resolution, 70 tests |
+| F — Ontologie | ✅ Terminé | OntologyGraph, InferenceEngine, OntologyCompiler (OW→CW), OntologyStore, 77 tests |
+| G — Agents | ✅ Terminé | PipelineOrchestrator, 10 agent services, pipeline API, 77 tests |
+
+### Total tests : 579 passing |
 
 ### P0/P1 Terminés
 

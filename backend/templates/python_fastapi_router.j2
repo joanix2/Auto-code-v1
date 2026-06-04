@@ -1,0 +1,83 @@
+"""
+{{ entity.name | PascalCase }} Router - Auto-generated FastAPI CRUD endpoints
+Generated from entity: {{ entity.id }}
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+from src.database import get_db
+from src.models.oauth.user import User
+from src.utils.auth import get_current_user
+
+logger = logging.getLogger(__name__)
+
+{% set entity_name = entity.name | snake_case %}
+{% set EntityName = entity.name | PascalCase %}
+{% set id_var = entity_name + "_id" %}
+
+router = APIRouter(prefix="/api/{{ entity_name }}s", tags=["{{ entity_name }}s"])
+
+
+@router.get("")
+async def list_{{ entity_name }}s(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    current_user: User = Depends(get_current_user),
+    db=Depends(get_db),
+):
+    """List all {{ entity_name }}s."""
+    # TODO: implement list query
+    return {"items": [], "total": 0, "skip": skip, "limit": limit}
+
+
+@router.get("/{ {{ id_var }} }")
+async def get_{{ entity_name }}(
+    {{ id_var }}: str,
+    current_user: User = Depends(get_current_user),
+    db=Depends(get_db),
+):
+    """Get a {{ entity_name }} by ID."""
+    # TODO: implement get by id
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="{{ EntityName }} not found",
+    )
+
+
+@router.post("", status_code=status.HTTP_201_CREATED)
+async def create_{{ entity_name }}(
+    data: dict[str, Any],
+    current_user: User = Depends(get_current_user),
+    db=Depends(get_db),
+):
+    """Create a new {{ entity_name }}."""
+    # TODO: implement create
+    return {"message": "{{ EntityName }} created", "id": None}
+
+
+@router.put("/{ {{ id_var }} }")
+async def update_{{ entity_name }}(
+    {{ id_var }}: str,
+    data: dict[str, Any],
+    current_user: User = Depends(get_current_user),
+    db=Depends(get_db),
+):
+    """Update a {{ entity_name }}."""
+    # TODO: implement update
+    return {"message": "{{ EntityName }} updated"}
+
+
+@router.delete("/{ {{ id_var }} }")
+async def delete_{{ entity_name }}(
+    {{ id_var }}: str,
+    current_user: User = Depends(get_current_user),
+    db=Depends(get_db),
+):
+    """Delete a {{ entity_name }}."""
+    # TODO: implement delete
+    return {"message": "{{ EntityName }} deleted"}

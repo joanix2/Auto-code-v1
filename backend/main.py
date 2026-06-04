@@ -23,6 +23,13 @@ from src.controllers.MDE.M2.edge_controller import router as edge_router
 from src.controllers.MDE.M2.metamodel_controller import router as metamodel_router
 from src.controllers.MDE.M2.relationship_controller import router as relationship_router
 from src.controllers.MDE.M3.m3_controller import router as m3_router
+from src.controllers.inheritance_controller import router as inheritance_router
+from src.controllers.ontology_controller import router as ontology_router
+from src.controllers.query_controller import router as query_router
+from src.controllers.rewrite_controller import router as rewrite_router
+from src.controllers.template_controller import router as template_router
+from src.controllers.validation_controller import router as validation_router
+from src.controllers.codegen_controller import router as codegen_router
 from src.database import db
 from src.utils.config import config
 
@@ -83,6 +90,13 @@ app.include_router(attribute_router)
 app.include_router(relationship_router)
 app.include_router(edge_router)
 app.include_router(ir_router)
+app.include_router(inheritance_router)
+app.include_router(query_router)
+app.include_router(template_router)
+app.include_router(ontology_router)
+app.include_router(rewrite_router)
+app.include_router(validation_router)
+app.include_router(codegen_router)
 
 
 @app.get("/")
