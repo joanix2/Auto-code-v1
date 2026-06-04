@@ -10,11 +10,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from src.repositories.MDE.M2.attribute_repository import AttributeRepository
-from src.repositories.MDE.M2.concept_repository import ConceptRepository
-from src.repositories.MDE.M2.metamodel_edge_repository import MetamodelEdgeRepository
-from src.repositories.MDE.M2.metamodel_repository import MetamodelRepository
-from src.repositories.MDE.M2.relationship_repository import RelationshipRepository
+from src.repositories.dsl.dsl_attribute_repository import DSLAttributeRepository
+from src.repositories.dsl.dsl_concept_repository import DSLConceptRepository
+from src.repositories.dsl.dsl_edge_repository import DSLEdgeRepository
+from src.repositories.dsl.dsl_repository import DSLRepository
+from src.repositories.dsl.dsl_relation_repository import DSLRelationRepository
 from src.repositories.base import convert_neo4j_types
 
 logger = logging.getLogger(__name__)
@@ -50,11 +50,11 @@ class QueryService:
             db: Neo4jConnection instance (or MockNeo4jDB in tests)
         """
         self.db = db
-        self.concept_repo = ConceptRepository(db)
-        self.attribute_repo = AttributeRepository(db)
-        self.relationship_repo = RelationshipRepository(db)
-        self.edge_repo = MetamodelEdgeRepository(db)
-        self.metamodel_repo = MetamodelRepository(db)
+        self.concept_repo = DSLConceptRepository(db)
+        self.attribute_repo = DSLAttributeRepository(db)
+        self.relationship_repo = DSLRelationRepository(db)
+        self.edge_repo = DSLEdgeRepository(db)
+        self.metamodel_repo = DSLRepository(db)
 
     # ------------------------------------------------------------------
     # Selectors

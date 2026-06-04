@@ -1,0 +1,31 @@
+"""
+NodeType - M3 Base class for semantic node types
+"""
+
+from pydantic import Field
+
+from ..base import BaseSemanticModel, GenderType
+
+
+class AbstractNodeType(BaseSemanticModel):
+    """
+    M3 NodeType - Defines a type of node in the metamodel
+
+    This is a meta-class that defines what types of nodes can exist.
+    Example: In a metamodel, we can have Concept, Attribute, Relation nodes.
+
+    Inherits from BaseSemanticModel (name, description) but NOT BaseEntity (no id).
+    This is a configuration/metadata class, not a database entity.
+    """
+
+    label: str = Field(..., description="Display label (singular)")
+    labelPlural: str = Field(..., description="Display label (plural)")
+    gender: GenderType = Field(..., description="Grammatical gender for articles")
+    article: str = Field(..., description="Definite article (le, la, l')")
+
+    def get_article_maj(self) -> str:
+        """Return article with capital letter"""
+        return self.article.capitalize()
+
+    class Config:
+        use_enum_values = True

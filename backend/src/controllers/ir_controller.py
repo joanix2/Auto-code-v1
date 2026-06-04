@@ -7,9 +7,9 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.controllers.MDE.M2.metamodel_controller import get_metamodel_controller
+from src.controllers.dsl.dsl_controller import get_dsl_controller
 from src.database import get_db
-from src.models.MDE.M2.metamodel_edge import MetamodelEdgeType
+from src.models.dsl.dsl_edge import DSLEdgeType
 from src.models.oauth.user import User
 from src.utils.auth import get_current_user
 
@@ -26,35 +26,35 @@ def _ensure_storage_dir():
     IR_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 
-@router.get("/graph/{metamodel_id}")
+@router.get("/graph/{dsl_id}")
 async def get_ir_graph(
-    metamodel_id: str,
+    dsl_id: str,
     current_user: User = Depends(get_current_user),
     db=Depends(get_db),
-    controller=Depends(get_metamodel_controller),
+    controller=Depends(get_dsl_controller),
 ):
     """
-    Get the complete IR graph for a metamodel.
+    Get the complete IR graph for a dsl.
 
     Returns the graph in the standard IR JSON format
     with metadata, nodes, edges, and edgeConstraints.
     """
-    from src.services.MDE.M2.metamodel_service import MetamodelService
+    from src.services.dsl.dsl_service import DSLService
 
-    from ....repositories.MDE.M2.attribute_repository import AttributeRepository
-    from ....repositories.MDE.M2.concept_repository import ConceptRepository
-    from ....repositories.MDE.M2.metamodel_edge_repository import MetamodelEdgeRepository
-    from ....repositories.MDE.M2.metamodel_repository import MetamodelRepository
-    from ....repositories.MDE.M2.relationship_repository import RelationshipRepository
+    from ...repositories.dsl.dsl_attribute_repository import DSLAttributeRepository
+    from ...repositories.dsl.dsl_concept_repository import DSLConceptRepository
+    from ...repositories.dsl.dsl_edge_repository import DSLEdgeRepository
+    from ...repositories.dsl.dsl_repository import DSLRepository
+    from ...repositories.dsl.dsl_relation_repository import DSLRelationRepository
 
-    metamodel_repo = MetamodelRepository(db)
-    concept_repo = ConceptRepository(db)
-    attribute_repo = AttributeRepository(db)
-    relationship_repo = RelationshipRepository(db)
-    edge_repo = MetamodelEdgeRepository(db)
+    dsl_repo = DSLRepository(db)
+    concept_repo = DSLConceptRepository(db)
+    attribute_repo = DSLAttributeRepository(db)
+    relationship_repo = DSLRelationRepository(db)
+    edge_repo = DSLEdgeRepository(db)
 
-    service = MetamodelService(
-        repository=metamodel_repo,
+    service = DSLService(
+        repository=dsl_repo,
         concept_repository=concept_repo,
         attribute_repository=attribute_repo,
         relationship_repository=relationship_repo,
@@ -62,7 +62,7 @@ async def get_ir_graph(
     )
 
     try:
-        graph_data = await service.get_metamodel_with_graph(metamodel_id)
+        graph_data = await service.get_dsl_with_graph(dsl_id)
         return graph_data
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -74,37 +74,37 @@ async def get_ir_graph(
         )
 
 
-@router.post("/save/{metamodel_id}")
+@router.post("/save/{dsl_id}")
 async def save_ir_graph(
-    metamodel_id: str,
+    dsl_id: str,
     current_user: User = Depends(get_current_user),
     db=Depends(get_db),
-    controller=Depends(get_metamodel_controller),
+    controller=Depends(get_dsl_controller),
 ):
     """
-    Save the current IR graph for a metamodel as a JSON file.
+    Save the current IR graph for a dsl as a JSON file.
 
     Returns:
         Dict with the file path where the graph was saved.
     """
     _ensure_storage_dir()
 
-    from src.services.MDE.M2.metamodel_service import MetamodelService
+    from src.services.dsl.dsl_service import DSLService
 
-    from ....repositories.MDE.M2.attribute_repository import AttributeRepository
-    from ....repositories.MDE.M2.concept_repository import ConceptRepository
-    from ....repositories.MDE.M2.metamodel_edge_repository import MetamodelEdgeRepository
-    from ....repositories.MDE.M2.metamodel_repository import MetamodelRepository
-    from ....repositories.MDE.M2.relationship_repository import RelationshipRepository
+    from ...repositories.dsl.dsl_attribute_repository import DSLAttributeRepository
+    from ...repositories.dsl.dsl_concept_repository import DSLConceptRepository
+    from ...repositories.dsl.dsl_edge_repository import DSLEdgeRepository
+    from ...repositories.dsl.dsl_repository import DSLRepository
+    from ...repositories.dsl.dsl_relation_repository import DSLRelationRepository
 
-    metamodel_repo = MetamodelRepository(db)
-    concept_repo = ConceptRepository(db)
-    attribute_repo = AttributeRepository(db)
-    relationship_repo = RelationshipRepository(db)
-    edge_repo = MetamodelEdgeRepository(db)
+    dsl_repo = DSLRepository(db)
+    concept_repo = DSLConceptRepository(db)
+    attribute_repo = DSLAttributeRepository(db)
+    relationship_repo = DSLRelationRepository(db)
+    edge_repo = DSLEdgeRepository(db)
 
-    service = MetamodelService(
-        repository=metamodel_repo,
+    service = DSLService(
+        repository=dsl_repo,
         concept_repository=concept_repo,
         attribute_repository=attribute_repo,
         relationship_repository=relationship_repo,
@@ -112,7 +112,7 @@ async def save_ir_graph(
     )
 
     try:
-        graph_data = await service.get_metamodel_with_graph(metamodel_id)
+        graph_data = await service.get_dsl_with_graph(dsl_id)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
@@ -122,32 +122,31 @@ async def save_ir_graph(
             detail=f"Failed to retrieve IR graph: {str(e)}",
         )
 
-    # Build the IR JSON document
-    metamodel = graph_data["metamodel"]
+    dsl = graph_data["dsl"]
     ir_document = {
         "metadata": {
-            "id": metamodel.id,
-            "name": metamodel.name,
-            "description": metamodel.description,
-            "version": metamodel.version,
-            "status": metamodel.status,
-            "owner_id": metamodel.owner_id,
-            "created_at": metamodel.created_at.isoformat() if metamodel.created_at else None,
-            "updated_at": metamodel.updated_at.isoformat() if metamodel.updated_at else None,
-            "node_count": metamodel.node_count,
-            "edge_count": metamodel.edge_count,
-            "allowed_node_types": [nt.model_dump() for nt in metamodel.allowed_node_types],
-            "allowed_edge_types": [et.model_dump() for et in metamodel.allowed_edge_types],
+            "id": dsl.id,
+            "name": dsl.name,
+            "description": dsl.description,
+            "version": dsl.version,
+            "status": dsl.status,
+            "owner_id": dsl.owner_id,
+            "created_at": dsl.created_at.isoformat() if dsl.created_at else None,
+            "updated_at": dsl.updated_at.isoformat() if dsl.updated_at else None,
+            "node_count": dsl.node_count,
+            "edge_count": dsl.edge_count,
+            "allowed_node_types": [nt.model_dump() for nt in dsl.allowed_node_types],
+            "allowed_edge_types": [et.model_dump() for et in dsl.allowed_edge_types],
         },
         "nodes": graph_data["nodes"],
         "edges": graph_data["edges"],
         "edgeConstraints": graph_data.get("edgeConstraints", []),
     }
 
-    file_path = IR_STORAGE_DIR / f"{metamodel_id}.json"
+    file_path = IR_STORAGE_DIR / f"{dsl_id}.json"
     file_path.write_text(json.dumps(ir_document, indent=2, default=str), encoding="utf-8")
 
-    logger.info(f"Saved IR graph for {metamodel_id} to {file_path}")
+    logger.info(f"Saved IR graph for {dsl_id} to {file_path}")
     return {
         "message": "IR graph saved successfully",
         "file_path": str(file_path.absolute()),
@@ -156,9 +155,9 @@ async def save_ir_graph(
     }
 
 
-@router.post("/load/{metamodel_id}")
+@router.post("/load/{dsl_id}")
 async def load_ir_graph(
-    metamodel_id: str,
+    dsl_id: str,
     current_user: User = Depends(get_current_user),
     db=Depends(get_db),
 ):
@@ -166,16 +165,16 @@ async def load_ir_graph(
     Load an IR graph from a JSON file and replace the Neo4j graph.
 
     This is a destructive operation: it will clear all existing
-    nodes and edges for the given metamodel and replace them
+    nodes and edges for the given dsl and replace them
     with the content of the JSON file.
     """
     _ensure_storage_dir()
 
-    file_path = IR_STORAGE_DIR / f"{metamodel_id}.json"
+    file_path = IR_STORAGE_DIR / f"{dsl_id}.json"
     if not file_path.exists():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No saved IR graph found for metamodel {metamodel_id} at {file_path}",
+            detail=f"No saved IR graph found for dsl {dsl_id} at {file_path}",
         )
 
     try:
@@ -196,31 +195,31 @@ async def load_ir_graph(
             detail=f"Invalid IR graph format: {'; '.join(errors[:5])}",
         )
 
-    from ....repositories.MDE.M2.attribute_repository import AttributeRepository
-    from ....repositories.MDE.M2.concept_repository import ConceptRepository
-    from ....repositories.MDE.M2.metamodel_edge_repository import MetamodelEdgeRepository
-    from ....repositories.MDE.M2.metamodel_repository import MetamodelRepository
-    from ....repositories.MDE.M2.relationship_repository import RelationshipRepository
+    from ...repositories.dsl.dsl_attribute_repository import DSLAttributeRepository
+    from ...repositories.dsl.dsl_concept_repository import DSLConceptRepository
+    from ...repositories.dsl.dsl_edge_repository import DSLEdgeRepository
+    from ...repositories.dsl.dsl_repository import DSLRepository
+    from ...repositories.dsl.dsl_relation_repository import DSLRelationRepository
 
-    metamodel_repo = MetamodelRepository(db)
-    concept_repo = ConceptRepository(db)
-    attribute_repo = AttributeRepository(db)
-    relationship_repo = RelationshipRepository(db)
-    edge_repo = MetamodelEdgeRepository(db)
+    dsl_repo = DSLRepository(db)
+    concept_repo = DSLConceptRepository(db)
+    attribute_repo = DSLAttributeRepository(db)
+    relationship_repo = DSLRelationRepository(db)
+    edge_repo = DSLEdgeRepository(db)
 
-    # Verify the metamodel exists
-    metamodel = await metamodel_repo.get_by_id(metamodel_id)
-    if not metamodel:
+    # Verify the dsl exists
+    dsl = await dsl_repo.get_by_id(dsl_id)
+    if not dsl:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Metamodel {metamodel_id} not found in database",
+            detail=f"Metamodel {dsl_id} not found in database",
         )
 
     # Clear existing graph data (nodes + edges)
     # DETACH DELETE cascades to all Neo4j relationships automatically
-    await concept_repo.delete_all_by_metamodel(metamodel_id)
-    await attribute_repo.delete_all_by_metamodel(metamodel_id)
-    await relationship_repo.delete_all_by_metamodel(metamodel_id)
+    await concept_repo.delete_all_by_dsl(dsl_id)
+    await attribute_repo.delete_all_by_dsl(dsl_id)
+    await relationship_repo.delete_all_by_dsl(dsl_id)
 
     # Recreate nodes and edges from the IR document
     results = {"concepts": 0, "attributes": 0, "relations": 0, "edges": 0}
@@ -231,7 +230,7 @@ async def load_ir_graph(
             "id": node_data["id"],
             "name": node_data["name"],
             "description": node_data.get("description", ""),
-            "graph_id": metamodel_id,
+            "graph_id": dsl_id,
             "x_position": node_data.get("x"),
             "y_position": node_data.get("y"),
         }
@@ -260,13 +259,13 @@ async def load_ir_graph(
         try:
             edge_type_str = edge_data.get("type", "").lower()
             edge_type_enum = None
-            for et in MetamodelEdgeType.__members__.values():
+            for et in DSLEdgeType.__members__.values():
                 if et.value == edge_type_str:
                     edge_type_enum = et
                     break
             if edge_type_enum:
                 await edge_repo.create_edge(
-                    metamodel_id,
+                    dsl_id,
                     edge_data["source"],
                     edge_data["target"],
                     edge_type_enum,
@@ -275,7 +274,7 @@ async def load_ir_graph(
         except Exception as e:
             logger.warning(f"Skipping edge {edge_data.get('id')}: {e}")
 
-    logger.info(f"Loaded IR graph for {metamodel_id}: {results}")
+    logger.info(f"Loaded IR graph for {dsl_id}: {results}")
     return {
         "message": "IR graph loaded successfully",
         "file_path": str(file_path.absolute()),
@@ -296,7 +295,7 @@ async def list_ir_files(
             files.append(
                 {
                     "filename": f.name,
-                    "metamodel_id": f.stem,
+                    "dsl_id": f.stem,
                     "size_bytes": f.stat().st_size,
                     "modified_at": f.stat().st_mtime,
                 }

@@ -17,12 +17,12 @@ from src.controllers import (
     repository_router,
 )
 from src.controllers.ir_controller import router as ir_router
-from src.controllers.MDE.M2.attribute_controller import router as attribute_router
-from src.controllers.MDE.M2.concept_controller import router as concept_router
-from src.controllers.MDE.M2.edge_controller import router as edge_router
-from src.controllers.MDE.M2.metamodel_controller import router as metamodel_router
-from src.controllers.MDE.M2.relationship_controller import router as relationship_router
-from src.controllers.MDE.M3.m3_controller import router as m3_router
+from src.controllers.dsl.dsl_attribute_controller import router as dsl_attribute_router
+from src.controllers.dsl.dsl_concept_controller import router as dsl_concept_router
+from src.controllers.dsl.dsl_edge_controller import router as dsl_edge_router
+from src.controllers.dsl.dsl_controller import router as dsl_router
+from src.controllers.dsl.dsl_relation_controller import router as dsl_relation_router
+from src.controllers.dsl.dsl_config_controller import router as dsl_config_router
 from src.controllers.inheritance_controller import router as inheritance_router
 from src.controllers.ontology_controller import router as ontology_router
 from src.controllers.query_controller import router as query_router
@@ -84,12 +84,12 @@ app.include_router(repository_router)
 app.include_router(issue_router)
 app.include_router(message_router)
 app.include_router(copilot_assignment_router)
-app.include_router(m3_router)
-app.include_router(metamodel_router)
-app.include_router(concept_router)
-app.include_router(attribute_router)
-app.include_router(relationship_router)
-app.include_router(edge_router)
+app.include_router(dsl_config_router)
+app.include_router(dsl_router)
+app.include_router(dsl_concept_router)
+app.include_router(dsl_attribute_router)
+app.include_router(dsl_relation_router)
+app.include_router(dsl_edge_router)
 app.include_router(ir_router)
 app.include_router(inheritance_router)
 app.include_router(query_router)

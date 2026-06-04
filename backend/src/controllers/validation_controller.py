@@ -2,7 +2,7 @@
 
 Endpoints:
 - ``POST /api/validate/graph`` — validate an IR graph JSON body.
-- ``POST /api/validate/{metamodel_id}`` — validate a metamodel's graph
+- ``POST /api/validate/{dsl_id}`` — validate a dsl's graph
   retrieved from the database.
 """
 
@@ -51,34 +51,34 @@ async def validate_graph_endpoint(
     return result
 
 
-@router.post("/{metamodel_id}")
-async def validate_metamodel_graph(
-    metamodel_id: str,
+@router.post("/{dsl_id}")
+async def validate_dsl_graph(
+    dsl_id: str,
     current_user: User = Depends(get_current_user),
     db=Depends(get_db),
 ):
-    """Validate the IR graph for a metamodel stored in the database.
+    """Validate the IR graph for a dsl stored in the database.
 
-    Fetches the complete graph (metamodel + nodes + edges) and runs the
+    Fetches the complete graph (dsl + nodes + edges) and runs the
     full validation pipeline against it.
     """
-    from src.repositories.MDE.M2.attribute_repository import AttributeRepository
-    from src.repositories.MDE.M2.concept_repository import ConceptRepository
-    from src.repositories.MDE.M2.metamodel_edge_repository import MetamodelEdgeRepository
-    from src.repositories.MDE.M2.metamodel_repository import MetamodelRepository
-    from src.repositories.MDE.M2.relationship_repository import RelationshipRepository
-    from src.services.MDE.M2.metamodel_service import MetamodelService
+    logger.info(f"Validating dsl graph: {dsl_id} (user={current_user.username})")
 
-    logger.info(f"Validating metamodel graph: {metamodel_id} (user={current_user.username})")
+    from src.repositories.dsl.dsl_attribute_repository import DSLAttributeRepository
+    from src.repositories.dsl.dsl_concept_repository import DSLConceptRepository
+    from src.repositories.dsl.dsl_edge_repository import DSLEdgeRepository
+    from src.repositories.dsl.dsl_repository import DSLRepository
+    from src.repositories.dsl.dsl_relation_repository import DSLRelationRepository
+    from src.services.dsl.dsl_service import DSLService
 
-    metamodel_repo = MetamodelRepository(db)
-    concept_repo = ConceptRepository(db)
-    attribute_repo = AttributeRepository(db)
-    relationship_repo = RelationshipRepository(db)
-    edge_repo = MetamodelEdgeRepository(db)
+    dsl_repo = DSLRepository(db)
+    concept_repo = DSLConceptRepository(db)
+    attribute_repo = DSLAttributeRepository(db)
+    relationship_repo = DSLRelationRepository(db)
+    edge_repo = DSLEdgeRepository(db)
 
-    service = MetamodelService(
-        repository=metamodel_repo,
+    service = DSLService(
+        repository=dsl_repo,
         concept_repository=concept_repo,
         attribute_repository=attribute_repo,
         relationship_repository=relationship_repo,
@@ -86,32 +86,32 @@ async def validate_metamodel_graph(
     )
 
     try:
-        graph_data = await service.get_metamodel_with_graph(metamodel_id)
+        graph_data = await service.get_dsl_graph(dsl_id)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
-        logger.error(f"Error fetching metamodel graph: {e}")
+        logger.error(f"Error fetching dsl graph: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve metamodel graph: {str(e)}",
+            detail=f"Failed to retrieve dsl graph: {str(e)}",
         )
 
     # Convert the service response into the standard IR JSON format
-    metamodel = graph_data["metamodel"]
+    dsl = graph_data["dsl"]
     ir_document: dict[str, Any] = {
         "metadata": {
-            "id": metamodel.id,
-            "name": metamodel.name,
-            "description": metamodel.description,
-            "version": metamodel.version,
-            "status": metamodel.status,
-            "owner_id": metamodel.owner_id,
-            "created_at": metamodel.created_at.isoformat() if metamodel.created_at else None,
-            "updated_at": metamodel.updated_at.isoformat() if metamodel.updated_at else None,
-            "node_count": metamodel.node_count,
-            "edge_count": metamodel.edge_count,
-            "allowed_node_types": [nt.model_dump() for nt in metamodel.allowed_node_types],
-            "allowed_edge_types": [et.model_dump() for et in metamodel.allowed_edge_types],
+            "id": dsl.id,
+            "name": dsl.name,
+            "description": dsl.description,
+            "version": dsl.version,
+            "status": dsl.status,
+            "owner_id": dsl.owner_id,
+            "created_at": dsl.created_at.isoformat() if dsl.created_at else None,
+            "updated_at": dsl.updated_at.isoformat() if dsl.updated_at else None,
+            "node_count": dsl.node_count,
+            "edge_count": dsl.edge_count,
+            "allowed_node_types": [nt.model_dump() for nt in dsl.allowed_node_types],
+            "allowed_edge_types": [et.model_dump() for et in dsl.allowed_edge_types],
         },
         "nodes": graph_data["nodes"],
         "edges": graph_data["edges"],
@@ -123,11 +123,11 @@ async def validate_metamodel_graph(
 
     if not report.is_valid:
         logger.info(
-            f"Metamodel {metamodel_id} validation failed: "
+            f"DSL {dsl_id} validation failed: "
             f"{result['summary']['error_count']} error(s), "
             f"{result['summary']['warning_count']} warning(s)"
         )
     else:
-        logger.info(f"Metamodel {metamodel_id} validation passed")
+        logger.info(f"DSL {dsl_id} validation passed")
 
     return result
