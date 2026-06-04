@@ -11,6 +11,9 @@ import { Messages } from "./pages/development/messages/Messages";
 import { Metamodels } from "./pages/development/metamodels/Metamodels";
 import { MetamodelDetails } from "./pages/development/metamodels/MetamodelDetails";
 import { MetamodelForm } from "./pages/development/metamodels/MetamodelForm";
+import { Projects } from "./pages/development/projects/Projects";
+import { ProjectDetails } from "./pages/development/projects/ProjectDetails";
+import { ProjectForm } from "./pages/development/projects/ProjectForm";
 import Profile from "./pages/profile/Profile";
 import { NotFound } from "./pages/NotFound";
 import { Toaster } from "@/components/ui/toaster";
@@ -97,6 +100,48 @@ function App() {
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <Issues />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Projects routes */}
+          <Route
+            path="/development/projets"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <Projects />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/development/projets/new"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <ProjectForm />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/development/projets/:projectId"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <ProjectDetails />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/development/projets/:projectId/edit"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <ProjectForm />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }

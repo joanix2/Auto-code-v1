@@ -1,4 +1,4 @@
-import { FolderGit2, FileText, Home, Code, Database, Boxes, Users, Lightbulb, Wrench, UserCircle, Map, FileCode, FolderTree, LucideIcon } from "lucide-react";
+import { FolderGit2, FileText, Home, Code, Database, Boxes, Users, Lightbulb, Wrench, UserCircle, Map, FileCode, FolderTree, FolderKanban, LucideIcon } from "lucide-react";
 
 export interface NavigationItem {
   name: string;
@@ -24,10 +24,10 @@ export const navigation: NavigationItem[] = [
     name: "Development",
     icon: Code,
     children: [
-      { name: "Metamodeles", href: "/development/metamodeles", icon: Database },
-      { name: "Modeles", href: "/development/modeles", icon: Boxes },
-      { name: "Templates", href: "/development/templates", icon: FileCode },
+      { name: "Projets", href: "/development/projets", icon: FolderKanban },
+      { name: "DSLs", href: "/development/metamodeles", icon: Database },
       { name: "Repositories", href: "/development/repositories", icon: FolderTree },
+      { name: "Templates", href: "/development/templates", icon: FileCode },
     ],
   },
 ];

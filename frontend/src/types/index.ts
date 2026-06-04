@@ -6,6 +6,7 @@ export * from './user';
 export * from './repository';
 export * from './issue';
 export * from './message';
+export * from './project';
 
 // API Response types
 export interface ApiResponse<T> {
