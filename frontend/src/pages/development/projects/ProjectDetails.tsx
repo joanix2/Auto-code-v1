@@ -123,11 +123,11 @@ function ProjectArchitecture() {
   return (
     <div className="p-3 sm:p-6">
       <h2 className="text-xl font-semibold mb-2">Architecture</h2>
-      <p className="text-sm text-gray-500 mb-6">Définissez les modèles d'architecture liés aux DSLs (métamodèles).</p>
+      <p className="text-sm text-gray-500 mb-6">Définissez les modèles d'architecture liés aux DSLs (DSLs).</p>
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center text-gray-400">
         <Layers className="h-12 w-12 mx-auto mb-4 opacity-50" />
         <p className="text-lg font-medium">Modèles d'architecture</p>
-        <p className="text-sm mt-1">Chaque modèle sera lié à un métamodèle (DSL)</p>
+        <p className="text-sm mt-1">Chaque modèle sera lié à un DSL (DSL)</p>
       </div>
     </div>
   );

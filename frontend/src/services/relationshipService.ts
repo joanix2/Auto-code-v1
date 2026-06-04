@@ -9,7 +9,7 @@ export interface Relationship {
   name: string; // Nom de la relation (obligatoire)
   type: "is_a" | "has_part" | "has_subclass" | "part_of" | "other";
   description?: string;
-  graph_id: string; // ID du metamodel parent
+  graph_id: string; // ID du dsl parent
   x_position?: number;
   y_position?: number;
   created_at: string;
@@ -20,7 +20,7 @@ export interface RelationshipCreate {
   name: string; // Nom de la relation (obligatoire)
   type: "is_a" | "has_part" | "has_subclass" | "part_of" | "other";
   description?: string;
-  graph_id: string; // ID du metamodel parent
+  graph_id: string; // ID du dsl parent
   x_position?: number;
   y_position?: number;
 }
@@ -31,10 +31,10 @@ class RelationshipService extends BaseService<Relationship, RelationshipCreate, 
   protected basePath = "/api/relationships";
 
   /**
-   * Get all relationships for a metamodel
+   * Get all relationships for a dsl
    */
-  async getByMetamodel(metamodelId: string, includeInverse: boolean = true): Promise<Relationship[]> {
-    return apiService.get<Relationship[]>(`${this.basePath}/metamodel/${metamodelId}?include_inverse=${includeInverse}`);
+  async getByDSLGraph(dslId: string, includeInverse: boolean = true): Promise<Relationship[]> {
+    return apiService.get<Relationship[]>(`${this.basePath}/dsl/${dslId}?include_inverse=${includeInverse}`);
   }
 
   /**
@@ -47,8 +47,8 @@ class RelationshipService extends BaseService<Relationship, RelationshipCreate, 
   /**
    * Infer new relationships using ontological reasoning
    */
-  async inferRelationships(metamodelId: string): Promise<{ count: number; relationships: Relationship[]; message: string }> {
-    return apiService.post<{ count: number; relationships: Relationship[]; message: string }>(`${this.basePath}/metamodel/${metamodelId}/infer`, {});
+  async inferRelationships(dslId: string): Promise<{ count: number; relationships: Relationship[]; message: string }> {
+    return apiService.post<{ count: number; relationships: Relationship[]; message: string }>(`${this.basePath}/dsl/${dslId}/infer`, {});
   }
 }
 

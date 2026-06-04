@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { Metamodel } from "@/types/metamodel";
-import { metamodelService } from "@/services/metamodelService";
+import { DSLGraph } from "@/types/dsl";
+import { dslService } from "@/services/dslService";
 import { conceptService, ConceptCreate, type Concept } from "@/services/conceptService";
 import { attributeService, type AttributeCreate as AttributeCreateType, type Attribute } from "@/services/attributeService";
 import { relationshipService, type Relationship, type RelationshipCreate } from "@/services/relationshipService";
@@ -11,41 +11,41 @@ import { useToast } from "@/components/ui/use-toast";
 import { GraphViewer, CreateNodeModal } from "@/components/common/GraphViewer";
 import type { GraphData, GraphNode, GraphEdge, CreateNodeModalNodeTypeConfig } from "@/components/common/GraphViewer";
 import { Button } from "@/components/ui/button";
-import { ConceptForm } from "@/components/development/metamodels/ConceptForm";
-import { AttributeForm } from "@/components/development/metamodels/AttributeForm";
-import { RelationForm } from "@/components/development/metamodels/RelationForm";
+import { ConceptForm } from "@/components/development/dsls/ConceptForm";
+import { AttributeForm } from "@/components/development/dsls/AttributeForm";
+import { RelationForm } from "@/components/development/dsls/RelationForm";
 import { CONCEPT_TYPE, ATTRIBUTE_TYPE, RELATION_TYPE, NODE_TYPES, type NodeTypeId } from "./types";
-import { M3EdgeType } from "@/types/m3";
+import { M3EdgeType } from "@/types/dsl-config";
 
-export function MetamodelDetails() {
+export function DSLDetails() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-  const [metamodel, setMetamodel] = useState<Metamodel | null>(null);
+  const [dsl, setDSLGraph] = useState<DSLGraph | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [isCreateNodeOpen, setIsCreateNodeOpen] = useState(false);
   const [edgeConstraints, setEdgeConstraints] = useState<M3EdgeType[]>([]);
 
-  // Sample graph data - À remplacer par les vraies données du métamodèle
+  // Sample graph data - À remplacer par les vraies données du DSL
   const [graphData, setGraphData] = useState<GraphData>({
     nodes: [],
     edges: [],
   });
 
-  const loadMetamodel = useCallback(async () => {
+  const loadDSLGraph = useCallback(async () => {
     if (!id) {
-      console.warn("⚠️ No metamodel ID provided");
+      console.warn("⚠️ No dsl ID provided");
       setLoading(false);
       return;
     }
 
     // Vérifier que l'ID n'est pas "undefined" (string)
     if (id === "undefined" || id === "null") {
-      console.warn(`⚠️ Invalid metamodel ID: ${id}`);
+      console.warn(`⚠️ Invalid dsl ID: ${id}`);
       setLoading(false);
       toast({
         title: "Erreur",
-        description: "ID de métamodèle invalide. Veuillez sélectionner un métamodèle valide.",
+        description: "ID de DSL invalide. Veuillez sélectionner un DSL valide.",
         variant: "destructive",
       });
       return;
@@ -54,11 +54,11 @@ export function MetamodelDetails() {
     try {
       setLoading(true);
 
-      // Charger le graphe complet (nodes + edges + metamodel details + edgeConstraints) depuis la route optimisée
-      const graphData = await metamodelService.getGraph(id);
+      // Charger le graphe complet (nodes + edges + dsl details + edgeConstraints) depuis la route optimisée
+      const graphData = await dslService.getGraph(id);
 
-      // Extraire les détails du metamodel depuis la réponse
-      setMetamodel(graphData.metamodel);
+      // Extraire les détails du dsl depuis la réponse
+      setDSLGraph(graphData.dsl);
 
       // Les contraintes arrivent directement au format M3 (avec arrays sourceNodeTypes/targetNodeTypes)
       // Le GraphViewer utilise maintenant directement ce format
@@ -111,10 +111,10 @@ export function MetamodelDetails() {
         `📊 Graphe chargé: ${nodes.length} noeuds, ${validEdges.length} edges${allEdges.length !== validEdges.length ? ` (${allEdges.length - validEdges.length} edges orphelins ignorés)` : ""}`,
       );
     } catch (error) {
-      console.error("Error loading metamodel:", error);
+      console.error("Error loading dsl:", error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger le métamodèle.",
+        description: "Impossible de charger le DSL.",
         variant: "destructive",
       });
     } finally {
@@ -123,8 +123,8 @@ export function MetamodelDetails() {
   }, [id, toast]);
 
   useEffect(() => {
-    loadMetamodel();
-  }, [loadMetamodel]);
+    loadDSLGraph();
+  }, [loadDSLGraph]);
 
   const handleNodeClick = (node: GraphNode) => {
     setSelectedNode(node.id);
@@ -689,7 +689,7 @@ export function MetamodelDetails() {
     );
   }
 
-  if (!metamodel) {
+  if (!dsl) {
     return (
       <div className="p-6">
         <p>Métamodèle non trouvé</p>
@@ -736,7 +736,7 @@ export function MetamodelDetails() {
         onCreateNode={handleCreateNode}
         nodeTypes={nodeTypeConfigs}
         title="Créer un nouveau nœud"
-        description="Ajoutez un concept, un attribut ou une relation à votre métamodèle."
+        description="Ajoutez un concept, un attribut ou une relation à votre DSL."
         renderForm={(node, isEditing, onCancel, onTypeChange) => {
           const formRenderer = nodeForms[node.type as keyof typeof nodeForms];
           return formRenderer ? formRenderer(node, isEditing, onCancel, onTypeChange) : null;

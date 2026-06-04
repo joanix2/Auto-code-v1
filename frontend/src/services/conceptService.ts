@@ -36,11 +36,11 @@ class ConceptService extends BaseService<Concept, ConceptCreate, ConceptUpdate> 
   protected basePath = "/api/concepts";
 
   /**
-   * Get all concepts for a metamodel
+   * Get all concepts for a dsl
    */
-  async getByMetamodel(metamodelId: string): Promise<Concept[]> {
+  async getByDSLGraph(dslId: string): Promise<Concept[]> {
     return apiService.get<Concept[]>(this.basePath, {
-      params: { metamodel_id: metamodelId },
+      params: { dsl_id: dslId },
     });
   }
 

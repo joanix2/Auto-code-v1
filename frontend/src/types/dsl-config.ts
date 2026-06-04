@@ -1,5 +1,5 @@
 /**
- * M3 Types - Meta-metamodel type definitions
+ * M3 Types - Meta-dsl type definitions
  *
  * These types match the backend M3 configuration exactly.
  */

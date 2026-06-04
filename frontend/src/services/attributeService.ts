@@ -44,10 +44,10 @@ class AttributeService extends BaseService<Attribute, AttributeCreate, Attribute
   }
 
   /**
-   * Get all attributes for a metamodel
+   * Get all attributes for a dsl
    */
-  async getByMetamodel(metamodelId: string): Promise<Attribute[]> {
-    return apiService.get<Attribute[]>(`${this.basePath}/metamodel/${metamodelId}`);
+  async getByDSLGraph(dslId: string): Promise<Attribute[]> {
+    return apiService.get<Attribute[]>(`${this.basePath}/dsl/${dslId}`);
   }
 
   /**

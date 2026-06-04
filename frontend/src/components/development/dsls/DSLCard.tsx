@@ -1,23 +1,23 @@
 import React from "react";
 import { BaseCard } from "@/components/common/Card/BaseCard";
-import { Metamodel } from "@/types/metamodel";
+import { DSLGraph } from "@/types/dsl";
 import { CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Database, GitBranch, Calendar } from "lucide-react";
 
-interface MetamodelCardProps {
-  data: Metamodel;
+interface DSLCardProps {
+  data: DSLGraph;
   onDelete?: (id: string) => void;
   onEdit?: (id: string) => void;
   onClick?: (id: string) => void;
 }
 
-export class MetamodelCard extends BaseCard<Metamodel> {
+export class DSLCard extends BaseCard<DSLGraph> {
   config = {
     showEdit: true,
     showDelete: true,
     showFooter: true,
-    deleteEntityName: "le métamodèle",
+    deleteEntityName: "le DSL",
   };
 
   getEntityDisplayName(): string {

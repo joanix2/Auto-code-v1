@@ -8,9 +8,9 @@ import { RepositoryDetails } from "./pages/development/repository/RepositoryDeta
 import { Issues } from "./pages/development/issues/Issues";
 import IssueDetails from "./pages/development/issues/IssueDetails";
 import { Messages } from "./pages/development/messages/Messages";
-import { Metamodels } from "./pages/development/metamodels/Metamodels";
-import { MetamodelDetails } from "./pages/development/metamodels/MetamodelDetails";
-import { MetamodelForm } from "./pages/development/metamodels/MetamodelForm";
+import { DSLGraphs } from "./pages/development/dsls/DSLGraphs";
+import { DSLDetails } from "./pages/development/dsls/DSLDetails";
+import { DSLForm } from "./pages/development/dsls/DSLForm";
 import { Projects } from "./pages/development/projects/Projects";
 import { ProjectDetails } from "./pages/development/projects/ProjectDetails";
 import { ProjectForm } from "./pages/development/projects/ProjectForm";
@@ -160,43 +160,43 @@ function App() {
             }
           />
 
-          {/* Metamodels routes */}
+          {/* DSL routes */}
           <Route
-            path="/development/metamodeles"
+            path="/development/dsls"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
-                  <Metamodels />
+                  <DSLGraphs />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }
           />
           <Route
-            path="/development/metamodeles/new"
+            path="/development/dsls/new"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
-                  <MetamodelForm />
+                  <DSLForm />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }
           />
           <Route
-            path="/development/metamodeles/:id"
+            path="/development/dsls/:id"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
-                  <MetamodelDetails />
+                  <DSLDetails />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }
           />
           <Route
-            path="/development/metamodeles/:id/edit"
+            path="/development/dsls/:id/edit"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
-                  <MetamodelForm />
+                  <DSLForm />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }

@@ -1,13 +1,13 @@
-export interface Metamodel {
+export interface DSLGraph {
   id: string;
   name: string;
   description?: string;
   version: string;
-  node_count: number; // Nombre de concepts/nœuds dans le métamodèle
+  node_count: number; // Nombre de concepts/nœuds dans le DSL
   edge_count: number; // Nombre de relations/arêtes
   created_at: string;
   updated_at?: string;
-  owner_id?: string; // Propriétaire du métamodèle
+  owner_id?: string; // Propriétaire du DSL
   status?: "draft" | "validated" | "deprecated";
 
   // Aliases pour rétro-compatibilité (lecture seule)
@@ -16,7 +16,7 @@ export interface Metamodel {
   author?: string;
 }
 
-export interface MetamodelCreate {
+export interface DSLGraphCreate {
   name: string;
   description?: string;
   version: string;
@@ -25,4 +25,4 @@ export interface MetamodelCreate {
   status?: "draft" | "validated" | "deprecated";
 }
 
-export type MetamodelUpdate = Partial<MetamodelCreate>;
+export type DSLGraphUpdate = Partial<DSLGraphCreate>;

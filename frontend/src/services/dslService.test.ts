@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { metamodelService } from "./metamodelService";
+import { dslService } from "./dslService";
 import { apiService } from "./api.service";
 
 vi.mock("./api.service", () => ({
@@ -11,7 +11,7 @@ vi.mock("./api.service", () => ({
   },
 }));
 
-describe("MetamodelService", () => {
+describe("DSLService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -20,9 +20,9 @@ describe("MetamodelService", () => {
     it("calls apiService.get with correct path", async () => {
       vi.mocked(apiService.get).mockResolvedValue([]);
 
-      await metamodelService.getAll();
+      await dslService.getAll();
 
-      expect(apiService.get).toHaveBeenCalledWith("/api/metamodels", { params: undefined });
+      expect(apiService.get).toHaveBeenCalledWith("/api/dsls", { params: undefined });
     });
 
     it("returns metamodels list", async () => {
@@ -31,7 +31,7 @@ describe("MetamodelService", () => {
       ];
       vi.mocked(apiService.get).mockResolvedValue(mockMetamodels);
 
-      const result = await metamodelService.getAll();
+      const result = await dslService.getAll();
 
       expect(result).toEqual(mockMetamodels);
     });
@@ -41,9 +41,9 @@ describe("MetamodelService", () => {
     it("calls apiService.get with correct id", async () => {
       vi.mocked(apiService.get).mockResolvedValue({ id: "1", name: "Test" });
 
-      await metamodelService.getById("1");
+      await dslService.getById("1");
 
-      expect(apiService.get).toHaveBeenCalledWith("/api/metamodels/1");
+      expect(apiService.get).toHaveBeenCalledWith("/api/dsls/1");
     });
   });
 
@@ -52,9 +52,9 @@ describe("MetamodelService", () => {
       const createData = { name: "New Metamodel", version: "1.0" };
       vi.mocked(apiService.post).mockResolvedValue({ id: "1", ...createData });
 
-      await metamodelService.create(createData);
+      await dslService.create(createData);
 
-      expect(apiService.post).toHaveBeenCalledWith("/api/metamodels", createData);
+      expect(apiService.post).toHaveBeenCalledWith("/api/dsls", createData);
     });
   });
 
@@ -63,9 +63,9 @@ describe("MetamodelService", () => {
       const updateData = { name: "Updated" };
       vi.mocked(apiService.put).mockResolvedValue({ id: "1", ...updateData });
 
-      await metamodelService.update("1", updateData);
+      await dslService.update("1", updateData);
 
-      expect(apiService.put).toHaveBeenCalledWith("/api/metamodels/1", updateData);
+      expect(apiService.put).toHaveBeenCalledWith("/api/dsls/1", updateData);
     });
   });
 
@@ -73,9 +73,9 @@ describe("MetamodelService", () => {
     it("sends DELETE request with id", async () => {
       vi.mocked(apiService.delete).mockResolvedValue(undefined);
 
-      await metamodelService.delete("1");
+      await dslService.delete("1");
 
-      expect(apiService.delete).toHaveBeenCalledWith("/api/metamodels/1");
+      expect(apiService.delete).toHaveBeenCalledWith("/api/dsls/1");
     });
   });
 
@@ -83,9 +83,9 @@ describe("MetamodelService", () => {
     it("calls with status query param", async () => {
       vi.mocked(apiService.get).mockResolvedValue([]);
 
-      await metamodelService.getByStatus("draft");
+      await dslService.getByStatus("draft");
 
-      expect(apiService.get).toHaveBeenCalledWith("/api/metamodels", {
+      expect(apiService.get).toHaveBeenCalledWith("/api/dsls", {
         params: { status: "draft" },
       });
     });
@@ -95,9 +95,9 @@ describe("MetamodelService", () => {
     it("calls with author query param", async () => {
       vi.mocked(apiService.get).mockResolvedValue([]);
 
-      await metamodelService.getByAuthor("john");
+      await dslService.getByAuthor("john");
 
-      expect(apiService.get).toHaveBeenCalledWith("/api/metamodels", {
+      expect(apiService.get).toHaveBeenCalledWith("/api/dsls", {
         params: { author: "john" },
       });
     });
@@ -107,9 +107,9 @@ describe("MetamodelService", () => {
     it("sends POST to validate endpoint", async () => {
       vi.mocked(apiService.post).mockResolvedValue({ id: "1", status: "validated" });
 
-      const result = await metamodelService.validate("1");
+      const result = await dslService.validate("1");
 
-      expect(apiService.post).toHaveBeenCalledWith("/api/metamodels/1/validate");
+      expect(apiService.post).toHaveBeenCalledWith("/api/dsls/1/validate");
       expect(result.status).toBe("validated");
     });
   });
@@ -118,9 +118,9 @@ describe("MetamodelService", () => {
     it("sends POST to deprecate endpoint", async () => {
       vi.mocked(apiService.post).mockResolvedValue({ id: "1", status: "deprecated" });
 
-      const result = await metamodelService.deprecate("1");
+      const result = await dslService.deprecate("1");
 
-      expect(apiService.post).toHaveBeenCalledWith("/api/metamodels/1/deprecate");
+      expect(apiService.post).toHaveBeenCalledWith("/api/dsls/1/deprecate");
       expect(result.status).toBe("deprecated");
     });
   });
@@ -135,9 +135,9 @@ describe("MetamodelService", () => {
       };
       vi.mocked(apiService.get).mockResolvedValue(mockGraph);
 
-      const result = await metamodelService.getGraph("1");
+      const result = await dslService.getGraph("1");
 
-      expect(apiService.get).toHaveBeenCalledWith("/api/metamodels/1/graph");
+      expect(apiService.get).toHaveBeenCalledWith("/api/dsls/1/graph");
       expect(result).toEqual(mockGraph);
     });
   });

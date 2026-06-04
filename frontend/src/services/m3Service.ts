@@ -1,14 +1,14 @@
 /**
- * M3 Service - Fetches meta-metamodel configuration from backend
+ * M3 Service - Fetches meta-dsl configuration from backend
  *
- * This service provides access to the M3 (meta-metamodel) configuration,
+ * This service provides access to the M3 (meta-dsl) configuration,
  * which defines the types of nodes and edges available in the system.
  */
 import axios from "axios";
-import { M3NodeType, M3EdgeType } from "@/types/m3";
+import { M3NodeType, M3EdgeType } from "@/types/dsl-config";
 
 // Re-export for convenience
-export type { M3NodeType, M3EdgeType } from "@/types/m3";
+export type { M3NodeType, M3EdgeType } from "@/types/dsl-config";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -16,28 +16,28 @@ export interface GenderType {
   value: "m" | "f" | "n";
 }
 
-export interface M3Config {
+export interface DSLConfig {
   nodeTypes: M3NodeType[];
   edgeTypes: M3EdgeType[];
 }
 
 class M3Service {
   private baseUrl: string;
-  private cachedConfig: M3Config | null = null;
+  private cachedConfig: DSLConfig | null = null;
 
   constructor() {
-    this.baseUrl = `${API_BASE_URL}/api/m3`;
+    this.baseUrl = `${API_BASE_URL}/api/dsl-config`;
   }
 
   /**
    * Get complete M3 configuration (cached)
    */
-  async getConfig(): Promise<M3Config> {
+  async getConfig(): Promise<DSLConfig> {
     if (this.cachedConfig) {
       return this.cachedConfig;
     }
 
-    const response = await axios.get<M3Config>(`${this.baseUrl}/config`);
+    const response = await axios.get<DSLConfig>(`${this.baseUrl}/config`);
     this.cachedConfig = response.data;
     return this.cachedConfig;
   }

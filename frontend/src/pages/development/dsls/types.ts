@@ -1,9 +1,9 @@
 import { NodeType } from "@/components/common/GraphViewer";
 
 /**
- * Type Concept du métamodèle
+ * Type Concept du DSL
  */
-export class ConceptNodeType extends NodeType {
+export class DSLConceptNodeType extends NodeType {
   readonly id = "concept";
   readonly label = "Concept";
   readonly labelPlural = "Concepts";
@@ -12,9 +12,9 @@ export class ConceptNodeType extends NodeType {
 }
 
 /**
- * Type Attribut du métamodèle
+ * Type Attribut du DSL
  */
-export class AttributeNodeType extends NodeType {
+export class DSLAttributeNodeType extends NodeType {
   readonly id = "attribute";
   readonly label = "Attribut";
   readonly labelPlural = "Attributs";
@@ -23,9 +23,9 @@ export class AttributeNodeType extends NodeType {
 }
 
 /**
- * Type Relation du métamodèle
+ * Type Relation du DSL
  */
-export class RelationNodeType extends NodeType {
+export class DSLRelationNodeType extends NodeType {
   readonly id = "relation";
   readonly label = "Relation";
   readonly labelPlural = "Relations";
@@ -36,9 +36,9 @@ export class RelationNodeType extends NodeType {
 /**
  * Instances singleton des types de nœuds
  */
-export const CONCEPT_TYPE = new ConceptNodeType();
-export const ATTRIBUTE_TYPE = new AttributeNodeType();
-export const RELATION_TYPE = new RelationNodeType();
+export const CONCEPT_TYPE = new DSLConceptNodeType();
+export const ATTRIBUTE_TYPE = new DSLAttributeNodeType();
+export const RELATION_TYPE = new DSLRelationNodeType();
 
 /**
  * Union type des IDs de nœuds disponibles

@@ -1,47 +1,47 @@
 import { BaseService } from "./base.service";
-import { Metamodel, MetamodelCreate, MetamodelUpdate } from "@/types/metamodel";
+import { DSLGraph, DSLGraphCreate, DSLGraphUpdate } from "@/types/dsl";
 import { apiService } from "./api.service";
-import { M3EdgeType } from "@/types/m3";
+import { M3EdgeType } from "@/types/dsl-config";
 
 // Re-export for convenience
-export type { M3EdgeType } from "@/types/m3";
+export type { M3EdgeType } from "@/types/dsl-config";
 
-class MetamodelService extends BaseService<Metamodel, MetamodelCreate, MetamodelUpdate> {
-  protected basePath = "/api/metamodels";
+class DSLService extends BaseService<DSLGraph, DSLGraphCreate, DSLGraphUpdate> {
+  protected basePath = "/api/dsls";
 
   /**
-   * Get metamodels by status
+   * Get dsls by status
    */
-  async getByStatus(status: string): Promise<Metamodel[]> {
-    return apiService.get<Metamodel[]>(this.basePath, { params: { status } });
+  async getByStatus(status: string): Promise<DSLGraph[]> {
+    return apiService.get<DSLGraph[]>(this.basePath, { params: { status } });
   }
 
   /**
-   * Get metamodels by author
+   * Get dsls by author
    */
-  async getByAuthor(author: string): Promise<Metamodel[]> {
-    return apiService.get<Metamodel[]>(this.basePath, { params: { author } });
+  async getByAuthor(author: string): Promise<DSLGraph[]> {
+    return apiService.get<DSLGraph[]>(this.basePath, { params: { author } });
   }
 
   /**
-   * Validate a metamodel (change status to validated)
+   * Validate a dsl (change status to validated)
    */
-  async validate(id: string): Promise<Metamodel> {
-    return apiService.post<Metamodel>(`${this.basePath}/${id}/validate`);
+  async validate(id: string): Promise<DSLGraph> {
+    return apiService.post<DSLGraph>(`${this.basePath}/${id}/validate`);
   }
 
   /**
-   * Deprecate a metamodel (change status to deprecated)
+   * Deprecate a dsl (change status to deprecated)
    */
-  async deprecate(id: string): Promise<Metamodel> {
-    return apiService.post<Metamodel>(`${this.basePath}/${id}/deprecate`);
+  async deprecate(id: string): Promise<DSLGraph> {
+    return apiService.post<DSLGraph>(`${this.basePath}/${id}/deprecate`);
   }
 
   /**
-   * Get complete metamodel graph with all nodes and edges
+   * Get complete dsl graph with all nodes and edges
    */
   async getGraph(id: string): Promise<{
-    metamodel: Metamodel; // Objet Metamodel complet
+    dsl: DSLGraph; // Objet DSLGraph complet
     nodes: Array<{
       id: string;
       name: string;
@@ -79,4 +79,4 @@ class MetamodelService extends BaseService<Metamodel, MetamodelCreate, Metamodel
   }
 }
 
-export const metamodelService = new MetamodelService();
+export const dslService = new DSLService();

@@ -50,7 +50,7 @@ describe("Navigation structure", () => {
     it("includes DSLs (renamed from Metamodeles)", () => {
       const dsls = findItem(navigation, "DSLs");
       expect(dsls).toBeDefined();
-      expect(dsls!.href).toBe("/development/metamodeles");
+      expect(dsls!.href).toBe("/development/dsls");
     });
 
     it("no longer has Modeles in development", () => {

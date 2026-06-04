@@ -8,17 +8,17 @@ import { AlertCircle } from "lucide-react";
 import { Form } from "@/components/common/Form/Form";
 import { TextField } from "@/components/common/Form/Fields/TextField";
 import { TextAreaField } from "@/components/common/Form/Fields/TextAreaField";
-import { metamodelService } from "@/services/metamodelService";
-import { MetamodelCreate } from "@/types/metamodel";
+import { dslService } from "@/services/dslService";
+import { DSLGraphCreate } from "@/types/dsl";
 
-interface MetamodelFormData {
+interface DSLFormData {
   name: string;
   description: string;
   version: string;
 }
 
-class MetamodelFormComponent extends Form<MetamodelFormData> {
-  protected validate(data: MetamodelFormData): Record<string, string> {
+class DSLFormComponent extends Form<DSLFormData> {
+  protected validate(data: DSLFormData): Record<string, string> {
     const errors: Record<string, string> = {};
     if (!data.name.trim()) errors.name = "Le nom est requis";
     if (!data.version.trim()) errors.version = "La version est requise";
@@ -35,14 +35,14 @@ class MetamodelFormComponent extends Form<MetamodelFormData> {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{this.props.isCreation ? "Nouveau métamodèle" : "Modifier le métamodèle"}</h1>
-            <p className="text-muted-foreground">Remplissez les informations du métamodèle</p>
+            <h1 className="text-3xl font-bold">{this.props.isCreation ? "Nouveau DSL" : "Modifier le DSL"}</h1>
+            <p className="text-muted-foreground">Remplissez les informations du DSL</p>
           </div>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Informations du métamodèle</CardTitle>
+            <CardTitle>Informations du DSL</CardTitle>
             <CardDescription>Les champs marqués d'un * sont obligatoires</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -62,7 +62,7 @@ class MetamodelFormComponent extends Form<MetamodelFormData> {
               value={data.description || ""}
               onChange={this.handleFieldChange}
               edit={true}
-              placeholder="Description du métamodèle..."
+              placeholder="Description du DSL..."
               rows={4}
               error={errors.description}
             />
@@ -83,12 +83,12 @@ class MetamodelFormComponent extends Form<MetamodelFormData> {
   }
 }
 
-export function MetamodelForm() {
+export function DSLForm() {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const isEditMode = !!id;
   const [loadingEntity, setLoadingEntity] = React.useState(isEditMode);
-  const [initialData, setInitialData] = React.useState<MetamodelFormData | undefined>();
+  const [initialData, setInitialData] = React.useState<DSLFormData | undefined>();
   const [error, setError] = React.useState("");
 
   React.useEffect(() => {
@@ -96,7 +96,7 @@ export function MetamodelForm() {
       setLoadingEntity(false);
       return;
     }
-    metamodelService
+    dslService
       .getById(id)
       .then((data) => {
         setInitialData({ name: data.name, description: data.description || "", version: data.version });
@@ -108,15 +108,15 @@ export function MetamodelForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditMode, id]);
 
-  const handleSubmit = async (data: MetamodelFormData) => {
+  const handleSubmit = async (data: DSLFormData) => {
     try {
       if (isEditMode && id) {
-        await metamodelService.update(id, data);
+        await dslService.update(id, data);
       } else {
-        const createData: MetamodelCreate = { ...data, node_count: 0, edge_count: 0, status: "draft" };
-        await metamodelService.create(createData);
+        const createData: DSLGraphCreate = { ...data, node_count: 0, edge_count: 0, status: "draft" };
+        await dslService.create(createData);
       }
-      navigate("/development/metamodeles");
+      navigate("/development/dsles");
     } catch (err) {
       setError(err?.message || `Erreur lors de ${isEditMode ? "la mise à jour" : "la création"}`);
     }
@@ -141,12 +141,12 @@ export function MetamodelForm() {
         </Alert>
       )}
 
-      <MetamodelFormComponent
+      <DSLFormComponent
         initialData={initialData}
         edit={true}
         isCreation={!isEditMode}
         onSubmit={handleSubmit}
-        onCancel={() => navigate("/development/metamodeles")}
+        onCancel={() => navigate("/development/dsles")}
       />
     </div>
   );
