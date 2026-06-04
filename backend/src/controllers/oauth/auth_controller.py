@@ -146,6 +146,40 @@ async def update_current_user(
     return UserPublic.from_user(updated_user)
 
 
+@router.post("/dev-login")
+async def dev_login(db=Depends(get_db)):
+    """
+    DEV ONLY: Create or return a test user and JWT token.
+    Only available when ENVIRONMENT is not 'production'.
+    """
+    from src.utils.config import config as app_config
+    if app_config.ENVIRONMENT == "production":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not available in production")
+
+    try:
+        from uuid import uuid4
+        user_repo = UserRepository(db)
+        user_service = UserService(user_repo)
+
+        test_username = "e2e-test-user"
+        existing = await user_repo.get_by_username(test_username)
+        if existing:
+            user = existing
+        else:
+            user = await user_service.create({
+                "id": str(uuid4()),
+                "username": test_username,
+                "email": "e2e@example.com",
+                "is_active": True,
+            })
+
+        token = create_access_token(data={"sub": user.username, "user_id": user.id})
+        return {"access_token": token, "token_type": "bearer", "user_id": user.id}
+    except Exception as e:
+        logger.error(f"dev-login error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/logout")
 async def logout(current_user: User = Depends(get_current_user)):
     """

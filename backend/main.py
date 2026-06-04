@@ -30,6 +30,7 @@ from src.controllers.rewrite_controller import router as rewrite_router
 from src.controllers.template_controller import router as template_router
 from src.controllers.validation_controller import router as validation_router
 from src.controllers.codegen_controller import router as codegen_router
+from src.controllers.repository.project_controller import router as project_router
 from src.database import db
 from src.utils.config import config
 
@@ -97,6 +98,7 @@ app.include_router(ontology_router)
 app.include_router(rewrite_router)
 app.include_router(validation_router)
 app.include_router(codegen_router)
+app.include_router(project_router)
 
 
 @app.get("/")

@@ -25,6 +25,9 @@ class Config:
     # Frontend URL
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
+    # Environment
+    ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
     # JWT Settings
     SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production")
     ALGORITHM = "HS256"

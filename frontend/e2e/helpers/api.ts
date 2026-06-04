@@ -3,17 +3,34 @@ import { request, APIRequestContext } from "@playwright/test";
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 let apiContext: APIRequestContext | null = null;
+let authToken: string | null = null;
+
+async function ensureAuth(): Promise<string> {
+  if (authToken) return authToken;
+  const ctx = await request.newContext({ baseURL: BACKEND_URL });
+  const resp = await ctx.post("/api/auth/dev-login");
+  if (!resp.ok()) {
+    throw new Error(`Auth failed: ${resp.status()} ${await resp.text()}`);
+  }
+  const body = await resp.json();
+  authToken = body.access_token;
+  return authToken!;
+}
 
 export async function getApiContext(): Promise<APIRequestContext> {
   if (!apiContext) {
-    apiContext = await request.newContext({ baseURL: BACKEND_URL });
+    const token = await ensureAuth();
+    apiContext = await request.newContext({
+      baseURL: BACKEND_URL,
+      extraHTTPHeaders: { Authorization: `Bearer ${token}` },
+    });
   }
   return apiContext;
 }
 
 export async function healthCheck(): Promise<boolean> {
   try {
-    const ctx = await getApiContext();
+    const ctx = await request.newContext({ baseURL: BACKEND_URL });
     const resp = await ctx.get("/health", { timeout: 5000 });
     return resp.ok();
   } catch {

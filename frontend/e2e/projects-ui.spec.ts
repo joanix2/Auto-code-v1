@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { createProject, deleteProject, cleanupProjects } from "./helpers/api";
+import { createProject, cleanupProjects } from "./helpers/api";
+import { loginAsTestUser } from "./helpers/auth";
 
 test.describe("Projects UI (e2e)", () => {
   let projectId: string;
 
-  test.beforeEach(async () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsTestUser(page);
     await cleanupProjects();
   });
 
@@ -15,8 +17,6 @@ test.describe("Projects UI (e2e)", () => {
   test("projects page loads and shows empty state", async ({ page }) => {
     await page.goto("/development/projets");
     await page.waitForLoadState("networkidle");
-
-    // Should show the projects page
     await expect(page.getByText("Projets").first()).toBeVisible();
   });
 
@@ -24,7 +24,6 @@ test.describe("Projects UI (e2e)", () => {
     await page.goto("/development/projets");
     await page.waitForLoadState("networkidle");
 
-    // Click the create button
     const createBtn = page.getByText("Nouveau projet");
     if (await createBtn.isVisible()) {
       await createBtn.click();
@@ -32,13 +31,12 @@ test.describe("Projects UI (e2e)", () => {
     }
   });
 
-  test("can create a project via UI and see it in the list", async ({ page }) => {
+  test("can see a created project in the list", async ({ page }) => {
     const project = await createProject(`UI Test ${Date.now()}`, "Test from e2e");
     projectId = project.id;
 
     await page.goto("/development/projets");
     await page.waitForLoadState("networkidle");
-
     await expect(page.getByText(project.name).first()).toBeVisible();
   });
 
@@ -48,10 +46,8 @@ test.describe("Projects UI (e2e)", () => {
 
     await page.goto(`/development/projets/${project.id}`);
     await page.waitForLoadState("networkidle");
-
     await expect(page.getByText(project.name).first()).toBeVisible();
 
-    // Check all tabs are present
     await expect(page.getByText("Tickets").first()).toBeVisible();
     await expect(page.getByText("Ontologie").first()).toBeVisible();
     await expect(page.getByText("Architecture").first()).toBeVisible();
@@ -67,7 +63,6 @@ test.describe("Projects UI (e2e)", () => {
     await page.waitForLoadState("networkidle");
     await expect(page.getByText(project.name).first()).toBeVisible();
 
-    // Click each tab and verify content
     const tabs = [
       { name: "Tickets", expected: "Tickets du projet" },
       { name: "Ontologie", expected: "Graphe d'ontologie" },
