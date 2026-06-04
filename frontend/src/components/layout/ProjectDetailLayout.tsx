@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation, Link } from "react-router-dom";
 import { ArrowLeft, Ticket, Network, Layers, GitBranch, BarChart3, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { useProjects } from "@/hooks/useProjects";
 
 interface ProjectDetailLayoutProps {
   children: React.ReactNode;
@@ -25,9 +26,20 @@ export function ProjectDetailLayout({ children, projectId, user, onSignOut }: Pr
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [projectName, setProjectName] = useState<string>("");
+  const { getProject } = useProjects();
   const activeTab = searchParams.get("tab") || "tickets";
 
-  const projectName = (location.state as { projectName?: string } | null)?.projectName || "Projet";
+  useEffect(() => {
+    const stateName = (location.state as { projectName?: string } | null)?.projectName;
+    if (stateName) {
+      setProjectName(stateName);
+    } else if (projectId) {
+      getProject(projectId)
+        .then((p) => setProjectName(p.name))
+        .catch(() => {});
+    }
+  }, [projectId, location.state, getProject]);
 
   const setActiveTab = (value: string) => {
     setSearchParams({ tab: value }, { replace: true });
@@ -53,9 +65,11 @@ export function ProjectDetailLayout({ children, projectId, user, onSignOut }: Pr
               <ArrowLeft className="h-5 w-5" />
             </Button>
 
-            <span className="font-semibold text-sm md:text-base truncate max-w-[150px] md:max-w-[250px] mr-4">{projectName}</span>
+            <span className="font-semibold text-sm md:text-base truncate max-w-[120px] md:max-w-[200px]">{projectName}</span>
 
-            <nav className="hidden md:flex items-center gap-1 ml-2 flex-1 overflow-x-auto">
+            <div className="flex-1" />
+
+            <nav className="hidden md:flex items-center justify-center gap-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.value;
@@ -75,12 +89,12 @@ export function ProjectDetailLayout({ children, projectId, user, onSignOut }: Pr
               })}
             </nav>
 
-            <div className="flex-1 md:hidden" />
+            <div className="flex-1" />
 
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-auto">
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-7 w-7 md:h-8 md:w-8">
                       <AvatarImage src={getProfilePictureUrl()} alt={user.username} />
                       <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
