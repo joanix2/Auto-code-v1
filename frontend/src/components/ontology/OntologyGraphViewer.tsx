@@ -22,30 +22,28 @@ export function OntologyGraphViewer({ issues }: OntologyGraphViewerProps) {
   });
 
   return (
-    <div className="h-full">
-      <GraphViewer
-        data={graphData}
-        showLabels={true}
-        enableZoom={true}
-        enableDrag={true}
-        className="w-full h-full"
-        onBackgroundClick={() => {
-          const name = prompt("Nom du concept :");
-          if (!name) return;
-          setGraphData((prev) => ({
-            ...prev,
-            nodes: [...prev.nodes, { id: `node-${Date.now()}`, label: name, type: "concept", nodeType: ONTOLOGY_CONCEPT }],
-          }));
-        }}
-        onAddNode={() => {
-          const name = prompt("Nom du concept :");
-          if (!name) return;
-          setGraphData((prev) => ({
-            ...prev,
-            nodes: [...prev.nodes, { id: `node-${Date.now()}`, label: name, type: "concept", nodeType: ONTOLOGY_CONCEPT }],
-          }));
-        }}
-      />
-    </div>
+    <GraphViewer
+      data={graphData}
+      showLabels={true}
+      enableZoom={true}
+      enableDrag={true}
+      className="w-full h-full"
+      onBackgroundClick={() => {
+        const name = prompt("Nom du concept :");
+        if (!name) return;
+        setGraphData((prev) => ({
+          ...prev,
+          nodes: [...prev.nodes, { id: `node-${Date.now()}`, label: name, type: "concept", nodeType: ONTOLOGY_CONCEPT }],
+        }));
+      }}
+      onAddNode={() => {
+        const name = prompt("Nom du concept :");
+        if (!name) return;
+        setGraphData((prev) => ({
+          ...prev,
+          nodes: [...prev.nodes, { id: `node-${Date.now()}`, label: name, type: "concept", nodeType: ONTOLOGY_CONCEPT }],
+        }));
+      }}
+    />
   );
 }
