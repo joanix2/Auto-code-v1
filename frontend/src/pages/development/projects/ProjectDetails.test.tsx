@@ -48,7 +48,7 @@ describe("ProjectDetails page", () => {
   it("shows ontologie content when tab=ontologie", async () => {
     vi.mocked(projectService.getById).mockResolvedValue(mockProject);
     renderProjectDetails("proj-1", "ontologie");
-    expect(await screen.findByText("Graphe d'ontologie")).toBeInTheDocument();
+    expect(await screen.findByText("Analyse des tickets")).toBeInTheDocument();
   });
 
   it("shows architecture content when tab=architecture", async () => {

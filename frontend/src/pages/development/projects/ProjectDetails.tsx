@@ -110,14 +110,25 @@ function ProjectTickets({ projectId }: { projectId: string }) {
 function ProjectOntologie() {
   return (
     <div className="p-3 sm:p-6">
-      <h2 className="text-xl font-semibold mb-2">Ontologie</h2>
-      <p className="text-sm text-gray-500 mb-6">
-        Gérez l'ontologie du projet. Les tickets seront lus pour créer des triplets qui généreront cette ontologie.
+      <h2 className="text-xl font-semibold mb-2">Ontologie (Open World)</h2>
+      <p className="text-sm text-gray-500 mb-4">
+        L'ontologie est construite à partir des tickets du projet. Chaque ticket est analysé pour en extraire
+        des triplets (entités, relations) qui forment le graphe d'ontologie.
       </p>
+      <div className="space-y-3 mb-6">
+        <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
+          <Network className="h-5 w-5 flex-shrink-0" />
+          <span>Les concepts découverts dans les tickets sont affichés ici sous forme de graphe libre (Open World)</span>
+        </div>
+        <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">
+          <Layers className="h-5 w-5 flex-shrink-0" />
+          <span>Les concepts peuvent être mappés vers des types DSL dans l'onglet Architecture (Closed World)</span>
+        </div>
+      </div>
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center text-gray-400">
         <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p className="text-lg font-medium">Graphe d'ontologie</p>
-        <p className="text-sm mt-1">Le visualiseur de graphe sera intégré ici</p>
+        <p className="text-lg font-medium">Analyse des tickets</p>
+        <p className="text-sm mt-1">Les tickets seront lus par le pipeline NER pour générer l'ontologie</p>
       </div>
     </div>
   );
@@ -133,6 +144,28 @@ function ProjectArchitecture() {
   }, []);
 
   if (loading) return <div className="p-6 flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
+
+  if (selected) {
+    return (
+      <div className="p-3 sm:p-6">
+        <Button variant="ghost" size="sm" onClick={() => setSelected(null)} className="mb-4">
+          ← Retour à la liste
+        </Button>
+        <h2 className="text-xl font-semibold mb-1">{selected.name}</h2>
+        {selected.description && <p className="text-sm text-gray-500 mb-4">{selected.description}</p>}
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center text-gray-400">
+          <Layers className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p className="text-lg font-medium">Éditeur de graphe d'architecture</p>
+          <p className="text-sm mt-1">Connecté à l'API /api/architecture/{selected.id}</p>
+          <div className="mt-4 text-xs text-gray-500 space-y-1">
+            <p><span className="font-medium">Nœuds :</span> {selected.node_count}</p>
+            <p><span className="font-medium">Liens :</span> {selected.edge_count}</p>
+            {selected.parent_dsl_id && <p><span className="font-medium">DSL parent :</span> {selected.parent_dsl_id}</p>}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-3 sm:p-6">
