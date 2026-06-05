@@ -44,10 +44,19 @@ test.describe("DSL creation", () => {
       headers: { Authorization: `Bearer ${access_token}` },
     });
     expect(resp.ok()).toBeTruthy();
+    const dsl = await resp.json();
 
     // Navigate to DSL list page and verify it appears
     await page.goto("/development/dsls");
     await page.waitForLoadState("networkidle");
+    await expect(page.getByText("E2E DSL Test").first()).toBeVisible();
+
+    // Click on DSL to view details
+    await page.getByText("E2E DSL Test").first().click();
+    await page.waitForLoadState("networkidle");
+    // Should navigate to detail page without error
+    expect(page.url()).toContain(`/development/dsls/${dsl.id}`);
+    // The graph viewer should load (no error state)
     await expect(page.getByText("E2E DSL Test").first()).toBeVisible();
   });
 });

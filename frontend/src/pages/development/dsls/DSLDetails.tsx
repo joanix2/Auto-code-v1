@@ -692,7 +692,7 @@ export function DSLDetails() {
   if (!dsl) {
     return (
       <div className="p-6">
-        <p>Métamodèle non trouvé</p>
+        <p>DSL introuvable</p>
       </div>
     );
   }

@@ -36,7 +36,7 @@ export function DSLGraphs() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Métamodèles</h1>
+        <h1 className="text-3xl font-bold">DSLs</h1>
         <p className="text-muted-foreground mt-2">Gérez vos DSLs MDE (Model-Driven Engineering)</p>
       </div>
 
