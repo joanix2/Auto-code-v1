@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { architectureService, ArchitectureGraph } from "@/services/architectureService";
 import { GraphViewer, GraphData } from "@/components/common/GraphViewer";
+import { OntologyGraphViewer } from "@/components/ontology/OntologyGraphViewer";
+import { ArchitectureGraphViewer } from "@/components/architecture/ArchitectureGraphViewer";
 
 export function ProjectDetails() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -109,29 +111,11 @@ function ProjectTickets({ projectId }: { projectId: string }) {
 
 function ProjectOntologie() {
   const { issues } = useIssues();
-  const graphData: GraphData = React.useMemo(() => {
-    if (!issues || issues.length === 0) return { nodes: [], edges: [] };
-    const nodes = issues.slice(0, 8).map((issue, i) => ({
-      id: `ticket-${i}`,
-      label: issue.title.substring(0, 30),
-      type: "concept",
-      properties: { status: issue.status },
-    }));
-    const edges = nodes.slice(1).map((node, i) => ({
-      id: `edge-${i}`,
-      source: nodes[0].id,
-      target: node.id,
-      label: "relates_to",
-      type: "RELATES_TO",
-    }));
-    return { nodes, edges };
-  }, [issues]);
-
   return (
     <div className="p-3 sm:p-6">
       <h2 className="text-xl font-semibold mb-2">Ontologie (Open World)</h2>
       <p className="text-sm text-gray-500 mb-4">
-        Graphe d'ontologie généré à partir des tickets du projet. Chaque ticket est analysé pour en extraire des entités et relations.
+        Graphe d'ontologie généré à partir des tickets du projet.
       </p>
       {issues.length === 0 ? (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center text-gray-400">
@@ -141,7 +125,7 @@ function ProjectOntologie() {
         </div>
       ) : (
         <div className="h-[500px] border rounded-lg overflow-hidden">
-          <GraphViewer data={graphData} showLabels={true} enableZoom={true} enableDrag={true} className="w-full h-full" />
+          <OntologyGraphViewer issues={issues} />
         </div>
       )}
     </div>
@@ -152,7 +136,6 @@ function ProjectArchitecture() {
   const [archs, setArchs] = useState<ArchitectureGraph[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<ArchitectureGraph | null>(null);
-  const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
 
   useEffect(() => {
     architectureService.getAll().then(setArchs).catch(() => {}).finally(() => setLoading(false));
@@ -173,37 +156,7 @@ function ProjectArchitecture() {
           </div>
         </div>
         <div className="h-[500px] border rounded-lg overflow-hidden">
-          {graphData.nodes.length === 0 ? (
-            <div className="flex items-center justify-center h-full flex-col space-y-4 text-gray-400">
-              <Layers className="h-12 w-12 opacity-50" />
-              <p className="text-lg font-medium">Graphe vide</p>
-              <p className="text-sm">Ajoutez des nœuds pour commencer</p>
-              <Button size="sm" onClick={() => {
-                const name = prompt("Nom du nœud :");
-                if (name) {
-                  const newNode = { id: `node-${Date.now()}`, label: name, type: "component" };
-                  setGraphData((prev) => ({ ...prev, nodes: [...prev.nodes, newNode] }));
-                }
-              }}>
-                <Plus className="h-4 w-4 mr-1" /> Ajouter un nœud
-              </Button>
-            </div>
-          ) : (
-            <GraphViewer
-              data={graphData}
-              showLabels={true}
-              enableZoom={true}
-              enableDrag={true}
-              className="w-full h-full"
-              onBackgroundClick={() => {
-                const name = prompt("Nom du nouveau nœud :");
-                if (name) {
-                  const newNode = { id: `node-${Date.now()}`, label: name, type: "component" };
-                  setGraphData((prev) => ({ ...prev, nodes: [...prev.nodes, newNode] }));
-                }
-              }}
-            />
-          )}
+          <ArchitectureGraphViewer architectureName={selected.name} />
         </div>
       </div>
     );
@@ -236,7 +189,7 @@ function ProjectArchitecture() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {archs.map((arch) => (
-            <Card key={arch.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setSelected(arch); setGraphData({ nodes: [], edges: [] }); }}>
+            <Card key={arch.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelected(arch)}>
               <CardHeader>
                 <CardTitle className="text-base">{arch.name}</CardTitle>
                 {arch.description && <CardDescription>{arch.description}</CardDescription>}
