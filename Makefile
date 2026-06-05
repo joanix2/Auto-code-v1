@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs build clean test deploy-local deploy-aws
+.PHONY: help start stop restart logs build clean test deploy-local deploy-aws kill
 
 help:
 	@echo "╔═══════════════════════════════════════════════╗"
@@ -43,6 +43,9 @@ help:
 	@echo "  make shell-backend    - Open backend shell"
 	@echo "  make shell-frontend   - Open frontend shell"
 	@echo "  make shell-neo4j      - Open Neo4j shell"
+	@echo ""
+	@echo "🔧 Kill:"
+	@echo "  make kill              - Kill backend and frontend instances"
 
 # Development mode (without NPM)
 start-dev:
@@ -271,6 +274,12 @@ shell-neo4j:
 
 shell-npm:
 	docker compose exec nginx-proxy-manager /bin/sh
+
+kill:
+	@echo "🔪 Killing backend and frontend instances..."
+	@-lsof -ti:8000 2>/dev/null | xargs kill -9 2>/dev/null; echo "  Backend (port 8000): killed"
+	@-lsof -ti:3000 2>/dev/null | xargs kill -9 2>/dev/null; echo "  Frontend (port 3000): killed"
+	@echo "✅ Done"
 
 install-frontend:
 	@echo "Installing frontend dependencies..."
