@@ -710,34 +710,25 @@ export function DSLDetails() {
       </div>
       <div className="flex-1 relative overflow-hidden">
       {/* Graphe en plein écran */}
-      {graphData.nodes.length > 0 ? (
-        <GraphViewer
-          data={graphData}
-          onNodeClick={handleNodeClick}
-          onNodeDoubleClick={handleNodeDoubleClick}
-          onEdgeClick={handleEdgeClick}
-          onBackgroundClick={handleBackgroundClick}
-          selectedNodeId={selectedNode}
-          nodeColorMap={nodeColorMap}
-          edgeColorMap={edgeColorMap}
-          showLabels={true}
-          enableZoom={true}
-          enableDrag={true}
-          onDeleteNode={handleDeleteNode}
-          forms={nodeForms}
-          edgeTypes={edgeConstraints}
-          onCreateEdge={handleCreateEdge}
-          onAddNode={() => setIsCreateNodeOpen(true)}
-          className="w-full h-full"
-        />
-      ) : (
-        <div className="flex items-center justify-center h-full w-full flex-col space-y-4">
-          <div className="text-center">
-            <Database className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-4">Aucun concept défini</p>
-          </div>
-        </div>
-      )}
+      <GraphViewer
+        data={graphData}
+        onNodeClick={handleNodeClick}
+        onNodeDoubleClick={handleNodeDoubleClick}
+        onEdgeClick={handleEdgeClick}
+        onBackgroundClick={handleBackgroundClick}
+        selectedNodeId={selectedNode}
+        nodeColorMap={nodeColorMap}
+        edgeColorMap={edgeColorMap}
+        showLabels={true}
+        enableZoom={true}
+        enableDrag={true}
+        onDeleteNode={handleDeleteNode}
+        forms={nodeForms}
+        edgeTypes={edgeConstraints}
+        onCreateEdge={handleCreateEdge}
+        onAddNode={() => setIsCreateNodeOpen(true)}
+        className="w-full h-full"
+      />
 
       {/* Modale de création de nœud */}
       <CreateNodeModal
