@@ -79,10 +79,10 @@ async def validate_dsl_graph(
 
     service = DSLService(
         repository=dsl_repo,
-        concept_repository=concept_repo,
-        attribute_repository=attribute_repo,
+        dsl_concept_repository=concept_repo,
+        dsl_attribute_repository=attribute_repo,
         relationship_repository=relationship_repo,
-        edge_repository=edge_repo,
+        dsl_edge_repository=edge_repo,
     )
 
     try:

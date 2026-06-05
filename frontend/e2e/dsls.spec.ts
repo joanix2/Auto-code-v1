@@ -13,10 +13,8 @@ test.describe("DSL creation", () => {
       data: { name: "Test DSL via API", description: "Created by e2e test", version: "1.0" },
       headers: { Authorization: `Bearer ${access_token}` },
     });
-    const body = await response.text();
-    console.log(`Status: ${response.status()}, Body: ${body.substring(0, 200)}`);
     expect(response.ok()).toBeTruthy();
-    const dsl = JSON.parse(body);
+    const dsl = await response.json();
     expect(dsl.name).toBe("Test DSL via API");
     expect(dsl.id).toBeTruthy();
   });
@@ -30,10 +28,26 @@ test.describe("DSL creation", () => {
   test("can navigate to create DSL form", async ({ page }) => {
     await page.goto("/development/dsls");
     await page.waitForLoadState("networkidle");
-    const createBtn = page.getByText("Nouveau").first();
+    const createBtn = page.getByText("Nouveau DSL").first();
     if (await createBtn.isVisible()) {
       await createBtn.click();
       await expect(page.url()).toContain("/development/dsls/new");
     }
+  });
+
+  test("created DSL appears in the list", async ({ page, request }) => {
+    // Create DSL via API
+    const auth = await request.post("http://localhost:8000/api/auth/dev-login");
+    const { access_token } = await auth.json();
+    const resp = await request.post("http://localhost:8000/api/dsls", {
+      data: { name: "E2E DSL Test", description: "Should appear in list", version: "1.0" },
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+    expect(resp.ok()).toBeTruthy();
+
+    // Navigate to DSL list page and verify it appears
+    await page.goto("/development/dsls");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByText("E2E DSL Test").first()).toBeVisible();
   });
 });

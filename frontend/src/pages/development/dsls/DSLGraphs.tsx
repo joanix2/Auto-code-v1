@@ -13,7 +13,7 @@ export function DSLGraphs() {
     try {
       await deleteDSLGraph(id);
       toast({
-        title: "Métamodèle supprimé",
+        title: "DSL supprimé",
         description: "Le DSL a été supprimé avec succès.",
       });
     } catch (error) {
