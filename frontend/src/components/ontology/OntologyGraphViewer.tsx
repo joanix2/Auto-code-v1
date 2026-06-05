@@ -47,14 +47,16 @@ export function OntologyGraphViewer({ issues }: OntologyGraphViewerProps) {
   }
 
   return (
-    <GraphViewer
-      data={graphData}
-      showLabels={true}
-      enableZoom={true}
-      enableDrag={true}
-      className="w-full h-full"
-      onBackgroundClick={addNode}
-    />
+    <div className="h-full">
+      <GraphViewer
+        data={graphData}
+        showLabels={true}
+        enableZoom={true}
+        enableDrag={true}
+        className="w-full h-full"
+        onBackgroundClick={addNode}
+      />
+    </div>
   );
 }
 

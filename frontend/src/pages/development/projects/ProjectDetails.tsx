@@ -20,6 +20,8 @@ export function ProjectDetails() {
   const { getProject } = useProjects();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const isGraphTab = (searchParams.get("tab") || "tickets") === "ontologie" || (searchParams.get("tab") || "tickets") === "architecture";
 
   useEffect(() => {
     if (projectId) {
@@ -51,12 +53,14 @@ export function ProjectDetails() {
   }
 
   return (
-    <div className="pb-20 md:pb-6">
-      <div className="px-3 sm:px-6 pt-3 sm:pt-6 pb-2">
+    <div className={isGraphTab ? "h-full flex flex-col" : "pb-20 md:pb-6"}>
+      <div className="px-3 sm:px-6 pt-3 sm:pt-6 pb-2 flex-shrink-0">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{project.name}</h1>
         {project.description && <p className="mt-0.5 text-sm text-gray-500">{project.description}</p>}
       </div>
-      <ProjectTabContent projectId={projectId!} />
+      <div className={isGraphTab ? "flex-1 relative" : ""}>
+        <ProjectTabContent projectId={projectId!} />
+      </div>
     </div>
   );
 }
@@ -64,21 +68,29 @@ export function ProjectDetails() {
 function ProjectTabContent({ projectId }: { projectId: string }) {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "tickets";
+  const isGraphTab = activeTab === "ontologie" || activeTab === "architecture";
 
-  switch (activeTab) {
-    case "tickets":
-      return <ProjectTickets projectId={projectId} />;
-    case "ontologie":
-      return <ProjectOntologie />;
-    case "architecture":
-      return <ProjectArchitecture />;
-    case "deploiement":
-      return <ProjectDeploiement />;
-    case "monitoring":
-      return <ProjectMonitoring />;
-    default:
-      return <ProjectTickets projectId={projectId} />;
+  const content = (() => {
+    switch (activeTab) {
+      case "tickets":
+        return <ProjectTickets projectId={projectId} />;
+      case "ontologie":
+        return <ProjectOntologie />;
+      case "architecture":
+        return <ProjectArchitecture />;
+      case "deploiement":
+        return <ProjectDeploiement />;
+      case "monitoring":
+        return <ProjectMonitoring />;
+      default:
+        return <ProjectTickets projectId={projectId} />;
+    }
+  })();
+
+  if (isGraphTab) {
+    return <div className="absolute inset-0">{content}</div>;
   }
+  return content;
 }
 
 function ProjectTickets({ projectId }: { projectId: string }) {
@@ -112,12 +124,12 @@ function ProjectTickets({ projectId }: { projectId: string }) {
 function ProjectOntologie() {
   const { issues } = useIssues();
   return (
-    <div className="p-3 sm:p-6">
-      <h2 className="text-xl font-semibold mb-2">Ontologie (Open World)</h2>
-      <p className="text-sm text-gray-500 mb-4">
-        Graphe d'ontologie généré à partir des tickets du projet.
-      </p>
-      <div className="h-[500px] border rounded-lg overflow-hidden">
+    <div className="h-full flex flex-col">
+      <div className="p-3 sm:px-6 pt-3 sm:pt-4 pb-2 flex-shrink-0">
+        <h2 className="text-lg font-semibold">Ontologie (Open World)</h2>
+        <p className="text-sm text-gray-500">Graphe d'ontologie généré à partir des tickets du projet.</p>
+      </div>
+      <div className="flex-1 border-t overflow-hidden">
         <OntologyGraphViewer issues={issues} />
       </div>
     </div>
@@ -137,17 +149,15 @@ function ProjectArchitecture() {
 
   if (selected) {
     return (
-      <div className="p-3 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
-            ← Retour
-          </Button>
-          <div className="text-right text-xs text-gray-500">
+      <div className="h-full flex flex-col">
+        <div className="flex items-center justify-between p-3 sm:px-6 pt-3 sm:pt-4 pb-2 flex-shrink-0">
+          <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>← Retour</Button>
+          <div className="text-xs text-gray-500">
             <span className="font-medium">{selected.name}</span>
             {selected.parent_dsl_id && <span className="ml-2">DSL: {selected.parent_dsl_id}</span>}
           </div>
         </div>
-        <div className="h-[500px] border rounded-lg overflow-hidden">
+        <div className="flex-1 border-t overflow-hidden">
           <ArchitectureGraphViewer architectureName={selected.name} />
         </div>
       </div>
