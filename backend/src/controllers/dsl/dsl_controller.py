@@ -4,13 +4,13 @@ DSLGraph Controller - Manage MDE (Model-Driven Engineering) dsls
 
 import logging
 import uuid
-import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from ...database import get_db
 from ...models import DSLGraph, DSLGraphCreate, DSLGraphResponse, DSLGraphUpdate
+from ...models.dsl import DSLGraphFullResponse
 from ...models.oauth.user import User
 from ...repositories.dsl.dsl_repository import DSLRepository
 from ...services.dsl.dsl_service import DSLService
@@ -281,7 +281,7 @@ async def deprecate_dsl(
     return await controller.deprecate_dsl(dsl_id)
 
 
-@router.get("/{dsl_id}/graph", response_model=DSLGraphResponse)
+@router.get("/{dsl_id}/graph", response_model=DSLGraphFullResponse)
 async def get_dsl_graph(
     dsl_id: str, current_user: User = Depends(get_current_user), db=Depends(get_db)
 ):
