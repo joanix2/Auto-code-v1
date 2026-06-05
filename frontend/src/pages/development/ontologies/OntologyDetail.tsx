@@ -21,13 +21,13 @@ export function OntologyDetail() {
   if (!ontology) return <div className="p-6"><p className="text-gray-500">Ontologie introuvable</p></div>;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="w-full h-full min-h-screen flex flex-col">
       <div className="flex items-center gap-2 px-4 py-2 border-b bg-white flex-shrink-0">
         <Button variant="ghost" size="sm" onClick={() => navigate("/development/ontologies")}><ArrowLeft className="h-4 w-4" /></Button>
         <span className="font-semibold text-sm">{ontology.name}</span>
         <span className="text-xs text-gray-400 ml-auto">{ontology.node_count} nœuds · {ontology.edge_count} liens</span>
       </div>
-      <div className="flex-1">
+      <div className="flex-1 w-full overflow-hidden">
         <OntologyGraphViewer issues={[]} />
       </div>
     </div>

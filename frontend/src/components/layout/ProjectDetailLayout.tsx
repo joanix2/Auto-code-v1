@@ -124,7 +124,7 @@ export function ProjectDetailLayout({ children, projectId, user, onSignOut }: Pr
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>
+      <main className="flex-1 overflow-hidden bg-gray-50">{children}</main>
 
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
         <div className="flex items-center justify-around">
