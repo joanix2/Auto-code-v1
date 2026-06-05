@@ -116,7 +116,7 @@ export function DSLForm() {
         const createData: DSLGraphCreate = { ...data, node_count: 0, edge_count: 0, status: "draft" };
         await dslService.create(createData);
       }
-      navigate("/development/dsles");
+      navigate("/development/dsls");
     } catch (err) {
       setError(err?.message || `Erreur lors de ${isEditMode ? "la mise à jour" : "la création"}`);
     }
@@ -146,7 +146,7 @@ export function DSLForm() {
         edit={true}
         isCreation={!isEditMode}
         onSubmit={handleSubmit}
-        onCancel={() => navigate("/development/dsles")}
+        onCancel={() => navigate("/development/dsls")}
       />
     </div>
   );

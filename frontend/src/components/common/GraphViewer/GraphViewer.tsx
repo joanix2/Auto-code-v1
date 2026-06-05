@@ -331,8 +331,8 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
 
         {/* Empty state */}
         {data.nodes.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-            <p>No data to display</p>
+          <div className="absolute inset-0 flex items-center justify-center text-gray-400 pointer-events-none">
+            <p>Cliquez sur "Ajouter" ou sur l'arrière-plan pour créer un nœud</p>
           </div>
         )}
 

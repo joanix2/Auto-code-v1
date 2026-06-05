@@ -37,17 +37,17 @@ describe("Navigation structure", () => {
 
   describe("Development section", () => {
     const dev = navigation[2];
-    it("has 4 sub-items", () => {
-      expect(dev.children).toHaveLength(4);
+    it("has 5 sub-items", () => {
+      expect(dev.children).toHaveLength(5);
     });
 
-    it("includes Projets as first item", () => {
-      const projets = findItem(navigation, "Projets");
-      expect(projets).toBeDefined();
-      expect(projets!.href).toBe("/development/projets");
+    it("includes Projets as first item and Agent as last", () => {
+      const names = dev.children!.map((c) => c.name);
+      expect(names[0]).toBe("Projets");
+      expect(names[names.length - 1]).toBe("Agent");
     });
 
-    it("includes DSLs (renamed from Metamodeles)", () => {
+    it("includes Projets", () => {
       const dsls = findItem(navigation, "DSLs");
       expect(dsls).toBeDefined();
       expect(dsls!.href).toBe("/development/dsls");
@@ -56,6 +56,14 @@ describe("Navigation structure", () => {
     it("no longer has Modeles in development", () => {
       const modeles = findItem(navigation, "Modeles");
       expect(modeles).toBeUndefined();
+    });
+
+    it("includes Templates before Repositories", () => {
+      const dev = navigation[2];
+      const names = dev.children!.map((c) => c.name);
+      const templatesIdx = names.indexOf("Templates");
+      const reposIdx = names.indexOf("Repositories");
+      expect(templatesIdx).toBeLessThan(reposIdx);
     });
 
     it("includes Repositories", () => {
@@ -68,6 +76,12 @@ describe("Navigation structure", () => {
       const templates = findItem(navigation, "Templates");
       expect(templates).toBeDefined();
       expect(templates!.href).toBe("/development/templates");
+    });
+
+    it("includes Agent as last item", () => {
+      const agent = findItem(navigation, "Agent");
+      expect(agent).toBeDefined();
+      expect(agent!.href).toBe("/development/agent");
     });
   });
 

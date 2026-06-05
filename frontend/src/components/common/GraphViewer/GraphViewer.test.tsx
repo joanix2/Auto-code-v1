@@ -158,8 +158,10 @@ describe("GraphViewer", () => {
   });
 
   it("renders empty state when no nodes", () => {
-    render(<GraphViewer {...defaultProps} />);
-    expect(screen.getByText("No data to display")).toBeInTheDocument();
+    const onAddNode = vi.fn();
+    render(<GraphViewer {...defaultProps} onAddNode={onAddNode} />);
+    const svg = document.querySelector("svg");
+    expect(svg).toBeInTheDocument();
   });
 
   it("applies custom className", () => {

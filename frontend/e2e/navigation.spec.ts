@@ -24,8 +24,9 @@ test.describe("Navigation", () => {
       await devAccordion.click();
       await expect(page.getByText("Projets").first()).toBeVisible();
       await expect(page.getByText("DSLs").first()).toBeVisible();
-      await expect(page.getByText("Repositories").first()).toBeVisible();
       await expect(page.getByText("Templates").first()).toBeVisible();
+      await expect(page.getByText("Repositories").first()).toBeVisible();
+      await expect(page.getByText("Agent").first()).toBeVisible();
     }
   });
 });

@@ -4,6 +4,7 @@ DSLGraph Controller - Manage MDE (Model-Driven Engineering) dsls
 
 import logging
 import uuid
+import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -62,6 +63,9 @@ class DSLController(BaseController[DSLGraph, DSLGraphCreate, DSLGraphUpdate]):
         # Filter to only DSLGraph fields (exclude DSLGraphCreate-only fields)
         dsl_fields = set(DSLGraph.model_fields.keys())
         filtered = {k: v for k, v in result.items() if k in dsl_fields or k == "owner_id"}
+        # Generate ID if not present
+        if "id" not in filtered:
+            filtered["id"] = str(uuid.uuid4())
         # Ensure description is string, not None
         if "description" in filtered and filtered["description"] is None:
             filtered["description"] = ""

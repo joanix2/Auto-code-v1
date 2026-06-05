@@ -26,11 +26,11 @@ export function DSLGraphs() {
   };
 
   const handleEdit = (id: string) => {
-    navigate(`/development/dsles/${id}/edit`);
+    navigate(`/development/dsls/${id}/edit`);
   };
 
   const handleClick = (id: string) => {
-    navigate(`/development/dsles/${id}`);
+    navigate(`/development/dsls/${id}`);
   };
 
   return (
@@ -40,7 +40,7 @@ export function DSLGraphs() {
         <p className="text-muted-foreground mt-2">Gérez vos DSLs MDE (Model-Driven Engineering)</p>
       </div>
 
-      <DSLList items={dsls} onDelete={handleDelete} onEdit={handleEdit} onClick={handleClick} loading={loading} createUrl="/development/dsles/new" showSync={false} />
+      <DSLList items={dsls} onDelete={handleDelete} onEdit={handleEdit} onClick={handleClick} loading={loading} createUrl="/development/dsls/new" showSync={false} />
     </div>
   );
 }
