@@ -72,7 +72,7 @@ function DSLDetailPageWrapper({ children }: { children: React.ReactNode }) {
   }, [id]);
 
   return (
-    <FullPageLayout title={title} backUrl="/development/dsls" hideHeader user={user} onSignOut={signOut}>
+    <FullPageLayout title={title} backUrl="/development/dsls" user={user} onSignOut={signOut}>
       {children}
     </FullPageLayout>
   );
