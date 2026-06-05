@@ -54,7 +54,7 @@ describe("ProjectDetails page", () => {
   it("shows architecture content when tab=architecture", async () => {
     vi.mocked(projectService.getById).mockResolvedValue(mockProject);
     renderProjectDetails("proj-1", "architecture");
-    expect(await screen.findByText("Modèles d'architecture")).toBeInTheDocument();
+    expect(await screen.findByText("Architecture")).toBeInTheDocument();
   });
 
   it("shows deploiement content when tab=deploiement", async () => {

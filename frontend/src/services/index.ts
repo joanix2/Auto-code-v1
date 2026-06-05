@@ -12,6 +12,7 @@ export * from "./repository.service";
 export * from "./message.service";
 export * from "./copilot.service";
 export * from "./project.service";
+export * from "./architectureService";
 
 // Re-export service instances
 export { issueService } from "./issue.service";
@@ -19,4 +20,5 @@ export { repositoryService } from "./repository.service";
 export { messageService } from "./message.service";
 export { copilotService } from "./copilot.service";
 export { projectService } from "./project.service";
+export { architectureService } from "./architectureService";
 export { apiService } from "./api.service";

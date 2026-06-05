@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { Network, Layers, GitBranch, BarChart3 } from "lucide-react";
+import { Network, Layers, GitBranch, BarChart3, Plus, FolderKanban, Loader2 } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { Project } from "@/types/project";
 import { IssueList } from "@/components/development/issues/IssueList";
 import { useIssues } from "@/hooks/useIssues";
 import { IssueStatusFilter } from "@/components/development/issues/IssueStatusFilter";
 import { IssueStatus } from "@/types/issue";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { architectureService, ArchitectureGraph } from "@/services/architectureService";
+import { GraphViewer, GraphData } from "@/components/common/GraphViewer";
 
 export function ProjectDetails() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -120,15 +124,55 @@ function ProjectOntologie() {
 }
 
 function ProjectArchitecture() {
+  const [archs, setArchs] = useState<ArchitectureGraph[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<ArchitectureGraph | null>(null);
+
+  useEffect(() => {
+    architectureService.getAll().then(setArchs).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="p-6 flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
+
   return (
     <div className="p-3 sm:p-6">
-      <h2 className="text-xl font-semibold mb-2">Architecture</h2>
-      <p className="text-sm text-gray-500 mb-6">Définissez les modèles d'architecture liés aux DSLs (DSLs).</p>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center text-gray-400">
-        <Layers className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p className="text-lg font-medium">Modèles d'architecture</p>
-        <p className="text-sm mt-1">Chaque modèle sera lié à un DSL (DSL)</p>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-xl font-semibold">Architecture</h2>
+          <p className="text-sm text-gray-500">Modèles d'architecture liés aux DSLs</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={async () => {
+          const name = prompt("Nom du modèle d'architecture :");
+          if (name) {
+            const created = await architectureService.create({ name });
+            setArchs((prev) => [...prev, created]);
+          }
+        }}>
+          <Plus className="h-4 w-4 mr-1" /> Nouveau
+        </Button>
       </div>
+
+      {archs.length === 0 ? (
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center text-gray-400">
+          <Layers className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p className="text-lg font-medium">Aucun modèle d'architecture</p>
+          <p className="text-sm mt-1">Créez un modèle d'architecture lié à un DSL</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {archs.map((arch) => (
+            <Card key={arch.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelected(arch)}>
+              <CardHeader>
+                <CardTitle className="text-base">{arch.name}</CardTitle>
+                {arch.description && <CardDescription>{arch.description}</CardDescription>}
+              </CardHeader>
+              <CardContent className="text-sm text-gray-500">
+                {arch.node_count} nœuds · {arch.edge_count} liens
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
