@@ -54,10 +54,12 @@ export function ProjectDetails() {
 
   return (
     <div className={isGraphTab ? "absolute inset-0" : "pb-20 md:pb-6"}>
-      <div className="px-3 sm:px-6 pt-3 sm:pt-6 pb-2 flex-shrink-0">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{project.name}</h1>
-        {project.description && <p className="mt-0.5 text-sm text-gray-500">{project.description}</p>}
-      </div>
+      {!isGraphTab && (
+        <div className="px-3 sm:px-6 pt-3 sm:pt-6 pb-2 flex-shrink-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{project.name}</h1>
+          {project.description && <p className="mt-0.5 text-sm text-gray-500">{project.description}</p>}
+        </div>
+      )}
       <ProjectTabContent projectId={projectId!} />
     </div>
   );
