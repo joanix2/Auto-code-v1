@@ -117,17 +117,9 @@ function ProjectOntologie() {
       <p className="text-sm text-gray-500 mb-4">
         Graphe d'ontologie généré à partir des tickets du projet.
       </p>
-      {issues.length === 0 ? (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center text-gray-400">
-          <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p className="text-lg font-medium">Aucun ticket</p>
-          <p className="text-sm mt-1">Créez des tickets pour générer le graphe d'ontologie</p>
-        </div>
-      ) : (
-        <div className="h-[500px] border rounded-lg overflow-hidden">
-          <OntologyGraphViewer issues={issues} />
-        </div>
-      )}
+      <div className="h-[500px] border rounded-lg overflow-hidden">
+        <OntologyGraphViewer issues={issues} />
+      </div>
     </div>
   );
 }

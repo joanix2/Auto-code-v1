@@ -56,7 +56,7 @@ test.describe("Projects UI (e2e)", () => {
 
     const tabs = [
       { name: "Tickets", expected: "Tous" },
-      { name: "Ontologie", expected: "Aucun ticket" },
+      { name: "Ontologie", expected: "Graphe d'ontologie vide" },
       { name: "Architecture", expected: "Modèles d'architecture" },
       { name: "Déploiement", expected: "Déploiement continu" },
       { name: "Monitoring", expected: "Monitoring" },
