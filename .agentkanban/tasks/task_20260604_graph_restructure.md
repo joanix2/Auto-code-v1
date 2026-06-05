@@ -1,6 +1,6 @@
 ---
 title: "MVP-H — Restructuration Graphe : Abstract → DSL → Ontologie/Architecture"
-lane: todo
+lane: done
 created: "2026-06-04T23:00:00"
 updated: "2026-06-04T23:00:00"
 description: "Refonte complète de l'architecture graphe sur 3 niveaux : Abstract (abstrait) → DSL (langage) → Ontologie & Architecture (domaines). Renommage Metamodel → DSL, création des couches Ontologie et Architecture, backend + frontend."

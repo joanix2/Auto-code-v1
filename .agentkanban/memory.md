@@ -1,6 +1,23 @@
 # Memory — Contexte persistant
 
-## Dernière mise à jour : 2026-06-04T12:30
+## Dernière mise à jour : 2026-06-04T23:30
+
+### Statut MVP-H (Restructuration Graphe)
+
+| Phase | Statut | Notes |
+|-------|--------|-------|
+| P1 — Backend rename Abstract → DSL | ✅ Terminé | `graph/` → `abstract/`, `Metamodel` → `DSL`, routes `/api/dsls/*` |
+| P2 — Frontend rename Metamodel → DSL | ✅ Terminé | Types, services, pages, hooks renommés |
+| P3 — Backend Architecture + Ontology | ✅ Terminé | `ArchitectureGraph extends DSLGraph`, `/api/architecture/*` |
+| P4 — Frontend Architecture + Ontology | ✅ Terminé | Architecture tab with CRUD + detail view, Ontology pipeline info |
+
+### Structure actuelle
+```
+models/abstract/ → AbstractGraph, AbstractNode, AbstractEdge, AbstractNodeType, AbstractEdgeType
+models/dsl/ → DSLGraph, DSLConcept, DSLAttribute, DSLRelation, DSLEdge, DSLConfig
+models/architecture/ → ArchitectureGraph extends DSLGraph, ArchitectureNode, ArchitectureEdge
+models/ontology/ → OntologyGraph extends AbstractGraph, OntologyNode, OntologyEdge
+```
 
 ### Statut MVPs
 

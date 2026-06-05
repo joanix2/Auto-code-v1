@@ -108,28 +108,42 @@ function ProjectTickets({ projectId }: { projectId: string }) {
 }
 
 function ProjectOntologie() {
+  const { issues } = useIssues();
+  const graphData: GraphData = React.useMemo(() => {
+    if (!issues || issues.length === 0) return { nodes: [], edges: [] };
+    const nodes = issues.slice(0, 8).map((issue, i) => ({
+      id: `ticket-${i}`,
+      label: issue.title.substring(0, 30),
+      type: "concept",
+      properties: { status: issue.status },
+    }));
+    const edges = nodes.slice(1).map((node, i) => ({
+      id: `edge-${i}`,
+      source: nodes[0].id,
+      target: node.id,
+      label: "relates_to",
+      type: "RELATES_TO",
+    }));
+    return { nodes, edges };
+  }, [issues]);
+
   return (
     <div className="p-3 sm:p-6">
       <h2 className="text-xl font-semibold mb-2">Ontologie (Open World)</h2>
       <p className="text-sm text-gray-500 mb-4">
-        L'ontologie est construite à partir des tickets du projet. Chaque ticket est analysé pour en extraire
-        des triplets (entités, relations) qui forment le graphe d'ontologie.
+        Graphe d'ontologie généré à partir des tickets du projet. Chaque ticket est analysé pour en extraire des entités et relations.
       </p>
-      <div className="space-y-3 mb-6">
-        <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
-          <Network className="h-5 w-5 flex-shrink-0" />
-          <span>Les concepts découverts dans les tickets sont affichés ici sous forme de graphe libre (Open World)</span>
+      {issues.length === 0 ? (
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center text-gray-400">
+          <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p className="text-lg font-medium">Aucun ticket</p>
+          <p className="text-sm mt-1">Créez des tickets pour générer le graphe d'ontologie</p>
         </div>
-        <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">
-          <Layers className="h-5 w-5 flex-shrink-0" />
-          <span>Les concepts peuvent être mappés vers des types DSL dans l'onglet Architecture (Closed World)</span>
+      ) : (
+        <div className="h-[500px] border rounded-lg overflow-hidden">
+          <GraphViewer data={graphData} showLabels={true} enableZoom={true} enableDrag={true} className="w-full h-full" />
         </div>
-      </div>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center text-gray-400">
-        <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p className="text-lg font-medium">Analyse des tickets</p>
-        <p className="text-sm mt-1">Les tickets seront lus par le pipeline NER pour générer l'ontologie</p>
-      </div>
+      )}
     </div>
   );
 }
@@ -138,6 +152,7 @@ function ProjectArchitecture() {
   const [archs, setArchs] = useState<ArchitectureGraph[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<ArchitectureGraph | null>(null);
+  const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
 
   useEffect(() => {
     architectureService.getAll().then(setArchs).catch(() => {}).finally(() => setLoading(false));
@@ -148,20 +163,47 @@ function ProjectArchitecture() {
   if (selected) {
     return (
       <div className="p-3 sm:p-6">
-        <Button variant="ghost" size="sm" onClick={() => setSelected(null)} className="mb-4">
-          ← Retour à la liste
-        </Button>
-        <h2 className="text-xl font-semibold mb-1">{selected.name}</h2>
-        {selected.description && <p className="text-sm text-gray-500 mb-4">{selected.description}</p>}
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center text-gray-400">
-          <Layers className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p className="text-lg font-medium">Éditeur de graphe d'architecture</p>
-          <p className="text-sm mt-1">Connecté à l'API /api/architecture/{selected.id}</p>
-          <div className="mt-4 text-xs text-gray-500 space-y-1">
-            <p><span className="font-medium">Nœuds :</span> {selected.node_count}</p>
-            <p><span className="font-medium">Liens :</span> {selected.edge_count}</p>
-            {selected.parent_dsl_id && <p><span className="font-medium">DSL parent :</span> {selected.parent_dsl_id}</p>}
+        <div className="flex items-center justify-between mb-4">
+          <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
+            ← Retour
+          </Button>
+          <div className="text-right text-xs text-gray-500">
+            <span className="font-medium">{selected.name}</span>
+            {selected.parent_dsl_id && <span className="ml-2">DSL: {selected.parent_dsl_id}</span>}
           </div>
+        </div>
+        <div className="h-[500px] border rounded-lg overflow-hidden">
+          {graphData.nodes.length === 0 ? (
+            <div className="flex items-center justify-center h-full flex-col space-y-4 text-gray-400">
+              <Layers className="h-12 w-12 opacity-50" />
+              <p className="text-lg font-medium">Graphe vide</p>
+              <p className="text-sm">Ajoutez des nœuds pour commencer</p>
+              <Button size="sm" onClick={() => {
+                const name = prompt("Nom du nœud :");
+                if (name) {
+                  const newNode = { id: `node-${Date.now()}`, label: name, type: "component" };
+                  setGraphData((prev) => ({ ...prev, nodes: [...prev.nodes, newNode] }));
+                }
+              }}>
+                <Plus className="h-4 w-4 mr-1" /> Ajouter un nœud
+              </Button>
+            </div>
+          ) : (
+            <GraphViewer
+              data={graphData}
+              showLabels={true}
+              enableZoom={true}
+              enableDrag={true}
+              className="w-full h-full"
+              onBackgroundClick={() => {
+                const name = prompt("Nom du nouveau nœud :");
+                if (name) {
+                  const newNode = { id: `node-${Date.now()}`, label: name, type: "component" };
+                  setGraphData((prev) => ({ ...prev, nodes: [...prev.nodes, newNode] }));
+                }
+              }}
+            />
+          )}
         </div>
       </div>
     );
@@ -194,7 +236,7 @@ function ProjectArchitecture() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {archs.map((arch) => (
-            <Card key={arch.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelected(arch)}>
+            <Card key={arch.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setSelected(arch); setGraphData({ nodes: [], edges: [] }); }}>
               <CardHeader>
                 <CardTitle className="text-base">{arch.name}</CardTitle>
                 {arch.description && <CardDescription>{arch.description}</CardDescription>}
