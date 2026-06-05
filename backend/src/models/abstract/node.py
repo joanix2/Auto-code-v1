@@ -24,7 +24,7 @@ class AbstractNode(BaseEntity, BaseSemanticModel, ABC):
     """
 
     # Graph metadata
-    graph_id: str = Field(..., description="ID of the parent graph (metamodel)")
+    graph_id: str = Field(..., description="ID of the parent graph (dsl)")
     node_type: AbstractNodeType = Field(..., description="Type definition of this node (M3 metadata)")
 
     # Position for graph visualization

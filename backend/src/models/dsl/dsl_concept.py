@@ -1,5 +1,5 @@
 """
-Concept Model - Represents classes in the metamodel (MDE)
+Concept Model - Represents classes in the dsl (MDE)
 Simplified for Neo4j graph database
 """
 
@@ -10,13 +10,13 @@ from ..abstract import AbstractNode
 
 class DSLConcept(AbstractNode):
     """
-    Concept - Represents a class/entity in the metamodel (a node in the graph)
+    Concept - Represents a class/entity in the dsl (a node in the graph)
     Stored as a node in Neo4j with relationships to attributes
 
     Inherits from Node:
     - name, description (from Node)
     - x_position, y_position (for graph visualization)
-    - graph_id (parent metamodel)
+    - graph_id (parent dsl)
     """
 
     # Abstract methods implementation

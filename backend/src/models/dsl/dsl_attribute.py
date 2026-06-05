@@ -28,7 +28,7 @@ class DSLAttribute(AbstractNode):
     Inherits from Node:
     - name, description (from Node)
     - x_position, y_position (for graph visualization)
-    - graph_id (parent metamodel)
+    - graph_id (parent dsl)
     """
 
     type: AttributeType = Field(..., description="Attribute type")
@@ -80,7 +80,7 @@ class DSLAttributeCreate(BaseModel):
     is_required: bool = False
     is_unique: bool = False
     concept_id: str | None = None  # Optional - can be linked to concept later
-    graph_id: str  # Required - must belong to a metamodel
+    graph_id: str  # Required - must belong to a dsl
 
 
 class DSLAttributeUpdate(BaseModel):

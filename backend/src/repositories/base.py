@@ -94,8 +94,8 @@ def convert_neo4j_types(node: dict[str, Any]) -> dict[str, Any]:
 
     # Backward compatibility: map old field names to new ones
     # For concepts that still have old field names in Neo4j
-    if "metamodel_id" in converted and "graph_id" not in converted:
-        converted["graph_id"] = converted["metamodel_id"]
+    if "dsl_id" in converted and "graph_id" not in converted:
+        converted["graph_id"] = converted["dsl_id"]
     if "x" in converted and "x_position" not in converted:
         converted["x_position"] = converted["x"]
     if "y" in converted and "y_position" not in converted:

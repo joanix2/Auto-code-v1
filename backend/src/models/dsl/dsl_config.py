@@ -1,7 +1,7 @@
 """
-M3 Configuration - Meta-metamodel type definitions
+M3 Configuration - Meta-dsl type definitions
 
-This defines the concrete types available in the metamodel layer.
+This defines the concrete types available in the dsl layer.
 This is the single source of truth for node and edge types.
 """
 
@@ -100,7 +100,7 @@ EDGE_TYPES_BY_ID: dict[str, AbstractEdgeType] = {et.name: et for et in EDGE_TYPE
 
 class DSLConfig:
     """
-    M3 Configuration class providing access to all metamodel types
+    M3 Configuration class providing access to all dsl types
     """
 
     @staticmethod

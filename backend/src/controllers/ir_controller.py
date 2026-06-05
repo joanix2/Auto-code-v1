@@ -212,7 +212,7 @@ async def load_ir_graph(
     if not dsl:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Metamodel {dsl_id} not found in database",
+            detail=f"DSL {dsl_id} not found in database",
         )
 
     # Clear existing graph data (nodes + edges)

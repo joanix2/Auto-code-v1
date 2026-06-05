@@ -9,7 +9,7 @@ from ..base import BaseSemanticModel
 
 class AbstractEdgeType(BaseSemanticModel):
     """
-    M3 EdgeType - Defines a type of edge in the metamodel
+    M3 EdgeType - Defines a type of edge in the dsl
 
     This is a meta-class that defines what types of edges can exist
     and which node types they can connect.

@@ -23,7 +23,7 @@ class AbstractEdge(BaseEntity, BaseSemanticModel, ABC):
     """
 
     # Graph metadata
-    graph_id: str = Field(..., description="ID of the parent graph (metamodel)")
+    graph_id: str = Field(..., description="ID of the parent graph (dsl)")
     edge_type: str = Field(..., description="Type of this edge")
 
     # Source and target nodes

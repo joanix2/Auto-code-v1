@@ -1,5 +1,5 @@
 """
-M3 Controller - API endpoints for meta-metamodel configuration
+M3 Controller - API endpoints for meta-dsl configuration
 
 This exposes the M3 type system (NodeType, EdgeType) to the frontend.
 """

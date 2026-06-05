@@ -9,10 +9,10 @@ from ..base import BaseSemanticModel, GenderType
 
 class AbstractNodeType(BaseSemanticModel):
     """
-    M3 NodeType - Defines a type of node in the metamodel
+    M3 NodeType - Defines a type of node in the dsl
 
     This is a meta-class that defines what types of nodes can exist.
-    Example: In a metamodel, we can have Concept, Attribute, Relation nodes.
+    Example: In a dsl, we can have Concept, Attribute, Relation nodes.
 
     Inherits from BaseSemanticModel (name, description) but NOT BaseEntity (no id).
     This is a configuration/metadata class, not a database entity.

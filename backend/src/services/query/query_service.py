@@ -24,7 +24,7 @@ NODE_KIND_LABELS: dict[str, str] = {
     "concept": "Concept",
     "attribute": "Attribute",
     "relation": "Relationship",
-    "metamodel": "Metamodel",
+    "dsl": "DSL",
 }
 
 # Mapping of edge kind strings to Neo4j relationship types
@@ -54,7 +54,7 @@ class QueryService:
         self.attribute_repo = DSLAttributeRepository(db)
         self.relationship_repo = DSLRelationRepository(db)
         self.edge_repo = DSLEdgeRepository(db)
-        self.metamodel_repo = DSLRepository(db)
+        self.dsl_repo = DSLRepository(db)
 
     # ------------------------------------------------------------------
     # Selectors
@@ -63,11 +63,11 @@ class QueryService:
     def get_nodes_by_kind(
         self, kind: str, graph_id: str | None = None
     ) -> list[dict[str, Any]]:
-        """Get all nodes of a given kind (concept, attribute, relation, metamodel).
+        """Get all nodes of a given kind (concept, attribute, relation, dsl).
         
         Args:
-            kind: Node type name — one of 'concept', 'attribute', 'relation', 'metamodel'.
-            graph_id: Optional graph/metamodel ID to scope results.
+            kind: Node type name — one of 'concept', 'attribute', 'relation', 'dsl'.
+            graph_id: Optional graph/dsl ID to scope results.
             
         Returns:
             List of node dicts with Neo4j-native types converted.
@@ -115,7 +115,7 @@ class QueryService:
         
         Args:
             kind: Edge type name — one of 'domain', 'range', 'has_attribute', 'subclass_of'.
-            graph_id: Optional graph/metamodel ID to scope results.
+            graph_id: Optional graph/dsl ID to scope results.
             
         Returns:
             List of edge dicts with source, target, and properties.
@@ -185,7 +185,7 @@ class QueryService:
         
         Args:
             node_id: ID of the node to find neighbors for.
-            graph_id: Optional graph/metamodel ID to scope results.
+            graph_id: Optional graph/dsl ID to scope results.
             
         Returns:
             List of neighbor node dicts, each with an added '_via' key
@@ -233,7 +233,7 @@ class QueryService:
         
         Args:
             node_id: ID of the node.
-            graph_id: Optional graph/metamodel ID to scope results.
+            graph_id: Optional graph/dsl ID to scope results.
             
         Returns:
             List of edge dicts with direction (incoming/outgoing).
@@ -305,7 +305,7 @@ class QueryService:
         Args:
             root_id: ID of the root node.
             max_depth: Maximum recursion depth (default 5).
-            graph_id: Optional graph/metamodel ID to scope the query.
+            graph_id: Optional graph/dsl ID to scope the query.
             _visited: Internal set for cycle detection (do not pass externally).
             _depth: Internal recursion depth counter.
             
@@ -450,7 +450,7 @@ class QueryService:
         
         Each pattern element is a dict with:
         - 'alias': str (variable name for the match)
-        - 'kind': str | None (node kind: concept, attribute, relation, metamodel)
+        - 'kind': str | None (node kind: concept, attribute, relation, dsl)
         - 'edges': list of dicts with:
             - 'to': str (alias of target node)
             - 'type': str | None (edge type to match)
@@ -465,7 +465,7 @@ class QueryService:
         
         Args:
             pattern: List of node specifiers.
-            graph_id: Optional graph/metamodel ID to scope.
+            graph_id: Optional graph/dsl ID to scope.
             
         Returns:
             List of matched sub-graphs, each being a dict of alias → node data.

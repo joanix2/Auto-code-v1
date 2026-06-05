@@ -1,5 +1,5 @@
 """
-MetamodelEdge - Edges in the metamodel graph (domain, range, has_attribute, etc.)
+DSLEdge - Edges in the dsl graph (domain, range, has_attribute, etc.)
 """
 
 from enum import Enum
@@ -10,7 +10,7 @@ from ..abstract.edge import AbstractEdge
 
 
 class DSLEdgeType(str, Enum):
-    """Types of edges in a metamodel"""
+    """Types of edges in a dsl"""
 
     DOMAIN = "domain"  # Relation → Source Concept
     RANGE = "range"  # Relation → Target Concept
@@ -34,7 +34,7 @@ class DSLEdgeType(str, Enum):
 
 class DSLEdge(AbstractEdge):
     """
-    MetamodelEdge - Represents connections in the metamodel graph
+    DSLEdge - Represents connections in the dsl graph
 
     Types d'edges:
     - DOMAIN: Relie une Relation à son Concept source
@@ -49,7 +49,7 @@ class DSLEdge(AbstractEdge):
     (Concept)-[:SUBCLASS_OF]->(Concept)
     """
 
-    edge_type: DSLEdgeType = Field(..., description="Type of metamodel edge")
+    edge_type: DSLEdgeType = Field(..., description="Type of dsl edge")
 
     def get_edge_type(self) -> str:
         """Return the edge type"""
@@ -60,7 +60,7 @@ class DSLEdge(AbstractEdge):
         return self.edge_type.get_display_label()
 
     def is_directed(self) -> bool:
-        """All metamodel edges are directed"""
+        """All dsl edges are directed"""
         return True
 
     class Config:
@@ -68,22 +68,22 @@ class DSLEdge(AbstractEdge):
 
 
 class DSLEdgeCreate(BaseModel):
-    """Schema for creating a metamodel edge"""
+    """Schema for creating a dsl edge"""
 
-    edge_type: DSLEdgeType = Field(..., description="Type of metamodel edge")
+    edge_type: DSLEdgeType = Field(..., description="Type of dsl edge")
     source_id: str = Field(..., description="ID of the source node")
     target_id: str = Field(..., description="ID of the target node")
-    graph_id: str = Field(..., description="ID of the metamodel")
+    graph_id: str = Field(..., description="ID of the dsl")
     description: str | None = None
 
 
 class DSLEdgeUpdate(BaseModel):
-    """Schema for updating a metamodel edge"""
+    """Schema for updating a dsl edge"""
 
     description: str | None = None
 
 
 class DSLEdgeResponse(DSLEdge):
-    """Schema for metamodel edge response"""
+    """Schema for dsl edge response"""
 
     pass

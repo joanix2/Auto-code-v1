@@ -1,5 +1,5 @@
 """
-Edge Controller - API endpoints for metamodel edges
+Edge Controller - API endpoints for dsl edges
 """
 
 import logging
@@ -54,7 +54,7 @@ async def create_edge(
 
     logger.info(
         f"Creating edge: {edge_type_enum.value} from {edge_data.source_id} to {edge_data.target_id} "
-        f"in metamodel {edge_data.graph_id}"
+        f"in dsl {edge_data.graph_id}"
     )
 
     try:

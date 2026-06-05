@@ -17,7 +17,7 @@ class AbstractGraph(BaseEntity, BaseSemanticModel, ABC):
     Abstract Graph - Represents a graph structure containing nodes and edges
 
     A graph is a container for nodes and edges.
-    In the MDE context, a Metamodel is a graph containing:
+    In the MDE context, a DSL is a graph containing:
     - Concept nodes
     - Attribute nodes
     - Relationship edges (connecting concepts)
@@ -47,7 +47,7 @@ class AbstractGraph(BaseEntity, BaseSemanticModel, ABC):
     @abstractmethod
     def get_graph_type(self) -> str:
         """
-        Return the type of this graph (metamodel, knowledge_graph, etc.)
+        Return the type of this graph (dsl, knowledge_graph, etc.)
         Must be implemented by subclasses
         """
         pass

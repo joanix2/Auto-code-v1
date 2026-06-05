@@ -31,14 +31,14 @@ class DSLRelation(AbstractNode):
     Stored as a node in Neo4j with DOMAIN and RANGE edges to concepts
 
     Structure:
-    (Metamodel)-[:HAS_RELATION]->(Relationship)
+    (DSL)-[:HAS_RELATION]->(Relationship)
     (Relationship)-[:DOMAIN]->(SourceConcept)
     (Relationship)-[:RANGE]->(TargetConcept)
 
     Inherits from Node:
     - id, name, description
     - x_position, y_position
-    - graph_id (parent metamodel)
+    - graph_id (parent dsl)
     - created_at, updated_at
     """
 
@@ -83,7 +83,7 @@ class DSLRelationCreate(BaseModel):
     )
     type: DSLRelationType
     description: str | None = None
-    graph_id: str  # ID du metamodel parent
+    graph_id: str  # ID du dsl parent
     x_position: float | None = None
     y_position: float | None = None
 
