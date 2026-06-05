@@ -698,7 +698,17 @@ export function DSLDetails() {
   }
 
   return (
-    <div className="flex h-full w-full relative overflow-hidden">
+    <div className="flex flex-col h-full w-full">
+      <div className="flex items-center gap-2 px-4 py-2 border-b bg-white flex-shrink-0">
+        <Database className="h-4 w-4 text-primary" />
+        <span className="font-semibold text-sm">{dsl.name}</span>
+        {dsl.node_count !== undefined && (
+          <span className="text-xs text-gray-400 ml-auto">
+            {dsl.node_count} nœud{dsl.node_count !== 1 ? "s" : ""} · {dsl.edge_count} lien{dsl.edge_count !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+      <div className="flex-1 relative overflow-hidden">
       {/* Graphe en plein écran */}
       {graphData.nodes.length > 0 ? (
         <GraphViewer
@@ -742,6 +752,7 @@ export function DSLDetails() {
           return formRenderer ? formRenderer(node, isEditing, onCancel, onTypeChange) : null;
         }}
       />
+      </div>
     </div>
   );
 }

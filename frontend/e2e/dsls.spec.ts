@@ -10,12 +10,12 @@ test.describe("DSL creation", () => {
     const resp = await request.post("http://localhost:8000/api/auth/dev-login");
     const { access_token } = await resp.json();
     const response = await request.post("http://localhost:8000/api/dsls", {
-      data: { name: "Test DSL via API", description: "Created by e2e test", version: "1.0" },
+      data: { name: `Test DSL ${Date.now()}`, description: "Created by e2e test", version: "1.0" },
       headers: { Authorization: `Bearer ${access_token}` },
     });
     expect(response.ok()).toBeTruthy();
     const dsl = await response.json();
-    expect(dsl.name).toBe("Test DSL via API");
+    expect(dsl.name).toContain("Test DSL");
     expect(dsl.id).toBeTruthy();
   });
 
@@ -36,11 +36,12 @@ test.describe("DSL creation", () => {
   });
 
   test("created DSL appears in the list", async ({ page, request }) => {
+    const uniqueName = `E2E DSL ${Date.now()}`;
     // Create DSL via API
     const auth = await request.post("http://localhost:8000/api/auth/dev-login");
     const { access_token } = await auth.json();
     const resp = await request.post("http://localhost:8000/api/dsls", {
-      data: { name: "E2E DSL Test", description: "Should appear in list", version: "1.0" },
+      data: { name: uniqueName, description: "Should appear in list", version: "1.0" },
       headers: { Authorization: `Bearer ${access_token}` },
     });
     expect(resp.ok()).toBeTruthy();
@@ -49,14 +50,14 @@ test.describe("DSL creation", () => {
     // Navigate to DSL list page and verify it appears
     await page.goto("/development/dsls");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText("E2E DSL Test").first()).toBeVisible();
+    await expect(page.getByText(uniqueName).first()).toBeVisible();
 
     // Click on DSL to view details
-    await page.getByText("E2E DSL Test").first().click();
+    await page.getByText(uniqueName).first().click();
     await page.waitForLoadState("networkidle");
     // Should navigate to detail page without error
     expect(page.url()).toContain(`/development/dsls/${dsl.id}`);
     // The graph viewer should load (no error state)
-    await expect(page.getByText("E2E DSL Test").first()).toBeVisible();
+    await expect(page.getByText(uniqueName).first()).toBeVisible();
   });
 });
