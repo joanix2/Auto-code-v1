@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components/layout/Layout";
@@ -15,6 +16,7 @@ import { Projects } from "./pages/development/projects/Projects";
 import { ProjectDetails } from "./pages/development/projects/ProjectDetails";
 import { ProjectForm } from "./pages/development/projects/ProjectForm";
 import { ProjectDetailLayout } from "./components/layout/ProjectDetailLayout";
+import { FullPageLayout } from "./components/layout/FullPageLayout";
 import Profile from "./pages/profile/Profile";
 import { NotFound } from "./pages/NotFound";
 import { Toaster } from "@/components/ui/toaster";
@@ -54,6 +56,25 @@ function ProjectDetailPageWrapper({ children }: { children: React.ReactNode }) {
     <ProjectDetailLayout projectId={projectId || ""} user={user} onSignOut={signOut}>
       {children}
     </ProjectDetailLayout>
+  );
+}
+
+function DSLDetailPageWrapper({ children }: { children: React.ReactNode }) {
+  const { id } = useParams<{ id: string }>();
+  const { user, signOut } = useAuth();
+  const [title, setTitle] = React.useState("");
+
+  React.useEffect(() => {
+    if (!id) return;
+    import("@/services/dslService").then(({ dslService }) => {
+      dslService.getById(id).then((dsl) => setTitle(dsl.name)).catch(() => {});
+    });
+  }, [id]);
+
+  return (
+    <FullPageLayout title={title} backUrl="/development/dsls" user={user} onSignOut={signOut}>
+      {children}
+    </FullPageLayout>
   );
 }
 
@@ -185,9 +206,9 @@ function App() {
             path="/development/dsls/:id"
             element={
               <ProtectedRoute>
-                <AuthenticatedLayout>
+                <DSLDetailPageWrapper>
                   <DSLDetails />
-                </AuthenticatedLayout>
+                </DSLDetailPageWrapper>
               </ProtectedRoute>
             }
           />
