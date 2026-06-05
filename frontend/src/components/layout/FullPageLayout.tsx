@@ -10,11 +10,12 @@ interface FullPageLayoutProps {
   children: React.ReactNode;
   title?: string;
   backUrl?: string;
+  hideHeader?: boolean;
   user?: { username: string; avatar_url?: string; profile_picture?: string };
   onSignOut?: () => void;
 }
 
-export function FullPageLayout({ children, title, backUrl, user, onSignOut }: FullPageLayoutProps) {
+export function FullPageLayout({ children, title, backUrl, hideHeader, user, onSignOut }: FullPageLayoutProps) {
   const navigate = useNavigate();
 
   const getInitials = (username: string) => username.slice(0, 2).toUpperCase();
@@ -29,6 +30,7 @@ export function FullPageLayout({ children, title, backUrl, user, onSignOut }: Fu
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {!hideHeader && (
       <header className="border-b bg-white shadow-sm flex-shrink-0">
         <div className="px-3 md:px-4 py-2">
           <div className="flex items-center gap-2">
@@ -69,6 +71,7 @@ export function FullPageLayout({ children, title, backUrl, user, onSignOut }: Fu
           </div>
         </div>
       </header>
+      )}
       <main className="flex-1 flex flex-col bg-gray-50">
         <div className="flex-1 relative">{children}</div>
       </main>
