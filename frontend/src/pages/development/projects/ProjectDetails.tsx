@@ -123,17 +123,7 @@ function ProjectTickets({ projectId }: { projectId: string }) {
 
 function ProjectOntologie() {
   const { issues } = useIssues();
-  return (
-    <div className="h-full flex flex-col">
-      <div className="p-3 sm:px-6 pt-3 sm:pt-4 pb-2 flex-shrink-0">
-        <h2 className="text-lg font-semibold">Ontologie (Open World)</h2>
-        <p className="text-sm text-gray-500">Graphe d'ontologie généré à partir des tickets du projet.</p>
-      </div>
-      <div className="flex-1 border-t overflow-hidden">
-        <OntologyGraphViewer issues={issues} />
-      </div>
-    </div>
-  );
+  return <OntologyGraphViewer issues={issues} />;
 }
 
 function ProjectArchitecture() {
