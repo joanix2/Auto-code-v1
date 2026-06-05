@@ -37,8 +37,8 @@ describe("Navigation structure", () => {
 
   describe("Development section", () => {
     const dev = navigation[2];
-    it("has 6 sub-items", () => {
-      expect(dev.children).toHaveLength(6);
+    it("has 5 sub-items", () => {
+      expect(dev.children).toHaveLength(5);
     });
 
     it("includes Projets as first item and Agent as last", () => {
@@ -51,12 +51,6 @@ describe("Navigation structure", () => {
       const projets = findItem(navigation, "Projets");
       expect(projets).toBeDefined();
       expect(projets!.href).toBe("/development/projets");
-    });
-
-    it("includes Ontologies", () => {
-      const onto = findItem(navigation, "Ontologies");
-      expect(onto).toBeDefined();
-      expect(onto!.href).toBe("/development/ontologies");
     });
 
     it("includes DSLs", () => {

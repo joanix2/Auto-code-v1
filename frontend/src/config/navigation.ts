@@ -26,7 +26,6 @@ export const navigation: NavigationItem[] = [
     children: [
       { name: "Projets", href: "/development/projets", icon: FolderKanban },
       { name: "DSLs", href: "/development/dsls", icon: Database },
-      { name: "Ontologies", href: "/development/ontologies", icon: Network },
       { name: "Templates", href: "/development/templates", icon: FileCode },
       { name: "Repositories", href: "/development/repositories", icon: FolderTree },
       { name: "Agent", href: "/development/agent", icon: Bot },
