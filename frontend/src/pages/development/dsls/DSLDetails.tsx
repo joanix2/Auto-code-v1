@@ -698,7 +698,7 @@ export function DSLDetails() {
   }
 
   return (
-    <div className="flex-1 relative overflow-hidden">
+    <div className="absolute inset-0">
       {/* Graphe en plein écran */}
       <GraphViewer
         data={graphData}
