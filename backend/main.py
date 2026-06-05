@@ -24,7 +24,8 @@ from src.controllers.dsl.dsl_controller import router as dsl_router
 from src.controllers.dsl.dsl_relation_controller import router as dsl_relation_router
 from src.controllers.dsl.dsl_config_controller import router as dsl_config_router
 from src.controllers.inheritance_controller import router as inheritance_router
-from src.controllers.ontology_controller import router as ontology_router
+from src.controllers.ontology_controller import router as ontology_pipeline_router
+from src.controllers.project_ontology.ontology_controller import router as ontology_router
 from src.controllers.query_controller import router as query_router
 from src.controllers.rewrite_controller import router as rewrite_router
 from src.controllers.template_controller import router as template_router

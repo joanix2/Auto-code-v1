@@ -11,6 +11,8 @@ import { Messages } from "./pages/development/messages/Messages";
 import { DSLGraphs } from "./pages/development/dsls/DSLGraphs";
 import { DSLDetails } from "./pages/development/dsls/DSLDetails";
 import { DSLForm } from "./pages/development/dsls/DSLForm";
+import { Ontologies } from "./pages/development/ontologies/Ontologies";
+import { OntologyDetail } from "./pages/development/ontologies/OntologyDetail";
 import { Projects } from "./pages/development/projects/Projects";
 import { ProjectDetails } from "./pages/development/projects/ProjectDetails";
 import { ProjectForm } from "./pages/development/projects/ProjectForm";
@@ -197,6 +199,28 @@ function App() {
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <DSLForm />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Ontology routes */}
+          <Route
+            path="/development/ontologies"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <Ontologies />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/development/ontologies/:id"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <OntologyDetail />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }

@@ -13,6 +13,7 @@ export * from "./message.service";
 export * from "./copilot.service";
 export * from "./project.service";
 export * from "./architectureService";
+export * from "./ontologyService";
 
 // Re-export service instances
 export { issueService } from "./issue.service";
