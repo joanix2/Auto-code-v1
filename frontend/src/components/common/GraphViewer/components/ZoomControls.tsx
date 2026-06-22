@@ -1,13 +1,13 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, Maximize2, RotateCcw, Move, Circle, Link, Trash2 } from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize2, RotateCcw, Move, Circle, GitBranch, Trash2 } from "lucide-react";
 import type { GraphMode } from "../hooks/useGraphState";
 import { cn } from "@/lib/utils";
 
 const MODES: { key: GraphMode; label: string; icon: React.ReactNode }[] = [
   { key: "move", label: "Déplacer", icon: <Move className="h-4 w-4" /> },
   { key: "node", label: "Noeud", icon: <Circle className="h-4 w-4" /> },
-  { key: "edge", label: "Arrête", icon: <Link className="h-4 w-4" /> },
+  { key: "edge", label: "Arrête", icon: <GitBranch className="h-4 w-4" /> },
   { key: "delete", label: "Suppr.", icon: <Trash2 className="h-4 w-4" /> },
 ];
 
