@@ -32,8 +32,6 @@ export function createNodeClickHandler({
   onNodeClick,
   onDeleteNode,
 }: NodeClickHandlerParams) {
-import React from "react";
-
   return (node: GraphNode) => {
     if (modeRef.current === "edge") {
       if (!edgeDragState.sourceNode) {
@@ -52,7 +50,7 @@ import React from "react";
       } else {
         setEdgeDragState({ sourceNode: null, targetNode: null, isDrawing: false });
       }
-      } else if (modeRef.current === "delete") {
+    } else if (modeRef.current === "delete") {
       onDeleteNode?.(node);
     } else {
       setSelectedNodeData(node);
