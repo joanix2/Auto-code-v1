@@ -189,21 +189,40 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
       });
     }
 
-    // Background click handler (only for deselection, no D3 interference)
-    if (onBackgroundClick) {
-      background.on("pointerup", (event) => {
-        if (dragStartPosRef.current) {
-          const dx = Math.abs(event.clientX - dragStartPosRef.current.x);
-          const dy = Math.abs(event.clientY - dragStartPosRef.current.y);
-          if (dx < clickThreshold && dy < clickThreshold) {
-            setSelectedNodeData(null);
-            setShowNodePanel(false);
-            onBackgroundClick?.();
+    // Background click handler (deselect in move, create node in node mode)
+    background.on("pointerup", (event) => {
+      if (!dragStartPosRef.current) return;
+      const dx = Math.abs(event.clientX - dragStartPosRef.current.x);
+      const dy = Math.abs(event.clientY - dragStartPosRef.current.y);
+      if (dx < clickThreshold && dy < clickThreshold) {
+        if (modeRef.current === "node" && onCreateNode) {
+          const svgEl = svgRef.current;
+          if (svgEl) {
+            const pt = svgEl.createSVGPoint();
+            pt.x = event.clientX;
+            pt.y = event.clientY;
+            const ctm = svgEl.getScreenCTM()?.inverse();
+            if (ctm) {
+              const p = pt.matrixTransform(ctm);
+              untitledCounter.current += 1;
+              onCreateNode({
+                id: `node-${Date.now()}`,
+                label: `untitled-${untitledCounter.current}`,
+                type: "Sort",
+                properties: {},
+                x: p.x,
+                y: p.y,
+              });
+            }
           }
+        } else {
+          setSelectedNodeData(null);
+          setShowNodePanel(false);
+          onBackgroundClick?.();
         }
-        dragStartPosRef.current = null;
-      });
-    }
+      }
+      dragStartPosRef.current = null;
+    });
 
     // Create arrow markers
     createArrowMarkers(svg, nodeRadius);
