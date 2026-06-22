@@ -1,6 +1,4 @@
-"""
-Template Controller — REST API for template management and rendering.
-"""
+"""Template Controller — REST API for template management and rendering."""
 
 from __future__ import annotations
 
@@ -9,10 +7,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 
-from src.services.templates import (
-    TemplateRegistry,
-    TemplateRenderer,
-)
+from src.services.templates import TemplateRegistry, TemplateRenderer
 
 logger = logging.getLogger(__name__)
 
@@ -39,41 +34,26 @@ def get_renderer() -> TemplateRenderer:
 
 @router.get("")
 async def list_templates():
-    """List all registered templates."""
-    registry = get_registry()
-    return registry.list_templates()
+    return get_registry().list_templates()
 
 
 @router.post("/register")
-async def register_template(
-    data: dict[str, Any],
-):
-    """Register a new template."""
-    registry = get_registry()
+async def register_template(data: dict[str, Any]):
     name = data.get("name")
     content = data.get("content")
     if not name or not content:
         raise HTTPException(status_code=400, detail="'name' and 'content' are required")
-    registry.register_template(name, content)
+    get_registry().register_template(name, content)
     return {"status": "ok", "name": name}
 
 
 @router.post("/render")
-async def render_template(
-    data: dict[str, Any],
-    renderer: TemplateRenderer = Depends(get_renderer),
-):
-    """Render a template with context."""
+async def render_template(data: dict[str, Any], renderer: TemplateRenderer = Depends(get_renderer)):
     template_name = data.get("template_name")
     template_string = data.get("template_string")
     extra_context = data.get("extra_context", {})
-
     if not template_name and not template_string:
-        raise HTTPException(
-            status_code=400,
-            detail="Provide either 'template_name' or 'template_string'",
-        )
-
+        raise HTTPException(status_code=400, detail="Provide 'template_name' or 'template_string'")
     try:
         if template_string:
             output = renderer.render_from_string(template_string, extra_context)
@@ -85,22 +65,14 @@ async def render_template(
 
 
 @router.get("/{template_name}")
-async def get_template(
-    template_name: str = Path(..., description="Template name"),
-):
-    """Get a specific template source."""
-    registry = get_registry()
-    content = registry.get_template(template_name)
+async def get_template(template_name: str = Path(..., description="Template name")):
+    content = get_registry().get_template(template_name)
     if content is None:
         raise HTTPException(status_code=404, detail=f"Template '{template_name}' not found")
     return {"name": template_name, "content": content}
 
 
 @router.delete("/{template_name}")
-async def delete_template(
-    template_name: str = Path(..., description="Template name"),
-):
-    """Delete a template."""
-    registry = get_registry()
-    registry.remove_template(template_name)
+async def delete_template(template_name: str = Path(..., description="Template name")):
+    get_registry().remove_template(template_name)
     return {"status": "ok", "name": template_name}
