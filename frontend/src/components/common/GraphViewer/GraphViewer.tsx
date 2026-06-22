@@ -153,12 +153,11 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
       transformRef.current = newTransform;
       setTransform(newTransform);
 
-      // Synchroniser le tempGroup avec la transformation
       const tempGroup = svg.select<SVGGElement>("g.temp-edge-group");
       if (!tempGroup.empty()) {
         tempGroup.attr("transform", newTransform.toString());
       }
-    });
+    }, modeRef);
     zoomBehaviorRef.current = zoom;
 
     if (enableZoom) {
@@ -190,7 +189,11 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     }
 
     // Background click handler (deselect in move, create node in node mode)
-    background.on("pointerup", (event) => {
+    background
+      .on("pointerdown", (event) => {
+        dragStartPosRef.current = { x: event.clientX, y: event.clientY };
+      })
+      .on("pointerup", (event) => {
       if (!dragStartPosRef.current) return;
       const dx = Math.abs(event.clientX - dragStartPosRef.current.x);
       const dy = Math.abs(event.clientY - dragStartPosRef.current.y);

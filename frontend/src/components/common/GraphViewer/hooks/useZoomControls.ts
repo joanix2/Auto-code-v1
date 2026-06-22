@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import React, { useCallback } from "react";
 import * as d3 from "d3";
 import { ZOOM_IN_FACTOR, ZOOM_OUT_FACTOR, FIT_TO_SCREEN_PADDING, ZOOM_SCALE_EXTENT } from "../utils/constants";
 import { GraphNode } from "../types";
@@ -19,30 +19,32 @@ export const createZoomBehavior = (
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   g: d3.Selection<SVGGElement, unknown, null, undefined>,
   onTransform: (transform: d3.ZoomTransform) => void,
+  modeRef?: React.MutableRefObject<string>,
 ) => {
   return d3
     .zoom<SVGSVGElement, unknown>()
     .scaleExtent(ZOOM_SCALE_EXTENT)
     .filter((event) => {
-      // Allow zoom/pan only on background, not on nodes (circles) or text
-      // This allows drag behavior on nodes to work on mobile
+      // Quand le mode "node" est actif, ne pas demarrer le zoom sur click
+      // (pour permettre la creation de noeuds)
+      if (modeRef?.current === "node" && event.type === "pointerdown") {
+        return false;
+      }
+
       const target = event.target as HTMLElement;
       const tagName = target.tagName?.toUpperCase();
 
-      // Block zoom on interactive elements
       if (tagName === "CIRCLE" || tagName === "TEXT") {
         return false;
       }
 
-      // Allow zoom with modifier keys or wheel
       if (event.ctrlKey || event.type === "wheel") {
         return true;
       }
 
-      // Allow pan/zoom on background (no button pressed means left click/touch)
       return !event.button;
     })
-    .touchable(() => true) // Enable touch support
+    .touchable(() => true)
     .on("zoom", (event) => {
       g.attr("transform", event.transform);
       onTransform(event.transform);
