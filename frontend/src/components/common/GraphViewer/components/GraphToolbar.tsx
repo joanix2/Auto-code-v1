@@ -14,7 +14,7 @@ interface GraphToolbarProps {
 export const GraphToolbar: React.FC<GraphToolbarProps> = ({ prompt, onPromptChange, onSendPrompt, className = "" }) => {
   return (
     <div className={cn(
-      "absolute bottom-0 md:bottom-4 left-1/2 -translate-x-1/2",
+      "absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2",
       "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
       "border rounded-t-lg md:rounded-lg shadow-lg",
       "max-w-xl w-full md:mx-4",
