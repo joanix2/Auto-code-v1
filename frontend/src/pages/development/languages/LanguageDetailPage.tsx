@@ -57,6 +57,27 @@ export function LanguageDetailPage() {
     }
   }
 
+  async function handleCreateNode(node: GraphNode) {
+    if (!langId) return;
+    try {
+      await languageService.createSort(langId, { name: node.label });
+      loadGraph();
+    } catch (err) {
+      console.error("Failed to create node", err);
+    }
+  }
+
+  async function handleDeleteNode(node: GraphNode) {
+    // Pour l'instant, juste retirer du graphe local
+    setGraphData(prev => ({
+      nodes: prev.nodes.filter(n => n.id !== node.id),
+      edges: prev.edges.filter(e =>
+        (typeof e.source === "string" ? e.source : e.source.id) !== node.id &&
+        (typeof e.target === "string" ? e.target : e.target.id) !== node.id
+      ),
+    }));
+  }
+
   useEffect(() => { loadGraph(); }, [langId]);
 
   if (loading) return <div className="p-6">Chargement...</div>;
@@ -84,6 +105,8 @@ export function LanguageDetailPage() {
           showLabels={true}
           enableZoom={true}
           enableDrag={true}
+          onCreateNode={handleCreateNode}
+          onDeleteNode={handleDeleteNode}
         />
       </div>
     </div>

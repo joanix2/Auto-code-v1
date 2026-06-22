@@ -1,8 +1,9 @@
 import { GraphNode } from "../types";
+import type { GraphMode } from "../hooks/useGraphState";
 import { M3EdgeType } from "@/types/dsl-config";
 
 interface NodeClickHandlerParams {
-  isEdgeModeActive: boolean;
+  mode: GraphMode;
   edgeDragState: {
     sourceNode: GraphNode | null;
     targetNode: GraphNode | null;
@@ -15,10 +16,11 @@ interface NodeClickHandlerParams {
   getAvailableEdgeTypes: (source: GraphNode | null, target: GraphNode | null) => M3EdgeType[];
   onCreateEdge?: (source: string, target: string, type: string) => void;
   onNodeClick?: (node: GraphNode) => void;
+  onDeleteNode?: (node: GraphNode) => void;
 }
 
 export function createNodeClickHandler({
-  isEdgeModeActive,
+  mode,
   edgeDragState,
   setEdgeDragState,
   setShowEdgeTypeSelector,
@@ -27,59 +29,32 @@ export function createNodeClickHandler({
   getAvailableEdgeTypes,
   onCreateEdge,
   onNodeClick,
+  onDeleteNode,
 }: NodeClickHandlerParams) {
   return (node: GraphNode) => {
-    if (isEdgeModeActive) {
+    if (mode === "edge") {
       if (!edgeDragState.sourceNode) {
-        // Premier clic : définir le nœud source
-        setEdgeDragState({
-          sourceNode: node,
-          targetNode: null,
-          isDrawing: false,
-        });
+        setEdgeDragState({ sourceNode: node, targetNode: null, isDrawing: false });
       } else if (edgeDragState.sourceNode.id !== node.id) {
-        // Deuxième clic : définir le nœud cible
         const availableTypes = getAvailableEdgeTypes(edgeDragState.sourceNode, node);
-
         if (availableTypes.length === 0) {
-          console.warn(`Aucun type de lien disponible entre ${edgeDragState.sourceNode.type} et ${node.type}`);
-          setEdgeDragState({
-            sourceNode: null,
-            targetNode: null,
-            isDrawing: false,
-          });
+          setEdgeDragState({ sourceNode: null, targetNode: null, isDrawing: false });
         } else if (availableTypes.length === 1) {
-          // Un seul type : créer directement
-          if (onCreateEdge) {
-            onCreateEdge(edgeDragState.sourceNode.id, node.id, availableTypes[0].name);
-          }
-          setEdgeDragState({
-            sourceNode: null,
-            targetNode: null,
-            isDrawing: false,
-          });
+          onCreateEdge?.(edgeDragState.sourceNode.id, node.id, availableTypes[0].name);
+          setEdgeDragState({ sourceNode: null, targetNode: null, isDrawing: false });
         } else {
-          // Plusieurs types : ouvrir le sélecteur
-          setEdgeDragState({
-            sourceNode: edgeDragState.sourceNode,
-            targetNode: node,
-            isDrawing: false,
-          });
+          setEdgeDragState({ sourceNode: edgeDragState.sourceNode, targetNode: node, isDrawing: false });
           setShowEdgeTypeSelector(true);
         }
       } else {
-        // Clic sur le même nœud : annuler
-        setEdgeDragState({
-          sourceNode: null,
-          targetNode: null,
-          isDrawing: false,
-        });
+        setEdgeDragState({ sourceNode: null, targetNode: null, isDrawing: false });
       }
+    } else if (mode === "delete") {
+      onDeleteNode?.(node);
     } else {
-      // Mode normal : afficher le panel
       setSelectedNodeData(node);
       setShowNodePanel(true);
-      if (onNodeClick) onNodeClick(node);
+      onNodeClick?.(node);
     }
   };
 }

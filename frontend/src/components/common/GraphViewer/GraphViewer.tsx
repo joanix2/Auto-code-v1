@@ -33,11 +33,13 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   edgeTypes = [],
   onCreateEdge,
   onAddNode,
+  onCreateNode,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dimensions = useDimensions(containerRef, width, height);
-  const clickThreshold = 5; // pixels
+  const clickThreshold = 5;
+  const untitledCounter = useRef(0);
 
   // Utiliser les hooks personnalisés
   const state = useGraphState();
@@ -184,25 +186,32 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
       });
     }
 
-    // Background click handler (only fires on actual clicks, not drags)
-    if (onBackgroundClick) {
-      background
-        .on("pointerdown", (event) => {
-          dragStartPosRef.current = { x: event.clientX, y: event.clientY };
-        })
-        .on("pointerup", (event) => {
-          if (dragStartPosRef.current) {
-            const dx = Math.abs(event.clientX - dragStartPosRef.current.x);
-            const dy = Math.abs(event.clientY - dragStartPosRef.current.y);
+    // Background click handler (with mode support for node creation)
+    {
+      const rect = background.node() as SVGRectElement | null;
+      const svgEl = svgRef.current;
 
-            // Only trigger click if movement is minimal (not a drag)
-            if (dx < clickThreshold && dy < clickThreshold) {
-              setSelectedNodeData(null);
-              setShowNodePanel(false);
-              if (onBackgroundClick) onBackgroundClick();
+      const bgHandlers = createBackgroundHandlers({
+        mode, dragStartPosRef, clickThreshold,
+        setSelectedNodeData, setShowNodePanel,
+        onBackgroundClick, untitledCounter, onCreateNode,
+      });
+
+      background
+        .on("pointerdown", bgHandlers.onPointerDown)
+        .on("pointerup", function (event) {
+          let svgPoint: { x: number; y: number } | undefined;
+          if (svgEl && mode === "node") {
+            const pt = svgEl.createSVGPoint();
+            pt.x = event.clientX;
+            pt.y = event.clientY;
+            const ctm = svgEl.getScreenCTM()?.inverse();
+            if (ctm) {
+              const transformed = pt.matrixTransform(ctm);
+              svgPoint = { x: transformed.x, y: transformed.y };
             }
           }
-          dragStartPosRef.current = null;
+          bgHandlers.onPointerUp(event, svgPoint);
         });
     }
 
@@ -231,7 +240,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
 
     // Create nodes and node labels
     const handleInternalNodeClick = createNodeClickHandler({
-      isEdgeModeActive,
+      mode,
       edgeDragState,
       setEdgeDragState,
       setShowEdgeTypeSelector,
@@ -240,6 +249,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
       getAvailableEdgeTypes,
       onCreateEdge,
       onNodeClick,
+      onDeleteNode,
     });
 
     const node = createNodes(g, dedupedNodes, nodeRadius, selectedNodeId, nodeColorMap, handleInternalNodeClick, onNodeDoubleClick);

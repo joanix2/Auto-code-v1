@@ -90,4 +90,8 @@ export interface GraphViewerProps {
    * Callback appelé quand l'utilisateur veut ajouter un nœud
    */
   onAddNode?: () => void;
+  /**
+   * Callback appelé quand un nœud est créé par clic en mode "node"
+   */
+  onCreateNode?: (node: GraphNode) => void;
 }
