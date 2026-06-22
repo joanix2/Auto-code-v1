@@ -16,8 +16,8 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({ prompt, onPromptChan
     <div className={cn(
       "absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2",
       "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
-      "border rounded-t-lg md:rounded-lg shadow-lg",
-      "max-w-xl w-full md:mx-4",
+      "border rounded-lg shadow-lg",
+      "max-w-xl w-full mx-4 md:mx-6",
       className,
     )}>
       <div className="flex items-center gap-2 px-4 py-3">
