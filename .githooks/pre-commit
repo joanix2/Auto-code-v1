@@ -32,11 +32,15 @@ fi
 # ── 2. Diagramme cohérence ─────────────────────────
 DIAGRAM="$ROOT/architecture_diagram.md"
 if [ -f "$DIAGRAM" ]; then
-    CLASSES=$(grep -oP 'class \K\w+' "$DIAGRAM" | grep -v '<<enumeration>>' | sort -u || true)
+    CLASSES=$(grep -oP 'class \K\w+' "$DIAGRAM" | grep -v '<<enumeration>>' | grep -v '^shadcn_' | sort -u || true)
     for cls in $CLASSES; do
-        FOUND=$(grep -r "^class ${cls}\b\|^class ${cls}(" --include="*.py" "$ROOT/backend/src/" "$ROOT/backend/tests/" 2>/dev/null | head -1 || true)
+        FOUND=$(grep -r \
+        "^class ${cls}\b\|^class ${cls}(\|^export.*class ${cls}\b\|^export.*abstract class ${cls}\b\|^interface ${cls}\b\|^export interface ${cls}\b\|^export function ${cls}\b\|^export const ${cls}\b" \
+        --include="*.py" --include="*.ts" --include="*.tsx" \
+        "$ROOT/backend/src/" "$ROOT/backend/tests/" \
+        "$ROOT/frontend/src/" 2>/dev/null | head -1 || true)
         if [ -z "$FOUND" ]; then
-            echo -e "${YELLOW}⚠️  Classe '${cls}' dans le diagramme mais absente du code — ajoute-la ou supprime-la du diagramme${NC}"
+            echo -e "${YELLOW}⚠️  Classe '${cls}' dans le diagramme mais absente du code${NC}"
             ERRORS=$((ERRORS + 1))
         fi
     done

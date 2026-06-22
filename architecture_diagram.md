@@ -1,6 +1,21 @@
 ```mermaid
 classDiagram
-    %% ── Rewriting-Logic Core ─────────────────────────
+    %% ═══════════════════════════════════════════════════
+    %%  BACKEND — Rewriting-Logic Core
+    %% ═══════════════════════════════════════════════════
+
+    class BaseEntity {
+        <<abstract>>
+        +String id
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class BaseSemanticModel {
+        <<abstract>>
+        +String name
+        +String description
+    }
 
     class Language {
         +String id
@@ -65,12 +80,34 @@ classDiagram
         edge_constraint
     }
 
-    %% ── Templates liés aux langages ───────────────
+    class LanguageManager {
+        +create(name, desc) Language
+        +get(id) Language
+        +list() Language[]
+        +addSort(langId, name, desc) LangNode
+        +addOp(langId, name, resultSort, params) LangNode
+        +addEquation(langId, name, lhs, rhs) LangNode
+        +addRule(langId, name, lhs, rhs) LangNode
+        +addConditionalRule(...) LangNode
+        +addStrategy(langId, name, steps) LangNode
+        +addInvariant(langId, name, cond) LangNode
+    }
+
+    %% ── Templates ─────────────────────────────────
 
     class TemplateRegistry {
         +registerTemplate(name, content) void
         +getTemplate(name) String
         +listTemplates() String[]
+    }
+
+    class TemplateRenderer {
+        +renderTemplate(name, context) String
+        +renderFromString(template, context) String
+    }
+
+    class TemplateRenderError {
+        +String message
     }
 
     %% ── Rewrite Engine ─────────────────────────────
@@ -84,12 +121,6 @@ classDiagram
         +__call__(graph) dict
     }
 
-    class RewriteResult {
-        +bool success
-        +dict modifiedGraph
-        +String[] appliedRules
-    }
-
     class RewriteEngine {
         +registerRule(rule) void
         +applyRule(name, graph) RewriteResult
@@ -101,9 +132,7 @@ classDiagram
 
     class Severity {
         <<enumeration>>
-        ERROR
-        WARNING
-        INFO
+        ERROR WARNING INFO
     }
 
     class ValidationError {
@@ -120,7 +149,26 @@ classDiagram
         +toDict() dict
     }
 
-    %% ── Programmes ─────────────────────────────────
+    %% ── Backend Controller ─────────────────────────
+
+    class BaseController {
+        <<abstract>>
+        +getAll() T[]
+        +getById(id) T
+        +create(data) T
+        +update(id, data) T
+        +delete(id) void
+    }
+
+    %% ═══════════════════════════════════════════════════
+    %%  DOMAIN MODELS — Project / Ticket / Triple / Ontology
+    %% ═══════════════════════════════════════════════════
+
+    class Project {
+        +String id
+        +String name
+        +String description
+    }
 
     class Program {
         +String id
@@ -129,21 +177,7 @@ classDiagram
         +String languageId
         +String projectId
         +validate() ValidationReport
-        +execute(template) String
     }
-
-    %% ── Projets ────────────────────────────────────
-
-    class Project {
-        +String id
-        +String name
-        +String description
-        +Program[] programs
-        +Ticket[] tickets
-        +Ontology ontology
-    }
-
-    %% ── Tickets ────────────────────────────────────
 
     class Ticket {
         +String id
@@ -152,8 +186,6 @@ classDiagram
         +String projectId
         +extractTriples() Triple[]
     }
-
-    %% ── Triplets ───────────────────────────────────
 
     class Triple {
         +String id
@@ -164,41 +196,271 @@ classDiagram
         +String ontologyId
     }
 
-    %% ── Ontologie ──────────────────────────────────
-
     class Ontology {
         +String id
         +String name
         +String projectId
         +Triple[] triples
-        +addTriple(subject, predicate, object) Triple
-        +buildGraph() LangGraph
+        +addTriple(s, p, o) Triple
     }
 
-    %% ── Relations ──────────────────────────────────
+    %% ═══════════════════════════════════════════════════
+    %%  FRONTEND — Abstract UI Components
+    %% ═══════════════════════════════════════════════════
 
-    Language "1" *-- "1" LangGraph : contient
+    class NodeType {
+        <<abstract>>
+        +String id
+        +String label
+        +String labelPlural
+        +String gender
+        +String article
+        +getArticleMaj() String
+    }
+
+    class Form~T~ {
+        <<abstract>>
+        +bool edit
+        +bool isCreation
+        +T initialData
+        +onSubmit(data) void
+        +onCancel() void
+        #validate(data) Record~string,string~
+        #renderFields() ReactNode
+    }
+
+    class NodeForm~T~ {
+        <<abstract>>
+        +extends Form~T~
+        #renderSpecificFields() ReactNode
+        #validateSpecificFields(data) Record~string,string~
+    }
+
+    class Field~T~ {
+        <<abstract>>
+        +String name
+        +String label
+        +T value
+        +bool edit
+        +onChange(name, value) void
+        #renderReadMode() ReactNode
+        #renderEditMode() ReactNode
+    }
+
+    class TextField {
+        +extends Field~string~
+    }
+
+    class TextAreaField {
+        +extends Field~string~
+    }
+
+    class SelectField {
+        +extends Field~string|null~
+    }
+
+    class BooleanField {
+        +extends Field~boolean~
+    }
+
+    class BaseCard~T~ {
+        <<abstract>>
+        +T data
+        +onDelete(id) void
+        +onEdit(id) void
+        #renderHeader() ReactNode
+        #renderContent() ReactNode
+        #renderFooter() ReactNode
+        #getEntityDisplayName() String
+    }
+
+    class BaseCardList~T~ {
+        <<abstract>>
+        +T[] items
+        +onSearch(query) void
+        +onCreate() void
+        +onSync() void
+        #renderCard(item) ReactNode
+        #getEmptyMessage() String
+    }
+
+    class BaseService~T~ {
+        <<abstract>>
+        +getAll(params) T[]
+        +getById(id) T
+        +create(data) T
+        +update(id, data) T
+        +delete(id) void
+    }
+
+    %% ── GraphViewer ────────────────────────────────
+
+    class GraphViewer {
+        +GraphData data
+        +Record~string,string~ nodeColorMap
+        +M3EdgeType[] edgeTypes
+        +Record~string,Form~ forms
+        +onNodeClick(node) void
+        +onEdgeClick(edge) void
+        +onCreateEdge(src, tgt, type) void
+    }
+
+    class GraphNode {
+        +String id
+        +String label
+        +String type
+        +dict properties
+        +float x
+        +float y
+    }
+
+    class GraphEdge {
+        +String id
+        +String source
+        +String target
+        +String label
+        +String type
+    }
+
+    class GraphData {
+        +GraphNode[] nodes
+        +GraphEdge[] edges
+    }
+
+    class CreateNodeModal {
+        +bool open
+        +NodeTypeConfig[] nodeTypes
+        +onCreateNode(data) void
+    }
+
+    class GraphNodePanel {
+        +GraphNode node
+        +Record~string,Form~ forms
+        +onEdit(node) void
+        +onDelete(node) void
+    }
+
+    %% ── shadcn/ui primitives ───────────────────────
+
+    class shadcn_ui {
+        <<library>>
+        Button
+        Input
+        Textarea
+        Select
+        Checkbox
+        Dialog
+        Sheet
+        Card
+        Badge
+        Tabs
+        Toast
+        Table
+        DropdownMenu
+        Avatar
+        AlertDialog
+        Tooltip
+        Popover
+        Command
+        Drawer
+        Resizable
+        Sidebar
+        …
+    }
+
+    %% ── Concrete subclasses (examples) ─────────────
+
+    class OntologyConceptNodeType {
+        +String id = "concept"
+        +String label = "Concept"
+    }
+
+    class ProjectCard {
+        +extends BaseCard~Project~
+    }
+
+    class ProjectList {
+        +extends BaseCardList~Project~
+    }
+
+    class ProjectForm {
+        +extends Form~Project~
+    }
+
+    class ProjectService {
+        +extends BaseService~Project~
+    }
+
+    class IssueService {
+        +extends BaseService~Issue~
+    }
+
+    class LanguageService {
+        +extends BaseService~Language~
+    }
+
+    %% ═══════════════════════════════════════════════════
+    %%  RELATIONS — Backend
+    %% ═══════════════════════════════════════════════════
+
+    BaseEntity <|-- Language
+    BaseEntity <|-- Project
+    BaseEntity <|-- Program
+    BaseEntity <|-- Ticket
+    BaseEntity <|-- Triple
+    BaseEntity <|-- Ontology
+
+    Language "1" *-- "1" LangGraph
     LangGraph "1" *-- "*" LangNode
     LangGraph "1" *-- "*" LangEdge
     LangNode --> NodeKind
     LangEdge --> EdgeKind
+    LanguageManager --> Language : gère
 
-    Language "1" --> "*" Template : a des templates
-    Language "1" --> "*" Program : programmes écrits en
+    Language "1" --> "*" TemplateRegistry
+    Language "1" --> "*" Program
+    Program "*" --> "1" Project
+    Project "1" *-- "*" Ticket
+    Ticket "1" --> "*" Triple
+    Triple "*" --> "1" Ontology
+    Ontology "1" --> "1" Project
 
-    Program "*" --> "1" Project : appartient à
-    Project "1" *-- "*" Ticket : contient
-    Ticket "1" --> "*" Triple : extrait de la description
-    Triple "*" --> "1" Ontology : construit
-    Ontology "1" --> "1" Project : liée au projet
-
-    RewriteEngine --> RewriteRule : exécute
-    ValidationReport --> ValidationError : contient
+    RewriteEngine --> RewriteRule
+    ValidationReport --> ValidationError
     ValidationError --> Severity
 
-    Template --> Language : lié au langage
+    %% ═══════════════════════════════════════════════════
+    %%  RELATIONS — Frontend
+    %% ═══════════════════════════════════════════════════
 
-    %% ── Relations sémantiques entre nœuds ──────────
+    Form <|-- NodeForm
+    NodeForm <|-- ProjectForm
+
+    Field <|-- TextField
+    Field <|-- TextAreaField
+    Field <|-- SelectField
+    Field <|-- BooleanField
+
+    BaseCard <|-- ProjectCard
+    BaseCardList <|-- ProjectList
+
+    BaseService <|-- ProjectService
+    BaseService <|-- IssueService
+    BaseService <|-- LanguageService
+
+    GraphViewer --> GraphData : affiche
+    GraphViewer --> GraphNode
+    GraphViewer --> GraphEdge
+    GraphViewer --> CreateNodeModal
+    GraphViewer --> GraphNodePanel
+    GraphViewer --> NodeType : utilise pour les couleurs
+
+    GraphViewer --> shadcn_ui : construit avec
+    BaseCard --> shadcn_ui : utilise
+    Form --> shadcn_ui : utilise
+    CreateNodeModal --> shadcn_ui : utilise
+
+    %% ── Relations sémantiques LangNode ──────────
 
     LangNode ..> LangNode : subsort
     LangNode ..> LangNode : has_sort
