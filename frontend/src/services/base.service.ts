@@ -1,70 +1,44 @@
 /**
- * Base Service - Abstract class for all entity services
- * Provides common CRUD operations and optional sync functionality
+ * Base Service — abstract CRUD service with typed methods.
  */
+
 import { apiService } from "./api.service";
 
-export interface BaseEntity {
-  id: string;
-  created_at: string;
-  updated_at?: string; // Optional because some entities may not have it
-}
-
 export interface SyncResponse<T> {
-  success: boolean;
-  synced_count: number;
-  data?: T[];
+  synced: T[];
+  errors: Array<{ item: string; error: string }>;
 }
 
-/**
- * Abstract base service providing CRUD operations
- */
-export abstract class BaseService<TEntity extends BaseEntity, TCreate = Partial<TEntity>, TUpdate = Partial<TEntity>> {
-  protected abstract basePath: string;
+export class BaseService<T, CreateDTO = Partial<T>, UpdateDTO = Partial<T>> {
+  protected basePath = "";
 
-  /**
-   * Get all entities (optionally with filters)
-   */
-  async getAll(params?: Record<string, string>): Promise<TEntity[]> {
-    return apiService.get<TEntity[]>(this.basePath, { params });
+  async getAll(params?: Record<string, unknown>): Promise<T[]> {
+    return apiService.get<T[]>(this.basePath, { params });
   }
 
-  /**
-   * Get entity by ID
-   */
-  async getById(id: string): Promise<TEntity> {
-    return apiService.get<TEntity>(`${this.basePath}/${id}`);
+  async getById(id: string): Promise<T> {
+    return apiService.get<T>(`${this.basePath}/${id}`);
   }
 
-  /**
-   * Create a new entity
-   */
-  async create(data: TCreate): Promise<TEntity> {
-    return apiService.post<TEntity>(this.basePath, data);
+  async create(data: CreateDTO): Promise<T> {
+    return apiService.post<T>(this.basePath, data);
   }
 
-  /**
-   * Update an entity
-   */
-  async update(id: string, data: TUpdate): Promise<TEntity> {
-    return apiService.put<TEntity>(`${this.basePath}/${id}`, data);
+  async update(id: string, data: UpdateDTO): Promise<T> {
+    return apiService.put<T>(`${this.basePath}/${id}`, data);
   }
 
-  /**
-   * Delete an entity
-   */
   async delete(id: string): Promise<void> {
-    return apiService.delete<void>(`${this.basePath}/${id}`);
+    return apiService.delete(`${this.basePath}/${id}`);
   }
 }
 
-/**
- * Abstract service with GitHub synchronization support
- */
-export abstract class SyncableService<TEntity extends BaseEntity, TCreate = Partial<TEntity>, TUpdate = Partial<TEntity>> extends BaseService<TEntity, TCreate, TUpdate> {
-  /**
-   * Sync entities from GitHub to local database
-   * Override this method to implement specific sync logic
-   */
-  abstract sync(params?: Record<string, unknown>): Promise<SyncResponse<TEntity>>;
+export class SyncableService<T, CreateDTO = Partial<T>, UpdateDTO = Partial<T>> extends BaseService<
+  T,
+  CreateDTO,
+  UpdateDTO
+> {
+  async sync(data: CreateDTO[]): Promise<SyncResponse<T>> {
+    return apiService.post<SyncResponse<T>>(`${this.basePath}/sync`, data);
+  }
 }

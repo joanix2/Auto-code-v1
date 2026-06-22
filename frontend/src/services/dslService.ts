@@ -1,81 +1,126 @@
-import { BaseService } from "./base.service";
-import { DSLGraph, DSLGraphCreate, DSLGraphUpdate } from "@/types/dsl";
+/**
+ * DSL Service — now maps to the rewriting-logic Language API.
+ *
+ * Backward-compatible wrapper around /api/languages.
+ */
+
 import { apiService } from "./api.service";
-import { M3EdgeType } from "@/types/dsl-config";
 
-// Re-export for convenience
-export type { M3EdgeType } from "@/types/dsl-config";
+export interface DSLGraph {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  node_count: number;
+  edge_count: number;
+  status: string;
+  owner_id?: string;
+}
 
-class DSLService extends BaseService<DSLGraph, DSLGraphCreate, DSLGraphUpdate> {
-  protected basePath = "/api/dsls";
+export interface M3NodeData {
+  id: string;
+  label: string;
+  name: string;
+  description?: string;
+  type?: string;
+  x?: number;
+  y?: number;
+  [key: string]: unknown;
+}
 
-  /**
-   * Get dsls by status
-   */
-  async getByStatus(status: string): Promise<DSLGraph[]> {
-    return apiService.get<DSLGraph[]>(this.basePath, { params: { status } });
+export interface M3EdgeData {
+  id: string;
+  type: string;
+  source: string;
+  target: string;
+  label?: string;
+  [key: string]: unknown;
+}
+
+export interface DSLGraphResponse {
+  dsl: DSLGraph;
+  nodes: M3NodeData[];
+  edges: M3EdgeData[];
+  edgeConstraints: unknown[];
+}
+
+class DSLService {
+  protected basePath = "/api/languages";
+
+  async getAll(params?: Record<string, unknown>): Promise<DSLGraph[]> {
+    const langs = await apiService.get<any[]>(this.basePath, { params });
+    return langs.map((l: any) => ({
+      id: l.id,
+      name: l.name,
+      description: l.description || "",
+      version: "1.0",
+      node_count: l.node_count || 0,
+      edge_count: l.edge_count || 0,
+      status: "active",
+    }));
   }
 
-  /**
-   * Get dsls by author
-   */
-  async getByAuthor(author: string): Promise<DSLGraph[]> {
-    return apiService.get<DSLGraph[]>(this.basePath, { params: { author } });
+  async getById(id: string): Promise<DSLGraph> {
+    const lang = await apiService.get<any>(`${this.basePath}/${id}`);
+    return {
+      id: lang.id,
+      name: lang.name,
+      description: lang.description || "",
+      version: "1.0",
+      node_count: lang.node_count || 0,
+      edge_count: lang.edge_count || 0,
+      status: "active",
+    };
   }
 
-  /**
-   * Validate a dsl (change status to validated)
-   */
-  async validate(id: string): Promise<DSLGraph> {
-    return apiService.post<DSLGraph>(`${this.basePath}/${id}/validate`);
+  async create(data: { name: string; description?: string; version?: string }): Promise<DSLGraph> {
+    const lang = await apiService.post<any>(this.basePath, {
+      name: data.name,
+      description: data.description || "",
+    });
+    return {
+      id: lang.id,
+      name: lang.name,
+      description: lang.description || "",
+      version: "1.0",
+      node_count: 0,
+      edge_count: 0,
+      status: "active",
+    };
   }
 
-  /**
-   * Deprecate a dsl (change status to deprecated)
-   */
-  async deprecate(id: string): Promise<DSLGraph> {
-    return apiService.post<DSLGraph>(`${this.basePath}/${id}/deprecate`);
+  async update(id: string, data: Record<string, unknown>): Promise<DSLGraph> {
+    return this.getById(id);
   }
 
-  /**
-   * Get complete dsl graph with all nodes and edges
-   */
-  async getGraph(id: string): Promise<{
-    dsl: DSLGraph; // Objet DSLGraph complet
-    nodes: Array<{
-      id: string;
-      name: string;
-      description?: string;
-      type: string;
-      label: string;
-      x?: number;
-      y?: number;
-      created_at: string;
-      updated_at?: string;
-      // Propriétés spécifiques aux Attributes
-      dataType?: string; // Type de données (string, integer, etc.)
-      isRequired?: boolean; // Attribut requis
-      isUnique?: boolean; // Valeur unique
-      concept_id?: string; // ID du concept parent
-      // Propriétés spécifiques aux Relations
-      relationType?: string; // Type de relation (is_a, has_part, etc.)
-    }>;
-    edges: Array<{
-      id: string;
-      description?: string;
-      type: string;
-      label: string;
-      source: string;
-      target: string;
-      source_label?: string;
-      target_label?: string;
-      directed: boolean;
-      created_at: string;
-      updated_at?: string;
-    }>;
-    edgeConstraints: M3EdgeType[]; // Edge type constraints from M3
-  }> {
-    return apiService.get(`${this.basePath}/${id}/graph`);
+  async delete(id: string): Promise<void> {
+    await apiService.delete(`${this.basePath}/${id}`);
+  }
+
+  async getGraph(id: string): Promise<DSLGraphResponse> {
+    const resp = await apiService.get<any>(`${this.basePath}/${id}/graph`);
+    const lang = resp.language || resp;
+    return {
+      dsl: {
+        id: lang.id,
+        name: lang.name,
+        description: lang.description || "",
+        version: "1.0",
+        node_count: lang.node_count || 0,
+        edge_count: lang.edge_count || 0,
+        status: "active",
+      },
+      nodes: (resp.nodes || []).map((n: any) => ({
+        id: n.id,
+        name: n.name,
+        description: n.description || "",
+        type: n.label,
+        label: n.name,
+        ...n,
+      })),
+      edges: resp.edges || [],
+      edgeConstraints: [],
+    };
   }
 }
 

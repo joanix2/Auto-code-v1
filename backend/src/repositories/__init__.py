@@ -3,10 +3,6 @@ Repositories - Data Access Layer
 """
 
 from .base import BaseRepository
-from .MDE.M2.attribute_repository import AttributeRepository
-from .MDE.M2.concept_repository import ConceptRepository
-from .MDE.M2.metamodel_repository import MetamodelRepository
-from .MDE.M2.relationship_repository import RelationshipRepository
 from .oauth.user_repository import UserRepository
 from .repository.issue_repository import IssueRepository
 from .repository.message_repository import MessageRepository
@@ -18,8 +14,4 @@ __all__ = [
     "RepositoryRepository",
     "IssueRepository",
     "MessageRepository",
-    "MetamodelRepository",
-    "ConceptRepository",
-    "AttributeRepository",
-    "RelationshipRepository",
 ]

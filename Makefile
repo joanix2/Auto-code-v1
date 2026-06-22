@@ -6,6 +6,7 @@ help:
 	@echo "╚═══════════════════════════════════════════════╝"
 	@echo ""
 	@echo "🚀 Development:"
+	@echo "  make dev              - Start backend + frontend simultaneously"
 	@echo "  make dev-backend      - Start backend in development mode"
 	@echo "  make dev-frontend     - Start frontend in development mode"
 	@echo "  make dev-worker       - Start worker in development mode"
@@ -178,7 +179,17 @@ deploy-local:
 	@echo "🧪 Testing deployment locally..."
 	@bash test-deployment.sh
 
-# Development mode
+# Development mode (both backend and frontend)
+dev:
+	@echo "🚀 Starting backend + frontend in development mode..."
+	@echo "  Backend:  http://localhost:8000"
+	@echo "  Frontend: http://localhost:5173"
+	@echo ""
+	@trap 'kill 0' EXIT; \
+	$(MAKE) dev-backend & \
+	$(MAKE) dev-frontend & \
+	wait
+
 dev-backend:
 	@echo "🔧 Starting backend in development mode..."
 	@if [ -d "backend/venv" ]; then \

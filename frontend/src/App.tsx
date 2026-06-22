@@ -9,14 +9,13 @@ import { RepositoryDetails } from "./pages/development/repository/RepositoryDeta
 import { Issues } from "./pages/development/issues/Issues";
 import IssueDetails from "./pages/development/issues/IssueDetails";
 import { Messages } from "./pages/development/messages/Messages";
-import { DSLGraphs } from "./pages/development/dsls/DSLGraphs";
-import { DSLDetails } from "./pages/development/dsls/DSLDetails";
-import { DSLForm } from "./pages/development/dsls/DSLForm";
+import { M3Page } from "./pages/development/m3/M3Page";
+import { LanguagesPage } from "./pages/development/languages/LanguagesPage";
+import { LanguageDetailPage } from "./pages/development/languages/LanguageDetailPage";
 import { Projects } from "./pages/development/projects/Projects";
 import { ProjectDetails } from "./pages/development/projects/ProjectDetails";
 import { ProjectForm } from "./pages/development/projects/ProjectForm";
 import { ProjectDetailLayout } from "./components/layout/ProjectDetailLayout";
-import { FullPageLayout } from "./components/layout/FullPageLayout";
 import Profile from "./pages/profile/Profile";
 import { NotFound } from "./pages/NotFound";
 import { Toaster } from "@/components/ui/toaster";
@@ -59,23 +58,9 @@ function ProjectDetailPageWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DSLDetailPageWrapper({ children }: { children: React.ReactNode }) {
+function DSLRedirect() {
   const { id } = useParams<{ id: string }>();
-  const { user, signOut } = useAuth();
-  const [title, setTitle] = React.useState("");
-
-  React.useEffect(() => {
-    if (!id) return;
-    import("@/services/dslService").then(({ dslService }) => {
-      dslService.getById(id).then((dsl) => setTitle(dsl.name)).catch(() => {});
-    });
-  }, [id]);
-
-  return (
-    <FullPageLayout title={title} backUrl="/development/dsls" user={user} onSignOut={signOut}>
-      {children}
-    </FullPageLayout>
-  );
+  return <Navigate to={`/development/languages/${id}`} replace />;
 }
 
 function App() {
@@ -181,47 +166,45 @@ function App() {
             }
           />
 
-          {/* DSL routes */}
+          {/* M3 rewriting-logic graph route */}
           <Route
-            path="/development/dsls"
+            path="/development/m3"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
-                  <DSLGraphs />
+                  <M3Page />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Languages routes */}
+          <Route
+            path="/development/languages"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <LanguagesPage />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }
           />
           <Route
-            path="/development/dsls/new"
+            path="/development/languages/:langId"
             element={
               <ProtectedRoute>
                 <AuthenticatedLayout>
-                  <DSLForm />
+                  <LanguageDetailPage />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/development/dsls/:id"
-            element={
-              <ProtectedRoute>
-                <DSLDetailPageWrapper>
-                  <DSLDetails />
-                </DSLDetailPageWrapper>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/development/dsls/:id/edit"
-            element={
-              <ProtectedRoute>
-                <AuthenticatedLayout>
-                  <DSLForm />
-                </AuthenticatedLayout>
-              </ProtectedRoute>
-            }
-          />
+
+          {/* DSL routes → redirect to languages */}
+          <Route path="/development/dsls" element={<Navigate to="/development/languages" replace />} />
+          <Route path="/development/dsls/new" element={<Navigate to="/development/languages" replace />} />
+          <Route path="/development/dsls/:id" element={<DSLRedirect />} />
+          <Route path="/development/dsls/:id/edit" element={<Navigate to="/development/languages" replace />} />
 
           <Route
             path="/development/issues/new"

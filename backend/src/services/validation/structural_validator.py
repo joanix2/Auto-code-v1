@@ -14,7 +14,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.models.graph.schema import validate_ir_graph as _schema_validate
+def _check_graph_structure(data: dict) -> list[str]:
+    """Minimal structural validation for graph documents."""
+    errors: list[str] = []
+    if not isinstance(data, dict):
+        return ["Root must be a JSON object"]
+    for key in ["metadata", "nodes", "edges"]:
+        if key not in data:
+            errors.append(f"Missing required key: '{key}'")
+    return errors
 from src.services.validation.validation_report import Severity, ValidationError, ValidationReport
 
 
@@ -25,7 +33,7 @@ def validate_required_fields(data: dict[str, Any]) -> ValidationReport:
     This is a thin wrapper around :func:`src.models.graph.schema.validate_ir_graph`.
     """
     report = ValidationReport()
-    schema_errors = _schema_validate(data)
+    schema_errors = _check_graph_structure(data)
 
     for msg in schema_errors:
         # Try to guess a meaningful location from the error message

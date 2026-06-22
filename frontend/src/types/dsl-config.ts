@@ -1,7 +1,5 @@
 /**
- * M3 Types - Meta-dsl type definitions
- *
- * These types match the backend M3 configuration exactly.
+ * M3 Types — matching the rewriting-logic M3 graph labels.
  */
 
 export interface M3NodeType {
@@ -16,21 +14,26 @@ export interface M3NodeType {
 export interface M3EdgeType {
   name: string;
   description: string;
-  sourceNodeTypes: string[]; // Array of allowed source node type IDs
-  targetNodeTypes: string[]; // Array of allowed target node type IDs
+  sourceNodeTypes: string[];
+  targetNodeTypes: string[];
   directed: boolean;
 }
 
-/**
- * Helper function to check if an edge type allows a connection
- */
-export function allowsConnection(edgeType: M3EdgeType, sourceNodeType: string, targetNodeType: string): boolean {
-  return edgeType.sourceNodeTypes.includes(sourceNodeType) && edgeType.targetNodeTypes.includes(targetNodeType);
+export function allowsConnection(
+  edgeType: M3EdgeType,
+  sourceNodeType: string,
+  targetNodeType: string,
+): boolean {
+  return (
+    edgeType.sourceNodeTypes.includes(sourceNodeType) &&
+    edgeType.targetNodeTypes.includes(targetNodeType)
+  );
 }
 
-/**
- * Helper function to get all allowed edge types between two node types
- */
-export function getAllowedEdgeTypes(edgeTypes: M3EdgeType[], sourceNodeType: string, targetNodeType: string): M3EdgeType[] {
-  return edgeTypes.filter((edgeType) => allowsConnection(edgeType, sourceNodeType, targetNodeType));
+export function getAllowedEdgeTypes(
+  edgeTypes: M3EdgeType[],
+  sourceNodeType: string,
+  targetNodeType: string,
+): M3EdgeType[] {
+  return edgeTypes.filter((et) => allowsConnection(et, sourceNodeType, targetNodeType));
 }

@@ -623,11 +623,12 @@ class TestValidationAPI:
         data = response.json()
         assert data["summary"]["valid"] is False
 
-    def test_validate_metamodel_endpoint_not_found(self, client: TestClient):
-        """Test that a non-existent metamodel returns 404."""
-        response = client.post("/api/validate/nonexistent-id")
-        # Should be a 404 because the metamodel is not in DB
-        assert response.status_code == 404
+    def test_validate_missing_metadata(self, client: TestClient):
+        """Test that a graph without metadata returns errors."""
+        response = client.post("/api/validate/graph", json={})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["summary"]["valid"] is False
 
 
 # ---------------------------------------------------------------------------

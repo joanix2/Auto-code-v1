@@ -16,23 +16,11 @@ from src.controllers import (
     message_router,
     repository_router,
 )
-from src.controllers.ir_controller import router as ir_router
-from src.controllers.dsl.dsl_attribute_controller import router as dsl_attribute_router
-from src.controllers.dsl.dsl_concept_controller import router as dsl_concept_router
-from src.controllers.dsl.dsl_edge_controller import router as dsl_edge_router
-from src.controllers.dsl.dsl_controller import router as dsl_router
-from src.controllers.dsl.dsl_relation_controller import router as dsl_relation_router
-from src.controllers.dsl.dsl_config_controller import router as dsl_config_router
-from src.controllers.inheritance_controller import router as inheritance_router
-from src.controllers.ontology_controller import router as ontology_pipeline_router
-from src.controllers.project_ontology.ontology_controller import router as ontology_router
-from src.controllers.query_controller import router as query_router
+from src.controllers.language_controller import router as language_router
 from src.controllers.rewrite_controller import router as rewrite_router
 from src.controllers.template_controller import router as template_router
 from src.controllers.validation_controller import router as validation_router
 from src.controllers.codegen_controller import router as codegen_router
-from src.controllers.repository.project_controller import router as project_router
-from src.controllers.architecture.architecture_controller import router as architecture_router
 from src.database import db
 from src.utils.config import config
 
@@ -45,7 +33,6 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifecycle management"""
-    # Startup
     logger.info("🚀 Starting Auto-Code Platform API...")
     db.connect()
 
@@ -58,7 +45,6 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Shutdown
     logger.info("🛑 Shutting down...")
     db.close()
     logger.info("✓ Closed")
@@ -67,11 +53,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Auto-Code Platform API",
     description="API for automated development with AI agents",
-    version="2.0.0",
+    version="3.0.0",
     lifespan=lifespan,
 )
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -80,41 +65,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(auth_router)
 app.include_router(repository_router)
 app.include_router(issue_router)
 app.include_router(message_router)
 app.include_router(copilot_assignment_router)
-app.include_router(dsl_config_router)
-app.include_router(dsl_router)
-app.include_router(dsl_concept_router)
-app.include_router(dsl_attribute_router)
-app.include_router(dsl_relation_router)
-app.include_router(dsl_edge_router)
-app.include_router(ir_router)
-app.include_router(inheritance_router)
-app.include_router(query_router)
-app.include_router(template_router)
-app.include_router(ontology_router)
+app.include_router(language_router)
 app.include_router(rewrite_router)
+app.include_router(template_router)
 app.include_router(validation_router)
 app.include_router(codegen_router)
-app.include_router(project_router)
-app.include_router(architecture_router)
 
 
 @app.get("/")
 async def root():
-    """Root endpoint"""
-    return {"message": "Auto-Code Platform API", "version": "2.0.0", "docs": "/docs"}
+    return {"message": "Auto-Code Platform API", "version": "3.0.0", "docs": "/docs"}
 
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
     neo4j_status = "healthy" if db.verify_connectivity() else "unhealthy"
-
     return {
         "status": "healthy" if neo4j_status == "healthy" else "degraded",
         "services": {"api": "healthy", "neo4j": neo4j_status},

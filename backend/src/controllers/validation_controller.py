@@ -51,83 +51,19 @@ async def validate_graph_endpoint(
     return result
 
 
-@router.post("/{dsl_id}")
-async def validate_dsl_graph(
-    dsl_id: str,
+@router.post("/dsl")
+async def validate_graph_document(
+    graph_data: dict[str, Any],
     current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
 ):
-    """Validate the IR graph for a dsl stored in the database.
+    """Validate a graph document sent as JSON body.
 
-    Fetches the complete graph (dsl + nodes + edges) and runs the
-    full validation pipeline against it.
+    The request body should be a dict with ``metadata``, ``nodes``, ``edges`` keys.
     """
-    logger.info(f"Validating dsl graph: {dsl_id} (user={current_user.username})")
-
-    from src.repositories.dsl.dsl_attribute_repository import DSLAttributeRepository
-    from src.repositories.dsl.dsl_concept_repository import DSLConceptRepository
-    from src.repositories.dsl.dsl_edge_repository import DSLEdgeRepository
-    from src.repositories.dsl.dsl_repository import DSLRepository
-    from src.repositories.dsl.dsl_relation_repository import DSLRelationRepository
-    from src.services.dsl.dsl_service import DSLService
-
-    dsl_repo = DSLRepository(db)
-    concept_repo = DSLConceptRepository(db)
-    attribute_repo = DSLAttributeRepository(db)
-    relationship_repo = DSLRelationRepository(db)
-    edge_repo = DSLEdgeRepository(db)
-
-    service = DSLService(
-        repository=dsl_repo,
-        dsl_concept_repository=concept_repo,
-        dsl_attribute_repository=attribute_repo,
-        relationship_repository=relationship_repo,
-        dsl_edge_repository=edge_repo,
-    )
-
-    try:
-        graph_data = await service.get_dsl_graph(dsl_id)
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except Exception as e:
-        logger.error(f"Error fetching dsl graph: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve dsl graph: {str(e)}",
-        )
-
-    # Convert the service response into the standard IR JSON format
-    dsl = graph_data["dsl"]
-    ir_document: dict[str, Any] = {
-        "metadata": {
-            "id": dsl.id,
-            "name": dsl.name,
-            "description": dsl.description,
-            "version": dsl.version,
-            "status": dsl.status,
-            "owner_id": dsl.owner_id,
-            "created_at": dsl.created_at.isoformat() if dsl.created_at else None,
-            "updated_at": dsl.updated_at.isoformat() if dsl.updated_at else None,
-            "node_count": dsl.node_count,
-            "edge_count": dsl.edge_count,
-            "allowed_node_types": [nt.model_dump() for nt in dsl.allowed_node_types],
-            "allowed_edge_types": [et.model_dump() for et in dsl.allowed_edge_types],
-        },
-        "nodes": graph_data["nodes"],
-        "edges": graph_data["edges"],
-        "edgeConstraints": graph_data.get("edgeConstraints", []),
-    }
-
-    report = validate_graph(ir_document)
+    report = validate_graph(graph_data)
     result = report.to_dict()
-
-    if not report.is_valid:
-        logger.info(
-            f"DSL {dsl_id} validation failed: "
-            f"{result['summary']['error_count']} error(s), "
-            f"{result['summary']['warning_count']} warning(s)"
-        )
-    else:
-        logger.info(f"DSL {dsl_id} validation passed")
-
+    logger.info(
+        f"Validation: {result['summary']['error_count']} error(s), "
+        f"{result['summary']['warning_count']} warning(s)"
+    )
     return result
