@@ -58,6 +58,8 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     setShowEdgeTypeSelector,
     prompt,
     setPrompt,
+    messages,
+    setMessages,
     setTransform,
   } = state;
 
@@ -88,7 +90,12 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
 
   const handleSendPrompt = () => {
     if (!prompt.trim()) return;
+    setMessages([...messages, { role: "user", text: prompt }]);
     setPrompt("");
+    // TODO: appeler l'API LLM et ajouter la réponse
+    setTimeout(() => {
+      setMessages(prev => [...prev, { role: "assistant", text: "✅ Graphe modifié" }]);
+    }, 500);
   };
 
   const handleEdgeTypeSelected = (edgeType: string) => {
@@ -338,7 +345,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
         )}
 
         {/* Graph Toolbar - Barre de prompt LLM en bas */}
-        <GraphToolbar prompt={prompt} onPromptChange={setPrompt} onSendPrompt={handleSendPrompt} />
+        <GraphToolbar prompt={prompt} onPromptChange={setPrompt} onSendPrompt={handleSendPrompt} messages={messages} />
       </div>
     </div>
   );

@@ -27,8 +27,9 @@ export function useGraphState() {
   });
   const [showEdgeTypeSelector, setShowEdgeTypeSelector] = useState(false);
 
-  // LLM prompt
+  // LLM prompt + historique
   const [prompt, setPrompt] = useState("");
+  const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([]);
 
   return {
     transform, setTransform,
@@ -39,5 +40,6 @@ export function useGraphState() {
     edgeDragState, setEdgeDragState,
     showEdgeTypeSelector, setShowEdgeTypeSelector,
     prompt, setPrompt,
+    messages, setMessages,
   };
 }
