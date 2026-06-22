@@ -21,6 +21,19 @@ router = APIRouter(prefix="/api/auth", tags=["authentication"])
 logger = logging.getLogger(__name__)
 
 
+@router.get("/dev-login")
+async def dev_login():
+    """E2E test endpoint — returns a fake JWT without real GitHub auth."""
+    from ...utils.auth import create_access_token
+
+    token = create_access_token(data={"sub": "e2e-test-user", "username": "e2e"})
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {"id": "e2e", "username": "e2e", "email": "e2e@test"},
+    }
+
+
 class UserUpdate(BaseModel):
     """User update model"""
 
