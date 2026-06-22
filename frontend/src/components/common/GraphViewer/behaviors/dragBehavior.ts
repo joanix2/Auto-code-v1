@@ -108,9 +108,10 @@ export function createDragBehavior({
         const transform = d3.zoomTransform(svgElement);
 
         // Appliquer la transformation inverse pour obtenir les coordonnées dans l'espace du graphe
-        const graphX = (point[0] - transform.x) / transform.k;
-        const graphY = (point[1] - transform.y) / transform.k;
+        const graphX = (point[0] - transform.x) / (transform.k || 1);
+        const graphY = (point[1] - transform.y) / (transform.k || 1);
 
+        if (!isFinite(graphX) || !isFinite(graphY)) return;
         tempLine.attr("x2", graphX).attr("y2", graphY);
         tempNode.attr("cx", graphX).attr("cy", graphY);
 
@@ -132,8 +133,10 @@ export function createDragBehavior({
         const transform = d3.zoomTransform(svgElement);
 
         // Appliquer la transformation inverse pour obtenir les coordonnées dans l'espace du graphe
-        const graphX = (point[0] - transform.x) / transform.k;
-        const graphY = (point[1] - transform.y) / transform.k;
+        const graphX = (point[0] - transform.x) / (transform.k || 1);
+        const graphY = (point[1] - transform.y) / (transform.k || 1);
+
+        if (!isFinite(graphX) || !isFinite(graphY)) return;
 
         // Trouver le nœud cible avec les coordonnées transformées
         const targetNode = data.nodes.find((n) => {
