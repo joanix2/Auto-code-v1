@@ -65,7 +65,10 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     setTransform,
   } = state;
 
-  const isEdgeModeActive = mode === "edge";
+  const edgeModeRef = useRef(mode === "edge");
+  edgeModeRef.current = mode === "edge";
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
 
   // Hook pour la gestion du mode lien
   const {
@@ -186,33 +189,20 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
       });
     }
 
-    // Background click handler (with mode support for node creation)
-    {
-      const rect = background.node() as SVGRectElement | null;
-      const svgEl = svgRef.current;
-
-      const bgHandlers = createBackgroundHandlers({
-        mode, dragStartPosRef, clickThreshold,
-        setSelectedNodeData, setShowNodePanel,
-        onBackgroundClick, untitledCounter, onCreateNode,
-      });
-
-      background
-        .on("pointerdown", bgHandlers.onPointerDown)
-        .on("pointerup", function (event) {
-          let svgPoint: { x: number; y: number } | undefined;
-          if (svgEl && mode === "node") {
-            const pt = svgEl.createSVGPoint();
-            pt.x = event.clientX;
-            pt.y = event.clientY;
-            const ctm = svgEl.getScreenCTM()?.inverse();
-            if (ctm) {
-              const transformed = pt.matrixTransform(ctm);
-              svgPoint = { x: transformed.x, y: transformed.y };
-            }
+    // Background click handler (only for deselection, no D3 interference)
+    if (onBackgroundClick) {
+      background.on("pointerup", (event) => {
+        if (dragStartPosRef.current) {
+          const dx = Math.abs(event.clientX - dragStartPosRef.current.x);
+          const dy = Math.abs(event.clientY - dragStartPosRef.current.y);
+          if (dx < clickThreshold && dy < clickThreshold) {
+            setSelectedNodeData(null);
+            setShowNodePanel(false);
+            onBackgroundClick?.();
           }
-          bgHandlers.onPointerUp(event, svgPoint);
-        });
+        }
+        dragStartPosRef.current = null;
+      });
     }
 
     // Create arrow markers
@@ -240,7 +230,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
 
     // Create nodes and node labels
     const handleInternalNodeClick = createNodeClickHandler({
-      mode,
+      modeRef,
       edgeDragState,
       setEdgeDragState,
       setShowEdgeTypeSelector,
@@ -258,7 +248,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     // Add drag behavior with edge mode support
     if (enableDrag) {
       const drag = createDragBehavior({
-        isEdgeModeActive,
+        edgeModeRef,
         tempGroup,
         simulation,
         nodeRadius,

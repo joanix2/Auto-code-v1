@@ -3,7 +3,7 @@ import type { GraphMode } from "../hooks/useGraphState";
 import { M3EdgeType } from "@/types/dsl-config";
 
 interface NodeClickHandlerParams {
-  mode: GraphMode;
+  modeRef: React.MutableRefObject<GraphMode>;
   edgeDragState: {
     sourceNode: GraphNode | null;
     targetNode: GraphNode | null;
@@ -20,7 +20,7 @@ interface NodeClickHandlerParams {
 }
 
 export function createNodeClickHandler({
-  mode,
+  modeRef,
   edgeDragState,
   setEdgeDragState,
   setShowEdgeTypeSelector,
@@ -31,8 +31,10 @@ export function createNodeClickHandler({
   onNodeClick,
   onDeleteNode,
 }: NodeClickHandlerParams) {
+import React from "react";
+
   return (node: GraphNode) => {
-    if (mode === "edge") {
+    if (modeRef.current === "edge") {
       if (!edgeDragState.sourceNode) {
         setEdgeDragState({ sourceNode: node, targetNode: null, isDrawing: false });
       } else if (edgeDragState.sourceNode.id !== node.id) {
@@ -49,7 +51,7 @@ export function createNodeClickHandler({
       } else {
         setEdgeDragState({ sourceNode: null, targetNode: null, isDrawing: false });
       }
-    } else if (mode === "delete") {
+      } else if (modeRef.current === "delete") {
       onDeleteNode?.(node);
     } else {
       setSelectedNodeData(node);

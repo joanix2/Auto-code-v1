@@ -1,9 +1,10 @@
+import React from "react";
 import * as d3 from "d3";
 import { GraphNode, GraphData } from "../types";
 import { M3EdgeType } from "@/types/dsl-config";
 
 interface CreateDragBehaviorParams {
-  isEdgeModeActive: boolean;
+  edgeModeRef: React.MutableRefObject<boolean>;
   tempGroup: d3.Selection<SVGGElement, unknown, null, undefined>;
   simulation: d3.Simulation<GraphNode, undefined>;
   nodeRadius: number;
@@ -17,7 +18,7 @@ interface CreateDragBehaviorParams {
 }
 
 export function createDragBehavior({
-  isEdgeModeActive,
+  edgeModeRef,
   tempGroup,
   simulation,
   nodeRadius,
@@ -37,7 +38,7 @@ export function createDragBehavior({
     .drag<SVGCircleElement, GraphNode>()
     .subject((event, d) => ({ x: d.x!, y: d.y! }))
     .on("start", function (event, d) {
-      if (isEdgeModeActive) {
+      if (edgeModeRef.current) {
         // MODE LIEN: Créer une ligne temporaire et un nœud fantôme
         setEdgeDragState({ sourceNode: d, targetNode: null, isDrawing: true });
 
@@ -97,7 +98,7 @@ export function createDragBehavior({
       event.sourceEvent?.stopPropagation();
     })
     .on("drag", function (event, d) {
-      if (isEdgeModeActive && tempLine && tempNode) {
+      if (edgeModeRef.current && tempLine && tempNode) {
         // MODE LIEN: Mettre à jour la ligne, le nœud fantôme et le label
 
         // Obtenir les coordonnées de la souris dans le SVG
@@ -114,14 +115,14 @@ export function createDragBehavior({
         tempNode.attr("cx", graphX).attr("cy", graphY);
 
         // Note: Le label n'est plus mis à jour car il a été supprimé
-      } else if (!isEdgeModeActive) {
+      } else if (!edgeModeRef.current) {
         // MODE NORMAL: Déplacer le nœud
         d.fx = event.x;
         d.fy = event.y;
       }
     })
     .on("end", function (event, d) {
-      if (isEdgeModeActive && tempLine && tempNode) {
+      if (edgeModeRef.current && tempLine && tempNode) {
         // MODE LIEN: Finaliser
 
         // Obtenir les coordonnées de la souris dans le SVG
@@ -168,7 +169,7 @@ export function createDragBehavior({
         } else {
           setEdgeDragState({ sourceNode: null, targetNode: null, isDrawing: false });
         }
-      } else if (!isEdgeModeActive) {
+      } else if (!edgeModeRef.current) {
         // MODE NORMAL: Libérer le nœud
         if (!event.active) simulation.alphaTarget(0);
         d.fx = null;
