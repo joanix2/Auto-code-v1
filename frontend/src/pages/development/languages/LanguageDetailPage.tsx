@@ -2,9 +2,9 @@
  * Language Detail Page — visualize a language's M3 graph and manage its elements.
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GraphViewer } from "@/components/common/GraphViewer";
 import type { GraphData, GraphNode, GraphEdge } from "@/components/common/GraphViewer";
@@ -20,8 +20,7 @@ const NODE_COLORS: Record<string, string> = {
   Invariant: "#607D8B",
 };
 
-const ALL_TYPES = ["Sort", "Op", "Equation", "Rule", "ConditionalRule", "Strategy", "Invariant"];
-const DEFAULT_SORTS = ["string", "int", "bool"];
+
 
 export function LanguageDetailPage() {
   const { langId } = useParams<{ langId: string }>();
@@ -60,26 +59,6 @@ export function LanguageDetailPage() {
 
   useEffect(() => { loadGraph(); }, [langId]);
 
-  const handleCreateNode = useCallback(async (type: string, name: string) => {
-    if (!langId) return;
-    try {
-      if (type === "Sort") {
-        await languageService.createSort(langId, { name });
-      } else if (type === "Op") {
-        await languageService.createOp(langId, { name, result_sort: "string" });
-      } else if (type === "Equation") {
-        await languageService.createEquation(langId, { name, lhs: name, rhs: "" });
-      } else if (type === "Rule") {
-        await languageService.createRule(langId, { name, lhs: name, rhs: "" });
-      } else if (type === "Invariant") {
-        await languageService.createInvariant(langId, { name, condition: "" });
-      }
-      loadGraph();
-    } catch (err) {
-      console.error(`Failed to create ${type}`, err);
-    }
-  }, [langId]);
-
   if (loading) return <div className="p-6">Chargement...</div>;
   if (error) return <div className="p-6 text-red-500">{error}</div>;
   if (!language) return <div className="p-6">Language not found</div>;
@@ -95,25 +74,6 @@ export function LanguageDetailPage() {
         <span className="text-sm text-gray-400">
           {language.node_count} nodes · {language.edge_count} edges
         </span>
-      </div>
-
-      {/* Legend + quick-add */}
-      <div className="flex flex-wrap items-center gap-3 px-4 py-2 bg-white border-b z-10">
-        {ALL_TYPES.map((type) => (
-          <div key={type} className="flex items-center gap-1 text-sm">
-            <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: NODE_COLORS[type] }} />
-            <span>{type}</span>
-            <button
-              className="ml-1 text-gray-400 hover:text-gray-600"
-              onClick={() => {
-                const name = prompt(`${type} name:`);
-                if (name) handleCreateNode(type, name);
-              }}
-            >
-              <Plus className="w-3 h-3" />
-            </button>
-          </div>
-        ))}
       </div>
 
       {/* Graph */}
