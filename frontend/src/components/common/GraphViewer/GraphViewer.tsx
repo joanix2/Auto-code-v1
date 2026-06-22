@@ -50,8 +50,8 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     setSelectedNodeData,
     showNodePanel,
     setShowNodePanel,
-    isEdgeModeActive,
-    setIsEdgeModeActive,
+    mode,
+    setMode,
     edgeDragState,
     setEdgeDragState,
     showEdgeTypeSelector,
@@ -61,14 +61,15 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     setTransform,
   } = state;
 
+  const isEdgeModeActive = mode === "edge";
+
   // Hook pour la gestion du mode lien
   const {
     getAvailableEdgeTypes,
-    toggleEdgeMode,
     handleEdgeTypeSelected: baseHandleEdgeTypeSelected,
   } = useEdgeMode({
-    isEdgeModeActive,
-    setIsEdgeModeActive,
+    mode,
+    setMode,
     edgeDragState,
     setEdgeDragState,
     edgeTypes,
@@ -304,7 +305,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
         <svg ref={svgRef} width={dimensions.width} height={dimensions.height} className="bg-gray-50" style={{ touchAction: "none" }} />
 
         {/* Zoom Controls */}
-        {enableZoom && <ZoomControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onFitToScreen={handleFitToScreen} onReset={handleReset} />}
+        {enableZoom && <ZoomControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onFitToScreen={handleFitToScreen} onReset={handleReset} mode={mode} onModeChange={setMode} />}
 
         {/* Node Properties Panel */}
         <GraphNodePanel
@@ -337,7 +338,7 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
         )}
 
         {/* Graph Toolbar - Barre de prompt LLM en bas */}
-        <GraphToolbar prompt={prompt} onPromptChange={setPrompt} onSendPrompt={handleSendPrompt} onAddNode={() => onAddNode?.()} isEdgeMode={isEdgeModeActive} onToggleEdgeMode={toggleEdgeMode} />
+        <GraphToolbar prompt={prompt} onPromptChange={setPrompt} onSendPrompt={handleSendPrompt} />
       </div>
     </div>
   );
