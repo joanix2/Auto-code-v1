@@ -21,19 +21,17 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({ prompt, onPromptChan
       className,
     )}>
       <div className="flex items-center gap-2 px-4 py-3">
-        <div className="relative flex-1">
-          <Input
-            type="text"
-            placeholder="Demandez à l'IA de modifier le graphe..."
-            value={prompt}
-            onChange={(e) => onPromptChange(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSendPrompt(); } }}
-            className="pr-10 h-9"
-          />
-          <Button onClick={onSendPrompt} variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" disabled={!prompt.trim()}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
+        <Input
+          type="text"
+          placeholder="Demandez à l'IA de modifier le graphe..."
+          value={prompt}
+          onChange={(e) => onPromptChange(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSendPrompt(); } }}
+          className="flex-1 h-9"
+        />
+        <Button onClick={onSendPrompt} variant="default" size="sm" className="shrink-0 h-9" disabled={!prompt.trim()}>
+          <Send className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );
