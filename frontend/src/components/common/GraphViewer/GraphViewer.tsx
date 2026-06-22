@@ -120,20 +120,19 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
   // D3 Graph rendering
   useEffect(() => {
     if (!svgRef.current || dimensions.width === 0 || dimensions.height === 0) return;
-    if (!data.nodes.length) return;
-
-    // Déduploquer les nœuds par id pour éviter les doublons
-    const dedupedNodes = data.nodes.filter((node, index, self) => index === self.findIndex((n) => n.id === node.id));
 
     const svg = d3.select(svgRef.current);
-
-    // Instead of removing everything, selectively remove only graph elements
-    // This preserves the temp-edge-group during drag operations
     svg.selectAll(".graph-container").remove();
     svg.selectAll("defs").remove();
 
     // Create container group for zoom/pan (MUST be created first)
     const g = svg.append("g").attr("class", "graph-container");
+
+    // Déduploquer les nœuds par id pour éviter les doublons
+    const hasNodes = data.nodes.length > 0;
+    const dedupedNodes = hasNodes
+      ? data.nodes.filter((node, index, self) => index === self.findIndex((n) => n.id === node.id))
+      : [];
 
     // Create background rectangle INSIDE the group for click detection
     const background = g
@@ -230,73 +229,61 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     // Create arrow markers
     createArrowMarkers(svg, nodeRadius);
 
-    // Create force simulation
-    const simulation = createSimulation(dedupedNodes, data.edges, dimensions.width, dimensions.height, nodeRadius);
-    simulationRef.current = simulation;
+    // Node click handler (declare BEFORE usage in createNodes)
+    const handleInternalNodeClick = createNodeClickHandler({
+      modeRef, edgeDragState, setEdgeDragState, setShowEdgeTypeSelector,
+      setSelectedNodeData, setShowNodePanel, getAvailableEdgeTypes,
+      onCreateEdge, onNodeClick, onDeleteNode,
+    });
 
-    // Create edges and edge labels
-    const link = createEdges(g, data.edges, edgeColorMap, onEdgeClick);
-    const edgeLabels = createEdgeLabels(g, data.edges, showLabels);
+    let simulation: d3.Simulation<GraphNode, undefined> | null = null;
+    let link: d3.Selection<d3.BaseType | SVGGElement, GraphEdge, SVGGElement, unknown> | null = null;
+    let edgeLabels: d3.Selection<SVGTextElement, GraphEdge, SVGGElement, unknown> | null = null;
+    let node: d3.Selection<SVGCircleElement, GraphNode, SVGGElement, unknown> | null = null;
+    let nodeLabels: d3.Selection<SVGTextElement, GraphNode, SVGGElement, unknown> | null = null;
+
+    if (hasNodes) {
+      simulation = createSimulation(dedupedNodes, data.edges, dimensions.width, dimensions.height, nodeRadius);
+      simulationRef.current = simulation;
+
+      link = createEdges(g, data.edges, edgeColorMap, onEdgeClick);
+      edgeLabels = createEdgeLabels(g, data.edges, showLabels);
+
+      node = createNodes(g, dedupedNodes, nodeRadius, selectedNodeId, nodeColorMap, handleInternalNodeClick, onNodeDoubleClick);
+      nodeLabels = createNodeLabels(g, dedupedNodes, nodeRadius, selectedNodeId, showLabels, nodeColorMap);
+    }
 
     // Créer un groupe pour le nœud fantôme et la ligne temporaire en mode lien
-    // IMPORTANT: Créer dans SVG (pas dans g) pour survivre aux re-renders
-    // Mais appliquer la même transformation que g pour que les coordonnées correspondent
     let tempGroup = svg.select<SVGGElement>("g.temp-edge-group");
     if (tempGroup.empty()) {
       tempGroup = svg.append("g").attr("class", "temp-edge-group");
     }
-
-    // Synchroniser la transformation du tempGroup avec celle de g
     const currentTransform = transformRef.current;
     tempGroup.attr("transform", currentTransform.toString());
 
-    // Create nodes and node labels
-    const handleInternalNodeClick = createNodeClickHandler({
-      modeRef,
-      edgeDragState,
-      setEdgeDragState,
-      setShowEdgeTypeSelector,
-      setSelectedNodeData,
-      setShowNodePanel,
-      getAvailableEdgeTypes,
-      onCreateEdge,
-      onNodeClick,
-      onDeleteNode,
-    });
+    if (hasNodes && node) {
+      // Add drag behavior with edge mode support
+      if (enableDrag && simulation) {
+        const drag = createDragBehavior({
+          edgeModeRef, tempGroup, simulation, nodeRadius, data, nodeColorMap,
+          svgElement: svgRef.current, setEdgeDragState,
+          getAvailableEdgeTypes, setShowEdgeTypeSelector, onCreateEdge,
+        });
+        node.call(drag);
+      }
 
-    const node = createNodes(g, dedupedNodes, nodeRadius, selectedNodeId, nodeColorMap, handleInternalNodeClick, onNodeDoubleClick);
-    const nodeLabels = createNodeLabels(g, dedupedNodes, nodeRadius, selectedNodeId, showLabels, nodeColorMap);
-
-    // Add drag behavior with edge mode support
-    if (enableDrag) {
-      const drag = createDragBehavior({
-        edgeModeRef,
-        tempGroup,
-        simulation,
-        nodeRadius,
-        data,
-        nodeColorMap,
-        svgElement: svgRef.current,
-        setEdgeDragState,
-        getAvailableEdgeTypes,
-        setShowEdgeTypeSelector,
-        onCreateEdge,
+      // Update positions on simulation tick
+      simulation!.on("tick", () => {
+        if (link && edgeLabels) updateEdgePositions(link, edgeLabels, nodeRadius);
+        if (node && nodeLabels) updateNodePositions(node, nodeLabels);
       });
-
-      node.call(drag);
     }
-
-    // Update positions on simulation tick
-    simulation.on("tick", () => {
-      updateEdgePositions(link, edgeLabels, nodeRadius);
-      updateNodePositions(node, nodeLabels);
-    });
 
     // Apply initial transform
     svg.call(zoom.transform, transformRef.current);
 
     return () => {
-      simulation.stop();
+      if (simulation) simulation.stop();
     };
   }, [
     data,

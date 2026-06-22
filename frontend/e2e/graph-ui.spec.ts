@@ -23,6 +23,7 @@ test.describe("Graph UI E2E", () => {
   });
 
   test.beforeEach(async ({ page }) => {
+    page.on("pageerror", (err) => console.error("PAGE ERROR:", err.message));
     await loginAsTestUser(page);
     await page.route("**/api/auth/me", (route) => {
       route.fulfill({
@@ -37,7 +38,6 @@ test.describe("Graph UI E2E", () => {
     await page.goto(`/development/languages/${langId}`);
     await page.waitForLoadState("networkidle");
     await expect(page.getByText("e2e-ui-test").first()).toBeVisible({ timeout: 10000 });
-    // Attendre que les noeuds D3 soient rendus (cercles dans le SVG)
     await page.waitForTimeout(500);
   }
 
