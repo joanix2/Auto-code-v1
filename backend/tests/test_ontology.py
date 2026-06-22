@@ -11,15 +11,12 @@ Tests cover:
 
 from __future__ import annotations
 
-import json
-import os
 import tempfile
 from pathlib import Path
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-
 from src.services.ontology import (
     FactSource,
     InferenceEngine,
@@ -35,7 +32,6 @@ from src.services.ontology.ontology_models import (
     SemanticRelation,
     Taxonomy,
 )
-
 
 # ===================================================================
 # Fixtures
@@ -156,18 +152,22 @@ def sample_ontology(
     ontology.add_taxonomy(sample_taxonomy)
 
     # Add some declared facts
-    ontology.add_fact(Fact(
-        id="f1",
-        statement="IS_A(Car, Vehicle)",
-        source=FactSource.DECLARED,
-        confidence=1.0,
-    ))
-    ontology.add_fact(Fact(
-        id="f2",
-        statement="IS_A(Bicycle, Vehicle)",
-        source=FactSource.DECLARED,
-        confidence=0.9,
-    ))
+    ontology.add_fact(
+        Fact(
+            id="f1",
+            statement="IS_A(Car, Vehicle)",
+            source=FactSource.DECLARED,
+            confidence=1.0,
+        )
+    )
+    ontology.add_fact(
+        Fact(
+            id="f2",
+            statement="IS_A(Bicycle, Vehicle)",
+            source=FactSource.DECLARED,
+            confidence=0.9,
+        )
+    )
     return ontology
 
 
@@ -184,17 +184,28 @@ def sample_ir_graph() -> dict[str, Any]:
         "nodes": [
             {"id": "n1", "name": "Vehicle", "type": "concept", "description": "A vehicle"},
             {"id": "n2", "name": "Car", "type": "concept", "description": "A car"},
-            {"id": "n3", "name": "speed", "type": "attribute",
-             "description": "Speed property", "dataType": "integer"},
+            {
+                "id": "n3",
+                "name": "speed",
+                "type": "attribute",
+                "description": "Speed property",
+                "dataType": "integer",
+            },
         ],
         "edges": [
             {
-                "id": "e1", "source": "n2", "target": "n1",
-                "type": "SUBCLASS_OF", "directed": True,
+                "id": "e1",
+                "source": "n2",
+                "target": "n1",
+                "type": "SUBCLASS_OF",
+                "directed": True,
             },
             {
-                "id": "e2", "source": "n1", "target": "n3",
-                "type": "HAS_ATTRIBUTE", "directed": True,
+                "id": "e2",
+                "source": "n1",
+                "target": "n3",
+                "type": "HAS_ATTRIBUTE",
+                "directed": True,
             },
         ],
     }
@@ -445,12 +456,14 @@ class TestInferenceEngine:
 
     def test_run_inference_with_transitive_rule(self, sample_ontology, sample_rule_transitive):
         # Add a second IS_A relation to enable transitivity
-        sample_ontology.add_fact(Fact(
-            id="f3",
-            statement="IS_A(SportsCar, Car)",
-            source=FactSource.DECLARED,
-            confidence=0.95,
-        ))
+        sample_ontology.add_fact(
+            Fact(
+                id="f3",
+                statement="IS_A(SportsCar, Car)",
+                source=FactSource.DECLARED,
+                confidence=0.95,
+            )
+        )
 
         engine = InferenceEngine()
         engine.register_rule(sample_rule_transitive)
@@ -464,12 +477,14 @@ class TestInferenceEngine:
         assert all(f.confidence <= 1.0 for f in new_facts)
 
     def test_inferred_facts_have_justification(self, sample_ontology, sample_rule_transitive):
-        sample_ontology.add_fact(Fact(
-            id="f3",
-            statement="IS_A(SportsCar, Car)",
-            source=FactSource.DECLARED,
-            confidence=0.95,
-        ))
+        sample_ontology.add_fact(
+            Fact(
+                id="f3",
+                statement="IS_A(SportsCar, Car)",
+                source=FactSource.DECLARED,
+                confidence=0.95,
+            )
+        )
 
         engine = InferenceEngine()
         engine.register_rule(sample_rule_transitive)
@@ -481,12 +496,14 @@ class TestInferenceEngine:
 
     def test_fixpoint_converges(self, sample_ontology, sample_rule_transitive):
         # Test that fixpoint converges (repeated runs produce no new facts)
-        sample_ontology.add_fact(Fact(
-            id="f3",
-            statement="IS_A(SportsCar, Car)",
-            source=FactSource.DECLARED,
-            confidence=0.95,
-        ))
+        sample_ontology.add_fact(
+            Fact(
+                id="f3",
+                statement="IS_A(SportsCar, Car)",
+                source=FactSource.DECLARED,
+                confidence=0.95,
+            )
+        )
 
         engine = InferenceEngine()
         engine.register_rule(sample_rule_transitive)
@@ -535,12 +552,14 @@ class TestInferenceEngine:
         assert len(sample_ontology.get_declared_facts()) == 2
         assert len(sample_ontology.get_inferred_facts()) == 0
 
-        sample_ontology.add_fact(Fact(
-            id="f3",
-            statement="IS_A(SportsCar, Car)",
-            source=FactSource.DECLARED,
-            confidence=0.95,
-        ))
+        sample_ontology.add_fact(
+            Fact(
+                id="f3",
+                statement="IS_A(SportsCar, Car)",
+                source=FactSource.DECLARED,
+                confidence=0.95,
+            )
+        )
 
         engine = InferenceEngine()
         engine.register_rule(sample_rule_transitive)
@@ -573,12 +592,14 @@ class TestInferenceEngine:
 
     def test_no_duplicate_facts(self, sample_ontology, sample_rule_transitive):
         """Running the same rule twice should not create duplicates."""
-        sample_ontology.add_fact(Fact(
-            id="f3",
-            statement="IS_A(SportsCar, Car)",
-            source=FactSource.DECLARED,
-            confidence=0.95,
-        ))
+        sample_ontology.add_fact(
+            Fact(
+                id="f3",
+                statement="IS_A(SportsCar, Car)",
+                source=FactSource.DECLARED,
+                confidence=0.95,
+            )
+        )
 
         engine = InferenceEngine()
         engine.register_rule(sample_rule_transitive)
@@ -656,14 +677,16 @@ class TestOntologyCompiler:
     def test_compile_excluded_concept_relation_not_included(self, sample_ontology):
         """Relations involving excluded concepts should not appear in IR."""
         # Add a relation involving the low-confidence concept
-        sample_ontology.add_relation(SemanticRelation(
-            id="r-bad",
-            name="relates to",
-            source_id="c4",  # Unicorn (0.3) — will be excluded
-            target_id="c1",
-            relation_type="RELATED_TO",
-            confidence=0.5,
-        ))
+        sample_ontology.add_relation(
+            SemanticRelation(
+                id="r-bad",
+                name="relates to",
+                source_id="c4",  # Unicorn (0.3) — will be excluded
+                target_id="c1",
+                relation_type="RELATED_TO",
+                confidence=0.5,
+            )
+        )
 
         compiler = OntologyCompiler(confidence_threshold=0.5)
         ir_graph = compiler.compile_to_ir(sample_ontology)
@@ -710,9 +733,7 @@ class TestOntologyCompiler:
         compiler = OntologyCompiler()
         ir_graph = compiler.compile_to_ir(sample_ontology)
 
-        ontology2 = OntologyCompiler.extract_ontology_from_ir(
-            ir_graph, ontology_id="roundtrip"
-        )
+        ontology2 = OntologyCompiler.extract_ontology_from_ir(ir_graph, ontology_id="roundtrip")
 
         # High-confidence concepts should be preserved
         assert ontology2.get_concept("c1") is not None
@@ -763,9 +784,13 @@ class TestOntologyAPI:
 
     def test_get_ontology(self, client: TestClient):
         # First create
-        client.post("/api/ontology", json={
-            "id": "get-test", "name": "Get Test",
-        })
+        client.post(
+            "/api/ontology",
+            json={
+                "id": "get-test",
+                "name": "Get Test",
+            },
+        )
         response = client.get("/api/ontology/get-test")
         assert response.status_code == 200
         assert response.json()["name"] == "Get Test"
@@ -775,9 +800,13 @@ class TestOntologyAPI:
         assert response.status_code == 404
 
     def test_delete_ontology(self, client: TestClient):
-        client.post("/api/ontology", json={
-            "id": "del-test", "name": "Delete Test",
-        })
+        client.post(
+            "/api/ontology",
+            json={
+                "id": "del-test",
+                "name": "Delete Test",
+            },
+        )
         response = client.delete("/api/ontology/del-test")
         assert response.status_code == 204
 
@@ -797,17 +826,21 @@ class TestOntologyAPI:
     # Fact tests
 
     def test_get_facts(self, client: TestClient):
-        client.post("/api/ontology", json={
-            "id": "facts-test", "name": "Facts Test",
-            "facts": {
-                "f1": {
-                    "id": "f1",
-                    "statement": "test(X)",
-                    "source": "DECLARED",
-                    "confidence": 1.0,
-                }
+        client.post(
+            "/api/ontology",
+            json={
+                "id": "facts-test",
+                "name": "Facts Test",
+                "facts": {
+                    "f1": {
+                        "id": "f1",
+                        "statement": "test(X)",
+                        "source": "DECLARED",
+                        "confidence": 1.0,
+                    }
+                },
             },
-        })
+        )
 
         response = client.get("/api/ontology/facts-test/facts")
         assert response.status_code == 200
@@ -816,24 +849,28 @@ class TestOntologyAPI:
         assert data["facts"][0]["statement"] == "test(X)"
 
     def test_get_facts_filtered(self, client: TestClient):
-        client.post("/api/ontology", json={
-            "id": "facts-filter", "name": "Facts Filter",
-            "facts": {
-                "f1": {
-                    "id": "f1",
-                    "statement": "test(X)",
-                    "source": "DECLARED",
-                    "confidence": 1.0,
-                },
-                "f2": {
-                    "id": "f2",
-                    "statement": "test(Y)",
-                    "source": "INFERRED",
-                    "confidence": 0.8,
-                    "justification": "from rule",
+        client.post(
+            "/api/ontology",
+            json={
+                "id": "facts-filter",
+                "name": "Facts Filter",
+                "facts": {
+                    "f1": {
+                        "id": "f1",
+                        "statement": "test(X)",
+                        "source": "DECLARED",
+                        "confidence": 1.0,
+                    },
+                    "f2": {
+                        "id": "f2",
+                        "statement": "test(Y)",
+                        "source": "INFERRED",
+                        "confidence": 0.8,
+                        "justification": "from rule",
+                    },
                 },
             },
-        })
+        )
 
         response = client.get("/api/ontology/facts-filter/facts?source=DECLARED")
         assert response.status_code == 200
@@ -844,16 +881,23 @@ class TestOntologyAPI:
         assert response.json()["count"] == 1
 
     def test_add_fact(self, client: TestClient):
-        client.post("/api/ontology", json={
-            "id": "add-fact", "name": "Add Fact",
-        })
+        client.post(
+            "/api/ontology",
+            json={
+                "id": "add-fact",
+                "name": "Add Fact",
+            },
+        )
 
-        response = client.post("/api/ontology/add-fact/facts", json={
-            "id": "new-fact-1",
-            "statement": "IS_A(X, Y)",
-            "source": "DECLARED",
-            "confidence": 1.0,
-        })
+        response = client.post(
+            "/api/ontology/add-fact/facts",
+            json={
+                "id": "new-fact-1",
+                "statement": "IS_A(X, Y)",
+                "source": "DECLARED",
+                "confidence": 1.0,
+            },
+        )
         assert response.status_code == 201
         assert response.json()["id"] == "new-fact-1"
 
@@ -1033,13 +1077,15 @@ class TestOntologyEdgeCases:
     def test_concept_with_many_properties(self):
         """A concept with many properties should generate many attribute nodes."""
         ontology = OntologyGraph(id="many", name="Many Properties")
-        props = [
-            Property(name=f"prop{i}", type="string", cardinality="0..1")
-            for i in range(10)
-        ]
-        ontology.add_concept(Concept(
-            id="c1", name="BigConcept", properties=props, confidence=1.0,
-        ))
+        props = [Property(name=f"prop{i}", type="string", cardinality="0..1") for i in range(10)]
+        ontology.add_concept(
+            Concept(
+                id="c1",
+                name="BigConcept",
+                properties=props,
+                confidence=1.0,
+            )
+        )
 
         compiler = OntologyCompiler()
         ir_graph = compiler.compile_to_ir(ontology)
@@ -1050,9 +1096,13 @@ class TestOntologyEdgeCases:
         """Rules that could cause infinite loops are bounded by fixpoint."""
         ontology = OntologyGraph(id="circular", name="Circular Test")
         ontology.add_concept(Concept(id="c1", name="A", confidence=1.0))
-        ontology.add_fact(Fact(
-            id="f1", statement="RELATES_TO(A, B)", source=FactSource.DECLARED,
-        ))
+        ontology.add_fact(
+            Fact(
+                id="f1",
+                statement="RELATES_TO(A, B)",
+                source=FactSource.DECLARED,
+            )
+        )
 
         # A rule that swaps arguments — could cause circular inference
         rule = InferenceRule(
@@ -1063,9 +1113,13 @@ class TestOntologyEdgeCases:
             confidence_discount=0.5,
         )
 
-        ontology.add_fact(Fact(
-            id="f2", statement="RELATES_TO(B, C)", source=FactSource.DECLARED,
-        ))
+        ontology.add_fact(
+            Fact(
+                id="f2",
+                statement="RELATES_TO(B, C)",
+                source=FactSource.DECLARED,
+            )
+        )
 
         engine = InferenceEngine()
         engine.register_rule(rule)

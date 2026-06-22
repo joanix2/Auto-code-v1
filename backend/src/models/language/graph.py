@@ -23,7 +23,6 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-
 # ──────────────────────────────────────────────
 #  Node kinds & Edge kinds
 # ──────────────────────────────────────────────
@@ -89,16 +88,12 @@ class LangGraph(BaseModel):
 
     # ── builders ──────────────────────────────
 
-    def add_node(
-        self, kind: NodeKind, name: str, description: str = "", **props: Any
-    ) -> LangNode:
+    def add_node(self, kind: NodeKind, name: str, description: str = "", **props: Any) -> LangNode:
         node = LangNode(kind=kind, name=name, description=description, properties=props)
         self.nodes.append(node)
         return node
 
-    def add_edge(
-        self, kind: EdgeKind, source_id: str, target_id: str, **props: Any
-    ) -> LangEdge:
+    def add_edge(self, kind: EdgeKind, source_id: str, target_id: str, **props: Any) -> LangEdge:
         edge = LangEdge(kind=kind, source_id=source_id, target_id=target_id, properties=props)
         self.edges.append(edge)
         return edge
@@ -134,7 +129,8 @@ class LangGraph(BaseModel):
         if not parent:
             return []
         return [
-            child for e in self.edges_by_kind(EdgeKind.SUBSORT)
+            child
+            for e in self.edges_by_kind(EdgeKind.SUBSORT)
             if e.target_id == parent.id
             and (child := self.get_node_by_id(e.source_id))
             and child.kind == NodeKind.SORT
@@ -148,9 +144,9 @@ class LangGraph(BaseModel):
 
     def op_params(self, op_id: str) -> list[LangNode]:
         return [
-            p for e in self.edges_by_kind(EdgeKind.HAS_PARAM)
-            if e.source_id == op_id
-            and (p := self.get_node_by_id(e.target_id))
+            p
+            for e in self.edges_by_kind(EdgeKind.HAS_PARAM)
+            if e.source_id == op_id and (p := self.get_node_by_id(e.target_id))
         ]
 
     def edge_constraints(self) -> list[dict[str, Any]]:

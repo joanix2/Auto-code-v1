@@ -17,7 +17,6 @@ from typing import Any
 
 from src.services.rewrite.rewrite_rule import RewriteRule
 
-
 # ---------------------------------------------------------------------------
 # Helper: build a node id → node lookup
 # ---------------------------------------------------------------------------

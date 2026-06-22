@@ -13,7 +13,6 @@ Tests cover:
 from __future__ import annotations
 
 import copy
-from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -25,7 +24,6 @@ from src.services.rewrite.default_rules import (
     NORMALIZE_NAMES,
     REMOVE_ORPHAN_EDGES,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -178,12 +176,18 @@ class TestRewriteRule:
 
     def test_priority_ordering(self):
         low = RewriteRule(
-            name="low", description="", condition=lambda g: True,
-            action=lambda g: g, priority=10,
+            name="low",
+            description="",
+            condition=lambda g: True,
+            action=lambda g: g,
+            priority=10,
         )
         high = RewriteRule(
-            name="high", description="", condition=lambda g: True,
-            action=lambda g: g, priority=100,
+            name="high",
+            description="",
+            condition=lambda g: True,
+            action=lambda g: g,
+            priority=100,
         )
         engine = RewriteEngine()
         engine.register_rules([high, low])
@@ -298,7 +302,9 @@ class TestRewriteEngine:
     def test_register_rule(self):
         engine = RewriteEngine()
         rule = RewriteRule(
-            name="r1", description="", condition=lambda g: True,
+            name="r1",
+            description="",
+            condition=lambda g: True,
             action=lambda g: g,
         )
         engine.register_rule(rule)
@@ -307,7 +313,9 @@ class TestRewriteEngine:
     def test_register_duplicate_raises(self):
         engine = RewriteEngine()
         rule = RewriteRule(
-            name="r1", description="", condition=lambda g: True,
+            name="r1",
+            description="",
+            condition=lambda g: True,
             action=lambda g: g,
         )
         engine.register_rule(rule)
@@ -317,8 +325,7 @@ class TestRewriteEngine:
     def test_register_rules_bulk(self):
         engine = RewriteEngine()
         rules = [
-            RewriteRule(name=f"r{i}", description="", condition=lambda g: True,
-                        action=lambda g: g)
+            RewriteRule(name=f"r{i}", description="", condition=lambda g: True, action=lambda g: g)
             for i in range(3)
         ]
         engine.register_rules(rules)
@@ -326,16 +333,14 @@ class TestRewriteEngine:
 
     def test_unregister_rule(self):
         engine = RewriteEngine()
-        rule = RewriteRule(name="r1", description="", condition=lambda g: True,
-                           action=lambda g: g)
+        rule = RewriteRule(name="r1", description="", condition=lambda g: True, action=lambda g: g)
         engine.register_rule(rule)
         engine.unregister_rule("r1")
         assert len(engine.list_rules()) == 0
 
     def test_get_rule(self):
         engine = RewriteEngine()
-        rule = RewriteRule(name="r1", description="d", condition=lambda g: True,
-                           action=lambda g: g)
+        rule = RewriteRule(name="r1", description="d", condition=lambda g: True, action=lambda g: g)
         engine.register_rule(rule)
         assert engine.get_rule("r1") is rule
         assert engine.get_rule("nonexistent") is None
@@ -382,8 +387,9 @@ class TestRewriteEngine:
             raise RuntimeError("oops")
 
         engine = RewriteEngine()
-        rule = RewriteRule(name="broken", description="", condition=lambda g: True,
-                           action=broken_action)
+        rule = RewriteRule(
+            name="broken", description="", condition=lambda g: True, action=broken_action
+        )
         engine.register_rule(rule)
         result = engine.apply_rule("broken", {"nodes": []})
         assert result.success is False

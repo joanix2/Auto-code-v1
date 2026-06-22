@@ -1,8 +1,6 @@
 """Tests for the language graph model (NodeKind, LangNode, LangGraph, …)."""
 
-import pytest
-
-from src.models.language import NodeKind, EdgeKind, LangNode, LangEdge, LangGraph
+from src.models.language import EdgeKind, LangEdge, LangGraph, LangNode, NodeKind
 
 
 class TestLangGraph:
@@ -99,6 +97,7 @@ class TestLangGraph:
 class TestLanguageManager:
     def test_create_and_list(self):
         from src.services.language_manager import LanguageManager
+
         LanguageManager._reset()
         mgr = LanguageManager()
         assert len(mgr.list()) == 1  # default
@@ -107,6 +106,7 @@ class TestLanguageManager:
 
     def test_add_nodes(self):
         from src.services.language_manager import LanguageManager
+
         LanguageManager._reset()
         mgr = LanguageManager()
         lang = mgr.create("math")

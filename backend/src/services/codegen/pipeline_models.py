@@ -8,7 +8,7 @@ through the agent pipeline from prompt to generated code.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -111,9 +111,7 @@ class PipelineConfig(BaseModel):
         default=PipelineErrorStrategy.ABORT,
         description="How to handle stage failures",
     )
-    max_retries: int = Field(
-        default=3, ge=0, description="Maximum retry attempts per stage"
-    )
+    max_retries: int = Field(default=3, ge=0, description="Maximum retry attempts per stage")
     metadata: dict[str, Any] = Field(
         default_factory=dict,
         description="Arbitrary metadata for the pipeline config",
@@ -145,18 +143,15 @@ class PipelineState(BaseModel):
     config: PipelineConfig = Field(default_factory=PipelineConfig)
     stages: dict[PipelineStage, StageState] = Field(default_factory=dict)
     current_stage: PipelineStage | None = Field(default=None)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = Field(default=None)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     def model_post_init(self, __context: Any) -> None:
         """Initialize stage states from config stages."""
         if not self.stages:
-            self.stages = {
-                stage: StageState(stage=stage)
-                for stage in self.config.stages
-            }
+            self.stages = {stage: StageState(stage=stage) for stage in self.config.stages}
 
 
 # ======================================================================
@@ -188,8 +183,8 @@ class AgentTask(BaseModel):
     )
     status: AgentTaskStatus = Field(default=AgentTaskStatus.PENDING)
     error: str | None = Field(default=None)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 # ======================================================================
@@ -200,7 +195,9 @@ class AgentTask(BaseModel):
 class GenerationRequest(BaseModel):
     """A top-level request to generate code from a prompt."""
 
-    prompt: str = Field(..., min_length=1, description="The user prompt describing what to generate")
+    prompt: str = Field(
+        ..., min_length=1, description="The user prompt describing what to generate"
+    )
     pipeline_config: PipelineConfig = Field(
         default_factory=PipelineConfig,
         description="Pipeline configuration for this request",

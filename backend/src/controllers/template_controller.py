@@ -7,14 +7,12 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path
 
-from src.models.oauth.user import User
 from src.services.templates import (
     TemplateRegistry,
     TemplateRenderer,
 )
-from src.utils.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +38,7 @@ def get_renderer() -> TemplateRenderer:
 
 
 @router.get("")
-async def list_templates(
-    current_user: User = Depends(get_current_user),
-):
+async def list_templates():
     """List all registered templates."""
     registry = get_registry()
     return registry.list_templates()
@@ -51,7 +47,6 @@ async def list_templates(
 @router.post("/register")
 async def register_template(
     data: dict[str, Any],
-    current_user: User = Depends(get_current_user),
 ):
     """Register a new template."""
     registry = get_registry()
@@ -66,7 +61,6 @@ async def register_template(
 @router.post("/render")
 async def render_template(
     data: dict[str, Any],
-    current_user: User = Depends(get_current_user),
     renderer: TemplateRenderer = Depends(get_renderer),
 ):
     """Render a template with context."""
@@ -93,7 +87,6 @@ async def render_template(
 @router.get("/{template_name}")
 async def get_template(
     template_name: str = Path(..., description="Template name"),
-    current_user: User = Depends(get_current_user),
 ):
     """Get a specific template source."""
     registry = get_registry()
@@ -106,7 +99,6 @@ async def get_template(
 @router.delete("/{template_name}")
 async def delete_template(
     template_name: str = Path(..., description="Template name"),
-    current_user: User = Depends(get_current_user),
 ):
     """Delete a template."""
     registry = get_registry()

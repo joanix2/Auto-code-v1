@@ -152,11 +152,13 @@ class NERAgent(BaseAgentService):
                     "source_ticket": ticket.get("id", ""),
                 }
                 entities.append(sub_entity)
-                relations.append({
-                    "source_id": main_entity["id"],
-                    "target_id": sub_entity["id"],
-                    "relation": "HAS_ATTRIBUTE",
-                })
+                relations.append(
+                    {
+                        "source_id": main_entity["id"],
+                        "target_id": sub_entity["id"],
+                        "relation": "HAS_ATTRIBUTE",
+                    }
+                )
 
         return {
             "success": True,
@@ -198,20 +200,24 @@ class OntologistAgent(BaseAgentService):
 
         for entity in entities:
             if entity.get("type") == "concept":
-                concepts.append({
-                    "id": entity["id"],
-                    "name": entity["name"],
-                    "description": f"Concept derived from {entity.get('source_ticket', 'unknown')}",
-                    "attributes": [],
-                    "relations": [],
-                })
+                concepts.append(
+                    {
+                        "id": entity["id"],
+                        "name": entity["name"],
+                        "description": f"Concept derived from {entity.get('source_ticket', 'unknown')}",
+                        "attributes": [],
+                        "relations": [],
+                    }
+                )
             elif entity.get("type") == "attribute":
-                attributes.append({
-                    "id": entity["id"],
-                    "name": entity["name"],
-                    "data_type": "string",
-                    "is_required": False,
-                })
+                attributes.append(
+                    {
+                        "id": entity["id"],
+                        "name": entity["name"],
+                        "data_type": "string",
+                        "is_required": False,
+                    }
+                )
 
         # Link attributes to concepts via relations
         for relation in relations:
@@ -229,15 +235,15 @@ class OntologistAgent(BaseAgentService):
 
             for concept in concepts:
                 if concept["id"] == target_id and rel_type != "HAS_ATTRIBUTE":
-                    source_concept = next(
-                        (c for c in concepts if c["id"] == source_id), None
-                    )
+                    source_concept = next((c for c in concepts if c["id"] == source_id), None)
                     if source_concept:
-                        concept["relations"].append({
-                            "target_id": source_id,
-                            "target_name": source_concept["name"],
-                            "type": rel_type,
-                        })
+                        concept["relations"].append(
+                            {
+                                "target_id": source_id,
+                                "target_name": source_concept["name"],
+                                "type": rel_type,
+                            }
+                        )
                     break
 
         return {
@@ -303,19 +309,23 @@ class GraphEngineerAgent(BaseAgentService):
                     },
                 }
                 nodes.append(attr_node)
-                edges.append({
-                    "source_id": concept_node["id"],
-                    "target_id": attr_node["id"],
-                    "edge_type": "HAS_ATTRIBUTE",
-                })
+                edges.append(
+                    {
+                        "source_id": concept_node["id"],
+                        "target_id": attr_node["id"],
+                        "edge_type": "HAS_ATTRIBUTE",
+                    }
+                )
 
             # Create edges for relations
             for rel in concept.get("relations", []):
-                edges.append({
-                    "source_id": concept_node["id"],
-                    "target_id": rel["target_id"],
-                    "edge_type": rel.get("type", "RELATED_TO"),
-                })
+                edges.append(
+                    {
+                        "source_id": concept_node["id"],
+                        "target_id": rel["target_id"],
+                        "edge_type": rel.get("type", "RELATED_TO"),
+                    }
+                )
 
         return {
             "success": True,
@@ -359,27 +369,31 @@ class TemplateEngineerAgent(BaseAgentService):
             if node.get("kind") == "concept":
                 name = node["name"]
                 snake = _to_snake_case(name)
-                files.append({
-                    "path": f"models/{snake}.py",
-                    "content": (
-                        f"# Generated model for {name}\n"
-                        f"# From node: {node.get('id')}\n"
-                        f"class {name}(BaseModel):\n"
-                        f"    \"\"\"{node.get('properties', {}).get('description', '')}\"\"\"\n"
-                        f"    pass\n"
-                    ),
-                    "template_used": "python_model.j2",
-                })
-                files.append({
-                    "path": f"routes/{snake}_api.py",
-                    "content": (
-                        f"# Generated API router for {name}\n"
-                        f"from fastapi import APIRouter\n\n"
-                        f"router = APIRouter(prefix='/{snake}')\n\n"
-                        f"# TODO: implement endpoints for {name}\n"
-                    ),
-                    "template_used": "api_route.j2",
-                })
+                files.append(
+                    {
+                        "path": f"models/{snake}.py",
+                        "content": (
+                            f"# Generated model for {name}\n"
+                            f"# From node: {node.get('id')}\n"
+                            f"class {name}(BaseModel):\n"
+                            f'    """{node.get("properties", {}).get("description", "")}"""\n'
+                            f"    pass\n"
+                        ),
+                        "template_used": "python_model.j2",
+                    }
+                )
+                files.append(
+                    {
+                        "path": f"routes/{snake}_api.py",
+                        "content": (
+                            f"# Generated API router for {name}\n"
+                            f"from fastapi import APIRouter\n\n"
+                            f"router = APIRouter(prefix='/{snake}')\n\n"
+                            f"# TODO: implement endpoints for {name}\n"
+                        ),
+                        "template_used": "api_route.j2",
+                    }
+                )
 
         return {
             "success": True,
@@ -421,13 +435,9 @@ class ValidatorAgent(BaseAgentService):
         node_ids = {n["id"] for n in nodes}
         for edge in edges:
             if edge.get("source_id") not in node_ids:
-                errors.append(
-                    f"Edge references unknown source node: {edge.get('source_id')}"
-                )
+                errors.append(f"Edge references unknown source node: {edge.get('source_id')}")
             if edge.get("target_id") not in node_ids:
-                errors.append(
-                    f"Edge references unknown target node: {edge.get('target_id')}"
-                )
+                errors.append(f"Edge references unknown target node: {edge.get('target_id')}")
 
         # Validate files have content
         for f in files:
@@ -487,9 +497,7 @@ class RewriteAgent(BaseAgentService):
                 old_name = rewritten.get("name", "")
                 rewritten["name"] = _to_pascal_case(old_name)
                 if old_name != rewritten["name"]:
-                    transformations.append(
-                        f"Normalized name: '{old_name}' → '{rewritten['name']}'"
-                    )
+                    transformations.append(f"Normalized name: '{old_name}' → '{rewritten['name']}'")
 
             if "add_timestamps" in rules:
                 props["created_at"] = "2025-01-01T00:00:00Z"
@@ -548,35 +556,41 @@ class CodegenPlannerAgent(BaseAgentService):
 
             # Model step
             step_id = f"gen_{snake}_model"
-            steps.append({
-                "name": step_id,
-                "template_name": "python_model.j2",
-                "entity_id": concept.get("id"),
-                "depends_on": [],
-                "output_path": f"models/{snake}.py",
-            })
+            steps.append(
+                {
+                    "name": step_id,
+                    "template_name": "python_model.j2",
+                    "entity_id": concept.get("id"),
+                    "depends_on": [],
+                    "output_path": f"models/{snake}.py",
+                }
+            )
 
             # API step (depends on model)
             step_counter += 1
             api_step_id = f"gen_{snake}_api"
-            steps.append({
-                "name": api_step_id,
-                "template_name": "api_route.j2",
-                "entity_id": concept.get("id"),
-                "depends_on": [step_id],
-                "output_path": f"routes/{snake}_api.py",
-            })
+            steps.append(
+                {
+                    "name": api_step_id,
+                    "template_name": "api_route.j2",
+                    "entity_id": concept.get("id"),
+                    "depends_on": [step_id],
+                    "output_path": f"routes/{snake}_api.py",
+                }
+            )
 
             # SQL step (depends on model)
             step_counter += 1
             sql_step_id = f"gen_{snake}_sql"
-            steps.append({
-                "name": sql_step_id,
-                "template_name": "sql_table.j2",
-                "entity_id": concept.get("id"),
-                "depends_on": [step_id],
-                "output_path": f"sql/{snake}.sql",
-            })
+            steps.append(
+                {
+                    "name": sql_step_id,
+                    "template_name": "sql_table.j2",
+                    "entity_id": concept.get("id"),
+                    "depends_on": [step_id],
+                    "output_path": f"sql/{snake}.sql",
+                }
+            )
 
         plan = {
             "name": requirements.get("name", "generated-plan"),
@@ -621,12 +635,14 @@ class GitIntegratorAgent(BaseAgentService):
 
         additions = []
         for f in files:
-            additions.append({
-                "path": f.get("path", "unknown"),
-                "action": "create",
-                "size_bytes": len(f.get("content", "")),
-                "summary": f.get("content", "")[:80].strip() + "...",
-            })
+            additions.append(
+                {
+                    "path": f.get("path", "unknown"),
+                    "action": "create",
+                    "size_bytes": len(f.get("content", "")),
+                    "summary": f.get("content", "")[:80].strip() + "...",
+                }
+            )
 
         commit = {
             "branch": "feature/generated-code",

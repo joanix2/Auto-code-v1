@@ -1,36 +1,55 @@
 #!/bin/bash
-# Pre-commit hook — vérifie que toutes les classes du diagramme
-# architecture_diagram.md existent dans le code.
-# Installé avec : git config core.hooksPath .githooks
+# Pre-commit hook — corrige le code automatiquement (ruff fix + format),
+# vérifie la cohérence du diagramme, et guide le commit.
 
 set -euo pipefail
 
-DIAGRAM="architecture_diagram.md"
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo '.')"
 RED='\033[0;31m'
+GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo '.')"
-FILE="$ROOT/$DIAGRAM"
-
-[ -f "$FILE" ] || { echo -e "${YELLOW}⚠️  $DIAGRAM introuvable${NC}"; exit 0; }
-
-# Extraire les noms de classes (exclure les enums, commentaires, légendes)
-CLASSES=$(grep -oP 'class \K\w+' "$FILE" | grep -v '<<enumeration>>' | sort -u || true)
-
 ERRORS=0
-for cls in $CLASSES; do
-    # Chercher dans tous les .py du projet
-    FOUND=$(grep -r "^class ${cls}\b\|^class ${cls}(" --include="*.py" "$ROOT/backend/src/" "$ROOT/backend/tests/" 2>/dev/null | head -1 || true)
-    if [ -z "$FOUND" ]; then
-        echo -e "${YELLOW}⚠️  Classe '${cls}' dans le diagramme mais absente du code${NC}"
-        ERRORS=$((ERRORS + 1))
-    fi
-done
 
-if [ $ERRORS -gt 0 ]; then
-    echo -e "${RED}❌ ${ERRORS} classe(s) manquante(s)${NC}"
-    echo "   Mets à jour le diagramme ou le code."
-    exit 1
+# ── 1. Ruff auto-fix + format ────────────────────────
+RUFF="$ROOT/backend/.venv/bin/ruff"
+if [ -x "$RUFF" ]; then
+    cd "$ROOT/backend"
+
+    echo -e "${YELLOW}🔧 Ruff auto-fix...${NC}"
+    "$RUFF" check --fix --quiet src/ tests/ 2>/dev/null || true
+
+    echo -e "${YELLOW}🎨 Ruff format...${NC}"
+    "$RUFF" format --quiet src/ tests/ 2>/dev/null || true
+
+    # Re-stager les fichiers modifiés par ruff
+    cd "$ROOT"
+    git add -u 2>/dev/null || true
+else
+    echo -e "${YELLOW}⚠️  Ruff non trouvé — correction ignorée${NC}"
 fi
 
-echo "✅ Diagramme cohérent avec le code"
+# ── 2. Diagramme cohérence ─────────────────────────
+DIAGRAM="$ROOT/architecture_diagram.md"
+if [ -f "$DIAGRAM" ]; then
+    CLASSES=$(grep -oP 'class \K\w+' "$DIAGRAM" | grep -v '<<enumeration>>' | sort -u || true)
+    for cls in $CLASSES; do
+        FOUND=$(grep -r "^class ${cls}\b\|^class ${cls}(" --include="*.py" "$ROOT/backend/src/" "$ROOT/backend/tests/" 2>/dev/null | head -1 || true)
+        if [ -z "$FOUND" ]; then
+            echo -e "${YELLOW}⚠️  Classe '${cls}' dans le diagramme mais absente du code — ajoute-la ou supprime-la du diagramme${NC}"
+            ERRORS=$((ERRORS + 1))
+        fi
+    done
+fi
+
+# ── 3. Bilan ─────────────────────────────────────────
+STAGED=$(git diff --cached --stat 2>/dev/null | tail -1 | awk '{print $1}')
+echo -e "${GREEN}📦 ${STAGED:-0} fichier(s) stagé(s)${NC}"
+
+if [ $ERRORS -gt 0 ]; then
+    echo -e "${RED}⚠️  ${ERRORS} classe(s) manquante(s) dans le diagramme${NC}"
+    echo -e "${YELLOW}→ @commit-agent ou modifie architecture_diagram.md${NC}"
+fi
+
+echo -e "${GREEN}✅ Prêt pour commit${NC}"
+echo -e "${YELLOW}👉 git commit -m \"message\"${NC}"

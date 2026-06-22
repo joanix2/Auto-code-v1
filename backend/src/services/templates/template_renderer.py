@@ -13,11 +13,8 @@ import re
 from typing import Any
 
 from jinja2 import (
-    BaseLoader,
     Environment,
     StrictUndefined,
-    Template,
-    TemplateNotFound,
     UndefinedError,
 )
 

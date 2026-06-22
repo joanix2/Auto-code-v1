@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from jinja2 import BaseLoader, Environment, StrictUndefined, Template, TemplateNotFound
+from jinja2 import Environment, Template
 
 logger = logging.getLogger(__name__)
 

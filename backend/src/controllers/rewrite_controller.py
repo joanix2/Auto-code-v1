@@ -49,9 +49,7 @@ async def list_rules():
 @router.post("/apply")
 async def apply_rules(
     graph_data: dict[str, Any] = Body(..., description="IR graph document"),
-    rule_name: str | None = Query(
-        None, description="Optional: apply only this named rule"
-    ),
+    rule_name: str | None = Query(None, description="Optional: apply only this named rule"),
 ):
     """Apply rewrite rules to a graph document.
 
@@ -79,9 +77,7 @@ async def apply_rules(
 @router.post("/fixpoint")
 async def apply_fixpoint(
     graph_data: dict[str, Any] = Body(..., description="IR graph document"),
-    max_iterations: int = Query(
-        10, ge=1, le=100, description="Maximum fixpoint iterations"
-    ),
+    max_iterations: int = Query(10, ge=1, le=100, description="Maximum fixpoint iterations"),
 ):
     """Apply rewrite rules repeatedly until no rule changes the graph.
 

@@ -1,6 +1,6 @@
 ```mermaid
 classDiagram
-    %% ── Core Rewriting-Logic ──────────────────────────
+    %% ── Rewriting-Logic Core ─────────────────────────
 
     class Language {
         +String id
@@ -18,9 +18,6 @@ classDiagram
         +nodesByKind(kind) LangNode[]
         +getNode(name, kind) LangNode
         +getNodeById(id) LangNode
-        +edgesByKind(kind) LangEdge[]
-        +edgesFrom(nodeId) LangEdge[]
-        +edgesTo(nodeId) LangEdge[]
         +subSorts(sortName) LangNode[]
         +opResultSort(opId) LangNode
         +opParams(opId) LangNode[]
@@ -68,41 +65,12 @@ classDiagram
         edge_constraint
     }
 
-    %% ── Language Manager ───────────────────────────
-
-    class LanguageManager {
-        +create(name, desc) Language
-        +get(id) Language
-        +getByName(name) Language
-        +list() Language[]
-        +delete(id) bool
-        +addSort(langId, name, desc, props) LangNode
-        +addOp(langId, name, resultSort, params, desc) LangNode
-        +addEquation(langId, name, lhs, rhs, desc) LangNode
-        +addRule(langId, name, lhs, rhs, desc) LangNode
-        +addConditionalRule(langId, name, lhs, rhs, cond, desc) LangNode
-        +addStrategy(langId, name, steps, desc) LangNode
-        +addInvariant(langId, name, condition, desc) LangNode
-    }
-
-    %% ── Templates ──────────────────────────────────
+    %% ── Templates liés aux langages ───────────────
 
     class TemplateRegistry {
         +registerTemplate(name, content) void
         +getTemplate(name) String
-        +removeTemplate(name) void
         +listTemplates() String[]
-        +loadFromDirectory(path) void
-    }
-
-    class TemplateRenderer {
-        +renderTemplate(name, context) String
-        +renderFromString(template, context) String
-        +renderFromEntity(entity, kind) String
-    }
-
-    class TemplateRenderError {
-        +String message
     }
 
     %% ── Rewrite Engine ─────────────────────────────
@@ -113,9 +81,6 @@ classDiagram
         +Callable condition
         +Callable action
         +int priority
-        +bool enabled
-        +String version
-        +toDict() dict
         +__call__(graph) dict
     }
 
@@ -123,8 +88,6 @@ classDiagram
         +bool success
         +dict modifiedGraph
         +String[] appliedRules
-        +int iterationCount
-        +String[] errors
     }
 
     class RewriteEngine {
@@ -148,7 +111,6 @@ classDiagram
         +String message
         +Severity severity
         +String location
-        +String suggestion
     }
 
     class ValidationReport {
@@ -156,34 +118,93 @@ classDiagram
         +merge(report) void
         +isValid() bool
         +toDict() dict
-        +humanReadable() String
+    }
+
+    %% ── Programmes ─────────────────────────────────
+
+    class Program {
+        +String id
+        +String name
+        +String sourceCode
+        +String languageId
+        +String projectId
+        +validate() ValidationReport
+        +execute(template) String
+    }
+
+    %% ── Projets ────────────────────────────────────
+
+    class Project {
+        +String id
+        +String name
+        +String description
+        +Program[] programs
+        +Ticket[] tickets
+        +Ontology ontology
+    }
+
+    %% ── Tickets ────────────────────────────────────
+
+    class Ticket {
+        +String id
+        +String title
+        +String description
+        +String projectId
+        +extractTriples() Triple[]
+    }
+
+    %% ── Triplets ───────────────────────────────────
+
+    class Triple {
+        +String id
+        +String subject
+        +String predicate
+        +String object
+        +String ticketId
+        +String ontologyId
+    }
+
+    %% ── Ontologie ──────────────────────────────────
+
+    class Ontology {
+        +String id
+        +String name
+        +String projectId
+        +Triple[] triples
+        +addTriple(subject, predicate, object) Triple
+        +buildGraph() LangGraph
     }
 
     %% ── Relations ──────────────────────────────────
 
     Language "1" *-- "1" LangGraph : contient
-    LangGraph "1" *-- "*" LangNode : contient
-    LangGraph "1" *-- "*" LangEdge : contient
+    LangGraph "1" *-- "*" LangNode
+    LangGraph "1" *-- "*" LangEdge
     LangNode --> NodeKind
     LangEdge --> EdgeKind
-    LanguageManager --> Language : gère les
 
-    TemplateRegistry --> TemplateRenderer : alimente
-    TemplateRenderer --> LangGraph : lit les nœuds
+    Language "1" --> "*" Template : a des templates
+    Language "1" --> "*" Program : programmes écrits en
+
+    Program "*" --> "1" Project : appartient à
+    Project "1" *-- "*" Ticket : contient
+    Ticket "1" --> "*" Triple : extrait de la description
+    Triple "*" --> "1" Ontology : construit
+    Ontology "1" --> "1" Project : liée au projet
 
     RewriteEngine --> RewriteRule : exécute
-    RewriteEngine --> RewriteResult : produit
-
     ValidationReport --> ValidationError : contient
     ValidationError --> Severity
 
+    Template --> Language : lié au langage
+
     %% ── Relations sémantiques entre nœuds ──────────
 
-    LangNode ..> LangNode : subsort (héritage entre sorts)
-    LangNode ..> LangNode : has_sort (op → sort résultat)
-    LangNode ..> LangNode : has_param (op → sort paramètre)
-    LangNode ..> LangNode : has_lhs (rule → terme source)
-    LangNode ..> LangNode : has_rhs (rule → terme cible)
-    LangNode ..> LangNode : has_condition (crl → condition)
-    LangNode ..> LangNode : edge_constraint (sort → sort)
+    LangNode ..> LangNode : subsort
+    LangNode ..> LangNode : has_sort
+    LangNode ..> LangNode : has_param
+    LangNode ..> LangNode : has_lhs
+    LangNode ..> LangNode : has_rhs
+    LangNode ..> LangNode : has_condition
+    LangNode ..> LangNode : edge_constraint
 ```

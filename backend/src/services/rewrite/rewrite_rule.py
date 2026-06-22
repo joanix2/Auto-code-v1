@@ -10,8 +10,9 @@ filtering in the API.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Callable
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
 
 # Condition: receives the full graph dict, returns True if the rule applies.
 ConditionFn = Callable[[dict[str, Any]], bool]

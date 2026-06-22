@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import pytest
-
 from src.repositories.base import BaseRepository, prepare_neo4j_properties
 from src.repositories.repository.issue_repository import IssueRepository
 from src.repositories.repository.repository_repository import RepositoryRepository
-from tests.conftest import MockNeo4jDB, MockNeo4jResult
+
+from tests.conftest import MockNeo4jDB
 
 
 class _ConcreteRepo(BaseRepository):

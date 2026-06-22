@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException
 
 from src.services.language_manager import LanguageManager
 
@@ -69,13 +69,23 @@ async def get_language_graph(lang_id: str):
     return {
         "language": lang.to_dict(),
         "nodes": [
-            {"id": n.id, "kind": n.kind.value, "name": n.name,
-             "description": n.description, **n.properties}
+            {
+                "id": n.id,
+                "kind": n.kind.value,
+                "name": n.name,
+                "description": n.description,
+                **n.properties,
+            }
             for n in g.nodes
         ],
         "edges": [
-            {"id": e.id, "kind": e.kind.value, "source": e.source_id,
-             "target": e.target_id, **e.properties}
+            {
+                "id": e.id,
+                "kind": e.kind.value,
+                "source": e.source_id,
+                "target": e.target_id,
+                **e.properties,
+            }
             for e in g.edges
         ],
     }
@@ -85,8 +95,13 @@ async def get_language_graph(lang_id: str):
 
 
 def _ok(node: LangNode) -> dict:
-    return {"id": node.id, "kind": node.kind.value, "name": node.name,
-            "description": node.description, **node.properties}
+    return {
+        "id": node.id,
+        "kind": node.kind.value,
+        "name": node.name,
+        "description": node.description,
+        **node.properties,
+    }
 
 
 # ── Sorts ──────────────────────────────────────────────

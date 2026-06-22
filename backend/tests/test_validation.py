@@ -10,10 +10,6 @@ Tests cover:
 
 from __future__ import annotations
 
-import json
-from datetime import UTC, datetime
-from unittest.mock import AsyncMock, patch
-
 import pytest
 from fastapi.testclient import TestClient
 
@@ -35,7 +31,6 @@ from src.services.validation.structural_validator import (
     validate_edge_references,
     validate_unique_ids,
 )
-from src.services.validation.validation_report import Severity as Sev
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -222,25 +217,15 @@ class TestValidationReport:
 
     def test_add_warning_is_not_blocking(self):
         report = ValidationReport()
-        report.add_error(
-            ValidationError(
-                code="WARN", message="Warning", severity=Severity.WARNING
-            )
-        )
+        report.add_error(ValidationError(code="WARN", message="Warning", severity=Severity.WARNING))
         assert report.is_valid is True
         assert report.has_warnings is True
 
     def test_group_by_severity(self):
         report = ValidationReport()
-        report.add_error(
-            ValidationError(code="E1", message="Err", severity=Severity.ERROR)
-        )
-        report.add_error(
-            ValidationError(code="W1", message="Warn", severity=Severity.WARNING)
-        )
-        report.add_error(
-            ValidationError(code="I1", message="Info", severity=Severity.INFO)
-        )
+        report.add_error(ValidationError(code="E1", message="Err", severity=Severity.ERROR))
+        report.add_error(ValidationError(code="W1", message="Warn", severity=Severity.WARNING))
+        report.add_error(ValidationError(code="I1", message="Info", severity=Severity.INFO))
         groups = report.group_by_severity()
         assert len(groups["error"]) == 1
         assert len(groups["warning"]) == 1
@@ -271,9 +256,7 @@ class TestValidationReport:
     def test_to_dict(self):
         report = ValidationReport()
         report.add_error(
-            ValidationError(
-                code="TEST", message="x", severity=Severity.ERROR, location="n1"
-            )
+            ValidationError(code="TEST", message="x", severity=Severity.ERROR, location="n1")
         )
         d = report.to_dict()
         assert "summary" in d
@@ -289,15 +272,9 @@ class TestValidationReport:
 
     def test_errors_at_location(self):
         report = ValidationReport()
-        report.add_error(
-            ValidationError(code="A", message="1", location="n1")
-        )
-        report.add_error(
-            ValidationError(code="B", message="2", location="n2")
-        )
-        report.add_error(
-            ValidationError(code="C", message="3", location="n1")
-        )
+        report.add_error(ValidationError(code="A", message="1", location="n1"))
+        report.add_error(ValidationError(code="B", message="2", location="n2"))
+        report.add_error(ValidationError(code="C", message="3", location="n1"))
         assert len(report.errors_at_location("n1")) == 2
 
     def test_frozen_error(self):
@@ -401,9 +378,7 @@ class TestStructuralValidator:
         }
         report = run_structural_validators(data)
         type_errors = [
-            e
-            for e in report.errors
-            if e.code in ("INVALID_NODE_TYPE", "INVALID_EDGE_TYPE")
+            e for e in report.errors if e.code in ("INVALID_NODE_TYPE", "INVALID_EDGE_TYPE")
         ]
         assert len(type_errors) == 0
 
@@ -474,14 +449,11 @@ class TestBusinessValidator:
             "metadata": {"id": "x", "name": "x", "version": "1"},
             "nodes": [{"id": "n1", "name": "N1", "type": "concept"}],
             "edges": [
-                {"id": f"e{i}", "source": "n1", "target": f"n{i}", "type": "X"}
-                for i in range(5)
+                {"id": f"e{i}", "source": "n1", "target": f"n{i}", "type": "X"} for i in range(5)
             ],
         }
         # Add target nodes so references are valid
-        data["nodes"] += [
-            {"id": f"n{i}", "name": f"T{i}", "type": "concept"} for i in range(5)
-        ]
+        data["nodes"] += [{"id": f"n{i}", "name": f"T{i}", "type": "concept"} for i in range(5)]
         report = validate_cardinalities(data, max_cardinality=10)
         assert report.is_valid
 
@@ -500,9 +472,7 @@ class TestBusinessValidator:
                 for i in range(15)
             ],
         }
-        data["nodes"] += [
-            {"id": f"t{i}", "name": f"T{i}", "type": "concept"} for i in range(15)
-        ]
+        data["nodes"] += [{"id": f"t{i}", "name": f"T{i}", "type": "concept"} for i in range(15)]
         report = validate_cardinalities(data, max_cardinality=10)
         assert any(e.code == "CARDINALITY_EXCEEDED" for e in report.errors)
 
@@ -670,18 +640,14 @@ class TestEdgeCases:
         report = validate_graph(data)
         # Self-loop SUBCLASS_OF is a cycle? Yes, SUBCLASS_OF of oneself -> cycle
         # But we expect structural to pass and business to flag the cycle
-        structural_ok = all(
-            e.code != "REQUIRED_FIELD" for e in report.errors
-        )
+        structural_ok = all(e.code != "REQUIRED_FIELD" for e in report.errors)
         assert structural_ok
 
     def test_special_chars_in_ids(self):
         """IDs with special characters should be handled."""
         data = {
             "metadata": {"id": "m1", "name": "Special", "version": "1.0.0"},
-            "nodes": [
-                {"id": "n1/x", "name": "Special", "type": "concept"}
-            ],
+            "nodes": [{"id": "n1/x", "name": "Special", "type": "concept"}],
             "edges": [],
         }
         report = validate_graph(data)
@@ -689,15 +655,12 @@ class TestEdgeCases:
 
     def test_large_graph_performance(self):
         """Validate a graph with 500 nodes and 500 edges quickly."""
-        nodes = [
-            {"id": f"n{i}", "name": f"Node{i}", "type": "concept"}
-            for i in range(500)
-        ]
+        nodes = [{"id": f"n{i}", "name": f"Node{i}", "type": "concept"} for i in range(500)]
         edges = [
             {
                 "id": f"e{i}",
                 "source": f"n{i}",
-                "target": f"n{(i+1) % 500}",
+                "target": f"n{(i + 1) % 500}",
                 "type": "SUBCLASS_OF",
             }
             for i in range(500)

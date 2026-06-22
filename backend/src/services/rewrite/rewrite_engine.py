@@ -238,8 +238,7 @@ class RewriteEngine:
                 )
 
         logger.warning(
-            "Fixpoint did not converge after %d iterations "
-            "(rules may form a cycle). Applied: %s",
+            "Fixpoint did not converge after %d iterations (rules may form a cycle). Applied: %s",
             max_iterations,
             all_applied,
         )
@@ -248,6 +247,5 @@ class RewriteEngine:
             modified_graph=current,
             applied_rules=all_applied,
             iteration_count=max_iterations,
-            errors=all_errors
-            + [f"Fixpoint did not converge after {max_iterations} iterations."],
+            errors=all_errors + [f"Fixpoint did not converge after {max_iterations} iterations."],
         )

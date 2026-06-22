@@ -10,10 +10,10 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from .agent_service import BaseAgentService, AGENT_REGISTRY
+from .agent_service import AGENT_REGISTRY
 from .pipeline_models import (
     PIPELINE_STAGE_ORDER,
     PipelineConfig,
@@ -139,7 +139,7 @@ class PipelineOrchestrator:
         state = self._get_validated_pipeline(pipeline_id, PipelineStatus.PENDING)
 
         state.status = PipelineStatus.RUNNING
-        state.updated_at = datetime.now(timezone.utc)
+        state.updated_at = datetime.now(UTC)
 
         stages = state.config.stages
         error_strategy = state.config.error_strategy
@@ -166,10 +166,8 @@ class PipelineOrchestrator:
             if result.status == StageStatus.FAILED:
                 if error_strategy == PipelineErrorStrategy.ABORT:
                     state.status = PipelineStatus.FAILED
-                    state.completed_at = datetime.now(timezone.utc)
-                    logger.warning(
-                        f"Pipeline {pipeline_id} aborted at stage {stage.value}"
-                    )
+                    state.completed_at = datetime.now(UTC)
+                    logger.warning(f"Pipeline {pipeline_id} aborted at stage {stage.value}")
                     return state
                 elif error_strategy == PipelineErrorStrategy.SKIP:
                     logger.info(f"Skipping failed stage {stage.value}")
@@ -178,12 +176,9 @@ class PipelineOrchestrator:
 
         # Determine final status
         all_done = all(
-            s.status in (StageStatus.COMPLETED, StageStatus.SKIPPED)
-            for s in state.stages.values()
+            s.status in (StageStatus.COMPLETED, StageStatus.SKIPPED) for s in state.stages.values()
         )
-        any_failed = any(
-            s.status == StageStatus.FAILED for s in state.stages.values()
-        )
+        any_failed = any(s.status == StageStatus.FAILED for s in state.stages.values())
 
         if state.status != PipelineStatus.CANCELLED:
             if all_done:
@@ -192,12 +187,10 @@ class PipelineOrchestrator:
                 state.status = PipelineStatus.FAILED
 
         state.current_stage = None
-        state.completed_at = datetime.now(timezone.utc)
-        state.updated_at = datetime.now(timezone.utc)
+        state.completed_at = datetime.now(UTC)
+        state.updated_at = datetime.now(UTC)
 
-        logger.info(
-            f"Pipeline {pipeline_id} finished with status {state.status.value}"
-        )
+        logger.info(f"Pipeline {pipeline_id} finished with status {state.status.value}")
         return state
 
     def run_stage(
@@ -221,13 +214,11 @@ class PipelineOrchestrator:
 
         # Allow running if pipeline is PENDING or RUNNING
         if state.status not in (PipelineStatus.PENDING, PipelineStatus.RUNNING):
-            raise ValueError(
-                f"Cannot run stage on pipeline with status '{state.status.value}'"
-            )
+            raise ValueError(f"Cannot run stage on pipeline with status '{state.status.value}'")
 
         state.status = PipelineStatus.RUNNING
         state.current_stage = stage
-        state.updated_at = datetime.now(timezone.utc)
+        state.updated_at = datetime.now(UTC)
 
         stage_state = self._execute_stage_internal(state, stage)
 
@@ -238,12 +229,10 @@ class PipelineOrchestrator:
             for s in state.stages.values()
         )
         if all_done:
-            any_failed = any(
-                s.status == StageStatus.FAILED for s in state.stages.values()
-            )
+            any_failed = any(s.status == StageStatus.FAILED for s in state.stages.values())
             state.status = PipelineStatus.FAILED if any_failed else PipelineStatus.COMPLETED
             state.current_stage = None
-            state.completed_at = datetime.now(timezone.utc)
+            state.completed_at = datetime.now(UTC)
 
         return stage_state
 
@@ -270,9 +259,7 @@ class PipelineOrchestrator:
 
         stage_state = state.stages.get(stage)
         if stage_state is None:
-            raise ValueError(
-                f"Stage '{stage.value}' not found in pipeline {pipeline_id}"
-            )
+            raise ValueError(f"Stage '{stage.value}' not found in pipeline {pipeline_id}")
         if stage_state.status != StageStatus.FAILED:
             raise ValueError(
                 f"Cannot retry stage '{stage.value}': "
@@ -287,7 +274,7 @@ class PipelineOrchestrator:
         stage_state.completed_at = None
         stage_state.result = {}
         state.status = PipelineStatus.RUNNING
-        state.updated_at = datetime.now(timezone.utc)
+        state.updated_at = datetime.now(UTC)
 
         # Execute
         return self._execute_stage_internal(state, stage)
@@ -306,20 +293,19 @@ class PipelineOrchestrator:
             return None
 
         if state.status in (PipelineStatus.COMPLETED, PipelineStatus.CANCELLED):
-            logger.info(
-                f"Pipeline {pipeline_id} already in '{state.status.value}' state"
-            )
+            logger.info(f"Pipeline {pipeline_id} already in '{state.status.value}' state")
             return state
 
         state.status = PipelineStatus.CANCELLED
-        state.completed_at = datetime.now(timezone.utc)
-        state.updated_at = datetime.now(timezone.utc)
+        state.completed_at = datetime.now(UTC)
+        state.updated_at = datetime.now(UTC)
 
         # Mark current and pending stages as cancelled
         for stage_state in state.stages.values():
-            if stage_state.status == StageStatus.PENDING:
-                stage_state.status = StageStatus.CANCELLED
-            elif stage_state.status == StageStatus.RUNNING:
+            if (
+                stage_state.status == StageStatus.PENDING
+                or stage_state.status == StageStatus.RUNNING
+            ):
                 stage_state.status = StageStatus.CANCELLED
 
         logger.info(f"Cancelled pipeline {pipeline_id}")
@@ -349,23 +335,27 @@ class PipelineOrchestrator:
             state.stages[stage] = stage_state
 
         stage_state.status = StageStatus.RUNNING
-        stage_state.started_at = datetime.now(timezone.utc)
+        stage_state.started_at = datetime.now(UTC)
         stage_state.retry_count = 0
         state.current_stage = stage
-        state.updated_at = datetime.now(timezone.utc)
+        state.updated_at = datetime.now(UTC)
 
         agent = AGENT_REGISTRY.get(stage.value)
         if agent is None:
             stage_state.status = StageStatus.FAILED
             stage_state.error = f"No agent registered for stage '{stage.value}'"
-            stage_state.completed_at = datetime.now(timezone.utc)
+            stage_state.completed_at = datetime.now(UTC)
             return stage_state
 
         # Build input data from accumulated pipeline results
         input_data = self._build_stage_input(state, stage)
 
         # Execute with retry
-        max_retries = state.config.max_retries if state.config.error_strategy == PipelineErrorStrategy.RETRY else 0
+        max_retries = (
+            state.config.max_retries
+            if state.config.error_strategy == PipelineErrorStrategy.RETRY
+            else 0
+        )
         last_error: str | None = None
 
         for attempt in range(max_retries + 1):
@@ -388,24 +378,22 @@ class PipelineOrchestrator:
                 stage_state.status = StageStatus.COMPLETED
                 stage_state.result = result
                 stage_state.error = None
-                stage_state.completed_at = datetime.now(timezone.utc)
-                state.updated_at = datetime.now(timezone.utc)
+                stage_state.completed_at = datetime.now(UTC)
+                state.updated_at = datetime.now(UTC)
 
                 logger.info(f"Stage '{stage.value}' completed successfully")
                 return stage_state
 
             except Exception as e:
                 last_error = f"{type(e).__name__}: {e}"
-                logger.warning(
-                    f"Stage '{stage.value}' attempt {attempt + 1} failed: {last_error}"
-                )
+                logger.warning(f"Stage '{stage.value}' attempt {attempt + 1} failed: {last_error}")
                 if attempt < max_retries:
                     continue
                 # Exhausted retries
                 stage_state.status = StageStatus.FAILED
                 stage_state.error = last_error
-                stage_state.completed_at = datetime.now(timezone.utc)
-                state.updated_at = datetime.now(timezone.utc)
+                stage_state.completed_at = datetime.now(UTC)
+                state.updated_at = datetime.now(UTC)
 
                 logger.error(f"Stage '{stage.value}' failed after {attempt + 1} attempt(s)")
                 return stage_state
@@ -413,7 +401,7 @@ class PipelineOrchestrator:
         # Should not reach here, but safeguard
         stage_state.status = StageStatus.FAILED
         stage_state.error = last_error or "Unknown error"
-        stage_state.completed_at = datetime.now(timezone.utc)
+        stage_state.completed_at = datetime.now(UTC)
         return stage_state
 
     def _build_stage_input(

@@ -4,12 +4,10 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
-
 from src.models.oauth.user import User
-from tests.conftest import MockNeo4jDB
 
+from tests.conftest import MockNeo4jDB
 
 # --------------- simple endpoints ---------------
 
@@ -62,23 +60,25 @@ class TestRepositoryEndpoints:
             }
             client_instance.post.return_value = resp_post
 
-            mock_db.add_result([
-                {
-                    "n": {
-                        "id": "repo-9999",
-                        "name": "new-repo",
-                        "full_name": "testuser/new-repo",
-                        "description": "A new repo",
-                        "owner_username": "testuser",
-                        "github_id": 9999,
-                        "default_branch": "main",
-                        "is_private": False,
-                        "github_created_at": "now",
-                        "github_pushed_at": "now",
-                        "open_issues_count": 0,
+            mock_db.add_result(
+                [
+                    {
+                        "n": {
+                            "id": "repo-9999",
+                            "name": "new-repo",
+                            "full_name": "testuser/new-repo",
+                            "description": "A new repo",
+                            "owner_username": "testuser",
+                            "github_id": 9999,
+                            "default_branch": "main",
+                            "is_private": False,
+                            "github_created_at": "now",
+                            "github_pushed_at": "now",
+                            "open_issues_count": 0,
+                        }
                     }
-                }
-            ])
+                ]
+            )
 
             resp = client.post(
                 "/api/repositories/",
@@ -114,23 +114,25 @@ class TestRepositoryEndpoints:
         assert resp.status_code in (200, 403), resp.text
 
     def test_get_repository(self, client: TestClient, mock_db: MockNeo4jDB):
-        mock_db.add_result([
-            {
-                "n": {
-                    "id": "repo-1",
-                    "name": "my-repo",
-                    "full_name": "testuser/my-repo",
-                    "description": "d",
-                    "owner_username": "testuser",
-                    "github_id": 1,
-                    "default_branch": "main",
-                    "is_private": False,
-                    "github_created_at": "now",
-                    "github_pushed_at": "now",
-                    "open_issues_count": 0,
+        mock_db.add_result(
+            [
+                {
+                    "n": {
+                        "id": "repo-1",
+                        "name": "my-repo",
+                        "full_name": "testuser/my-repo",
+                        "description": "d",
+                        "owner_username": "testuser",
+                        "github_id": 1,
+                        "default_branch": "main",
+                        "is_private": False,
+                        "github_created_at": "now",
+                        "github_pushed_at": "now",
+                        "open_issues_count": 0,
+                    }
                 }
-            }
-        ])
+            ]
+        )
 
         resp = client.get("/api/repositories/repo-1")
         assert resp.status_code == 200, resp.text
@@ -170,24 +172,26 @@ class TestIssueEndpoints:
         assert len(resp.json()) == 2
 
     def test_get_issue(self, client: TestClient, mock_db: MockNeo4jDB):
-        mock_db.add_result([
-            {
-                "n": {
-                    "id": "i1",
-                    "name": "issue-1",
-                    "description": "d1",
-                    "repository_id": "r1",
-                    "author_username": "testuser",
-                    "github_id": 1,
-                    "github_issue_number": 1,
-                    "github_issue_url": "",
-                    "status": "open",
-                    "priority": "medium",
-                    "issue_type": "feature",
-                    "assigned_to_copilot": False,
+        mock_db.add_result(
+            [
+                {
+                    "n": {
+                        "id": "i1",
+                        "name": "issue-1",
+                        "description": "d1",
+                        "repository_id": "r1",
+                        "author_username": "testuser",
+                        "github_id": 1,
+                        "github_issue_number": 1,
+                        "github_issue_url": "",
+                        "status": "open",
+                        "priority": "medium",
+                        "issue_type": "feature",
+                        "assigned_to_copilot": False,
+                    }
                 }
-            }
-        ])
+            ]
+        )
 
         resp = client.get("/api/issues/i1")
         assert resp.status_code == 200, resp.text

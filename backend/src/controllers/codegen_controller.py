@@ -23,7 +23,6 @@ from src.services.codegen import (
     PipelineOrchestrator,
     PipelineStage,
     PipelineStatus,
-    PipelineSummary,
 )
 
 logger = logging.getLogger(__name__)
@@ -86,7 +85,7 @@ async def create_pipeline(data: dict[str, Any]):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Unknown error_strategy '{error_strategy_name}'. "
-                       f"Valid values: {[s.value for s in PipelineErrorStrategy]}",
+                f"Valid values: {[s.value for s in PipelineErrorStrategy]}",
             )
 
         config = PipelineConfig(
@@ -143,7 +142,7 @@ async def list_pipelines(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Unknown status '{status_filter}'. "
-                       f"Valid values: {[s.value for s in PipelineStatus]}",
+                f"Valid values: {[s.value for s in PipelineStatus]}",
             )
 
     pipelines = orchestrator.list_pipelines(status=status_enum)
@@ -226,9 +225,7 @@ async def retry_stage(
 
     try:
         stage_state = orchestrator.retry_stage(pipeline_id, stage_enum)
-        return _pipeline_to_response(
-            orchestrator.get_pipeline_state(pipeline_id)
-        )
+        return _pipeline_to_response(orchestrator.get_pipeline_state(pipeline_id))
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -269,14 +266,8 @@ def _pipeline_to_response(state: PipelineState) -> dict[str, Any]:
 
 def _pipeline_summary(state: PipelineState) -> dict[str, Any]:
     """Create a summary dict for a pipeline."""
-    completed = sum(
-        1 for s in state.stages.values()
-        if s.status.value in ("completed", "skipped")
-    )
-    failed = sum(
-        1 for s in state.stages.values()
-        if s.status.value == "failed"
-    )
+    completed = sum(1 for s in state.stages.values() if s.status.value in ("completed", "skipped"))
+    failed = sum(1 for s in state.stages.values() if s.status.value == "failed")
     return {
         "pipeline_id": state.pipeline_id,
         "status": state.status.value,

@@ -9,7 +9,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
 from src.services.repository.copilot_agent_service import GitHubCopilotAgentService
 
 
@@ -38,9 +37,11 @@ class TestAssignIssueToCopilot:
     """Tests for the assign_issue_to_copilot method."""
 
     async def test_assigns_issue_successfully(self, service, mock_client):
-        mock_client.post.return_value = _ok_response({
-            "assignees": [{"login": "copilot-swe-agent[bot]"}],
-        })
+        mock_client.post.return_value = _ok_response(
+            {
+                "assignees": [{"login": "copilot-swe-agent[bot]"}],
+            }
+        )
         result = await service.assign_issue_to_copilot(
             owner="testowner",
             repo="testrepo",
@@ -89,12 +90,14 @@ class TestAssignIssueToCopilot:
 
 class TestCreateIssueAndAssignToCopilot:
     async def test_creates_and_assigns(self, service, mock_client):
-        mock_client.post.return_value = _ok_response({
-            "number": 100,
-            "html_url": "https://github.com/o/r/issues/100",
-            "title": "Auto task",
-            "assignees": [{"login": "copilot-swe-agent[bot]"}],
-        })
+        mock_client.post.return_value = _ok_response(
+            {
+                "number": 100,
+                "html_url": "https://github.com/o/r/issues/100",
+                "title": "Auto task",
+                "assignees": [{"login": "copilot-swe-agent[bot]"}],
+            }
+        )
 
         result = await service.create_issue_and_assign_to_copilot(
             owner="o",
@@ -114,9 +117,14 @@ class TestCreateIssueAndAssignToCopilot:
         assert payload["agent_assignment"]["base_branch"] == "develop"
 
     async def test_handles_labels_optionally(self, service, mock_client):
-        mock_client.post.return_value = _ok_response({
-            "number": 1, "html_url": "", "title": "", "assignees": [],
-        })
+        mock_client.post.return_value = _ok_response(
+            {
+                "number": 1,
+                "html_url": "",
+                "title": "",
+                "assignees": [],
+            }
+        )
 
         await service.create_issue_and_assign_to_copilot(owner="o", repo="r", title="T", body="B")
 
@@ -126,37 +134,43 @@ class TestCreateIssueAndAssignToCopilot:
 
 class TestCheckCopilotAgentStatus:
     async def test_enabled_when_actor_found(self, service, mock_client):
-        mock_client.post.return_value = _ok_response({
-            "data": {
-                "repository": {
-                    "suggestedActors": {
-                        "nodes": [
-                            {"login": "copilot-swe-agent", "__typename": "Bot"},
-                        ],
+        mock_client.post.return_value = _ok_response(
+            {
+                "data": {
+                    "repository": {
+                        "suggestedActors": {
+                            "nodes": [
+                                {"login": "copilot-swe-agent", "__typename": "Bot"},
+                            ],
+                        },
                     },
                 },
-            },
-        })
+            }
+        )
 
         status = await service.check_copilot_agent_status(owner="o", repo="r")
         assert status["enabled"] is True
 
     async def test_disabled_when_actor_not_found(self, service, mock_client):
-        mock_client.post.return_value = _ok_response({
-            "data": {
-                "repository": {
-                    "suggestedActors": {"nodes": []},
+        mock_client.post.return_value = _ok_response(
+            {
+                "data": {
+                    "repository": {
+                        "suggestedActors": {"nodes": []},
+                    },
                 },
-            },
-        })
+            }
+        )
 
         status = await service.check_copilot_agent_status(owner="o", repo="r")
         assert status["enabled"] is False
 
     async def test_disabled_on_graphql_errors(self, service, mock_client):
-        mock_client.post.return_value = _ok_response({
-            "errors": [{"message": "Something went wrong"}],
-        })
+        mock_client.post.return_value = _ok_response(
+            {
+                "errors": [{"message": "Something went wrong"}],
+            }
+        )
 
         status = await service.check_copilot_agent_status(owner="o", repo="r")
         assert status["enabled"] is False
@@ -173,9 +187,11 @@ class TestCheckCopilotAgentStatus:
         assert "not available" in status["message"]
 
     async def test_sends_graphql_features_header(self, service, mock_client):
-        mock_client.post.return_value = _ok_response({
-            "data": {"repository": {"suggestedActors": {"nodes": []}}},
-        })
+        mock_client.post.return_value = _ok_response(
+            {
+                "data": {"repository": {"suggestedActors": {"nodes": []}}},
+            }
+        )
 
         await service.check_copilot_agent_status(owner="o", repo="r")
 
@@ -185,22 +201,24 @@ class TestCheckCopilotAgentStatus:
 
 class TestGetPullRequestFromIssue:
     async def test_returns_pr_when_cross_referenced(self, service, mock_client):
-        mock_client.get.return_value = _ok_response([
-            {
-                "event": "cross-referenced",
-                "source": {
-                    "type": "issue",
-                    "issue": {
-                        "number": 200,
-                        "html_url": "https://github.com/o/r/pull/200",
-                        "title": "Fix bug",
-                        "state": "open",
-                        "created_at": "2024-06-01T12:00:00Z",
-                        "pull_request": {},
+        mock_client.get.return_value = _ok_response(
+            [
+                {
+                    "event": "cross-referenced",
+                    "source": {
+                        "type": "issue",
+                        "issue": {
+                            "number": 200,
+                            "html_url": "https://github.com/o/r/pull/200",
+                            "title": "Fix bug",
+                            "state": "open",
+                            "created_at": "2024-06-01T12:00:00Z",
+                            "pull_request": {},
+                        },
                     },
                 },
-            },
-        ])
+            ]
+        )
 
         pr = await service.get_pull_request_from_issue(owner="o", repo="r", issue_number=42)
         assert pr is not None
@@ -208,9 +226,11 @@ class TestGetPullRequestFromIssue:
         assert pr["title"] == "Fix bug"
 
     async def test_returns_none_when_no_pr(self, service, mock_client):
-        mock_client.get.return_value = _ok_response([
-            {"event": "mentioned", "source": {"type": "issue", "issue": {}}},
-        ])
+        mock_client.get.return_value = _ok_response(
+            [
+                {"event": "mentioned", "source": {"type": "issue", "issue": {}}},
+            ]
+        )
 
         pr = await service.get_pull_request_from_issue(owner="o", repo="r", issue_number=42)
         assert pr is None

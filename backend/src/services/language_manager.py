@@ -10,7 +10,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from src.models.language import NodeKind, EdgeKind, LangGraph, LangNode
+from src.models.language import EdgeKind, LangGraph, LangNode, NodeKind
 
 
 class Language:
@@ -120,8 +120,14 @@ class LanguageManager:
             raise ValueError(f"Language '{lang_id}' not found")
         return g.add_node(NodeKind.SORT, name, description=description, **props)
 
-    def add_op(self, lang_id: str, name: str, result_sort: str,
-               params: list[str] | None = None, description: str = "") -> LangNode:
+    def add_op(
+        self,
+        lang_id: str,
+        name: str,
+        result_sort: str,
+        params: list[str] | None = None,
+        description: str = "",
+    ) -> LangNode:
         g = self._graph(lang_id)
         if not g:
             raise ValueError(f"Language '{lang_id}' not found")
@@ -131,43 +137,60 @@ class LanguageManager:
             raise ValueError(f"Sort '{result_sort}' not found in language '{lang.name}'")
         op = g.add_node(NodeKind.OP, name, description=description)
         g.add_edge(EdgeKind.HAS_SORT, op.id, result.id)
-        for p in (params or []):
+        for p in params or []:
             pn = g.get_node(p, NodeKind.SORT)
             if pn:
                 g.add_edge(EdgeKind.HAS_PARAM, op.id, pn.id)
         return op
 
-    def add_equation(self, lang_id: str, name: str, lhs: str = "", rhs: str = "",
-                     description: str = "") -> LangNode:
+    def add_equation(
+        self, lang_id: str, name: str, lhs: str = "", rhs: str = "", description: str = ""
+    ) -> LangNode:
         g = self._graph(lang_id)
         if not g:
             raise ValueError(f"Language '{lang_id}' not found")
         return g.add_node(NodeKind.EQUATION, name, description=description, lhs=lhs, rhs=rhs)
 
-    def add_rule(self, lang_id: str, name: str, lhs: str = "", rhs: str = "",
-                 description: str = "") -> LangNode:
+    def add_rule(
+        self, lang_id: str, name: str, lhs: str = "", rhs: str = "", description: str = ""
+    ) -> LangNode:
         g = self._graph(lang_id)
         if not g:
             raise ValueError(f"Language '{lang_id}' not found")
         return g.add_node(NodeKind.RULE, name, description=description, lhs=lhs, rhs=rhs)
 
-    def add_conditional_rule(self, lang_id: str, name: str, lhs: str = "", rhs: str = "",
-                             condition: str = "", description: str = "") -> LangNode:
+    def add_conditional_rule(
+        self,
+        lang_id: str,
+        name: str,
+        lhs: str = "",
+        rhs: str = "",
+        condition: str = "",
+        description: str = "",
+    ) -> LangNode:
         g = self._graph(lang_id)
         if not g:
             raise ValueError(f"Language '{lang_id}' not found")
-        return g.add_node(NodeKind.CONDITIONAL_RULE, name, description=description,
-                          lhs=lhs, rhs=rhs, condition=condition)
+        return g.add_node(
+            NodeKind.CONDITIONAL_RULE,
+            name,
+            description=description,
+            lhs=lhs,
+            rhs=rhs,
+            condition=condition,
+        )
 
-    def add_strategy(self, lang_id: str, name: str, steps: list[str] | None = None,
-                     description: str = "") -> LangNode:
+    def add_strategy(
+        self, lang_id: str, name: str, steps: list[str] | None = None, description: str = ""
+    ) -> LangNode:
         g = self._graph(lang_id)
         if not g:
             raise ValueError(f"Language '{lang_id}' not found")
         return g.add_node(NodeKind.STRATEGY, name, description=description, steps=steps or [])
 
-    def add_invariant(self, lang_id: str, name: str, condition: str = "",
-                      description: str = "") -> LangNode:
+    def add_invariant(
+        self, lang_id: str, name: str, condition: str = "", description: str = ""
+    ) -> LangNode:
         g = self._graph(lang_id)
         if not g:
             raise ValueError(f"Language '{lang_id}' not found")

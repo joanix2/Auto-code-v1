@@ -6,13 +6,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
+from src.services.oauth.user_service import UserService
 from src.services.repository.copilot_agent_service import GitHubCopilotAgentService
 from src.services.repository.issue_service import IssueService
-from src.services.repository.repository_service import RepositoryService
 from src.services.repository.message_service import MessageService
-from src.services.oauth.user_service import UserService
-
+from src.services.repository.repository_service import RepositoryService
 
 # ---------------------------------------------------------------------------
 # Copilot Agent Service
@@ -218,7 +216,17 @@ class TestRepositoryService:
             resp = MagicMock()
             resp.raise_for_status = MagicMock()
             resp.json.return_value = [
-                {"id": 1001, "owner": {"login": "u"}, "name": "r", "full_name": "u/r", "private": False, "default_branch": "main", "created_at": "now", "pushed_at": "now", "description": None}
+                {
+                    "id": 1001,
+                    "owner": {"login": "u"},
+                    "name": "r",
+                    "full_name": "u/r",
+                    "private": False,
+                    "default_branch": "main",
+                    "created_at": "now",
+                    "pushed_at": "now",
+                    "description": None,
+                }
             ]
             client.get.return_value = resp
 
@@ -231,7 +239,17 @@ class TestRepositoryService:
             m.return_value.__aenter__.return_value = client
             resp = MagicMock()
             resp.raise_for_status = MagicMock()
-            resp.json.return_value = {"id": 99, "name": "new-repo", "owner": {"login": "u"}, "full_name": "u/new-repo", "private": False, "default_branch": "main", "created_at": "now", "pushed_at": "now", "description": None}
+            resp.json.return_value = {
+                "id": 99,
+                "name": "new-repo",
+                "owner": {"login": "u"},
+                "full_name": "u/new-repo",
+                "private": False,
+                "default_branch": "main",
+                "created_at": "now",
+                "pushed_at": "now",
+                "description": None,
+            }
             client.post.return_value = resp
 
             result = await service.create_on_github(access_token="tok", name="new-repo")
@@ -276,14 +294,16 @@ class TestIssueService:
             }
             client.post.return_value = resp
 
-            result = await service.create({
-                "access_token": "tok",
-                "repository_full_name": "u/r",
-                "title": "Test",
-                "description": "desc",
-                "repository_id": "repo-1",
-                "author_username": "u",
-            })
+            result = await service.create(
+                {
+                    "access_token": "tok",
+                    "repository_full_name": "u/r",
+                    "title": "Test",
+                    "description": "desc",
+                    "repository_id": "repo-1",
+                    "author_username": "u",
+                }
+            )
             assert result.id == "issue-1"
 
     async def test_get_by_repository(self, service, mock_issue_repo):
@@ -312,9 +332,7 @@ class TestMessageService:
 
     async def test_create_message(self, service, mock_msg_repo):
         mock_msg_repo.create.return_value = MagicMock(id="msg-1")
-        result = await service.create_message(
-            issue_id="i1", content="Hello", author_username="u"
-        )
+        result = await service.create_message(issue_id="i1", content="Hello", author_username="u")
         assert result.id == "msg-1"
 
 

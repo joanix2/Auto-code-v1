@@ -26,7 +26,7 @@ from src.services.validation.business_validator import (
     run_business_validators,
 )
 from src.services.validation.structural_validator import run_structural_validators
-from src.services.validation.validation_report import ValidationError, ValidationReport, Severity
+from src.services.validation.validation_report import Severity, ValidationError, ValidationReport
 
 __all__ = [
     "validate_graph",
@@ -79,7 +79,7 @@ def validate_graph_strict(data: dict[str, Any]) -> ValidationReport:
                 code="UNKNOWN_KEY",
                 message=f"Top-level key '{key}' is not recognised by the IR schema.",
                 severity=Severity.WARNING,
-                location=f"<root>",
+                location="<root>",
                 suggestion=f"Remove the key '{key}' or add it to the schema if it is intentional.",
             )
         )

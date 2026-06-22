@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from typing import Any
 
+
 def _check_graph_structure(data: dict) -> list[str]:
     """Minimal structural validation for graph documents."""
     errors: list[str] = []
@@ -23,6 +24,8 @@ def _check_graph_structure(data: dict) -> list[str]:
         if key not in data:
             errors.append(f"Missing required key: '{key}'")
     return errors
+
+
 from src.services.validation.validation_report import Severity, ValidationError, ValidationReport
 
 

@@ -9,16 +9,12 @@ Tests cover:
 
 from __future__ import annotations
 
-import time
-from datetime import datetime, timezone
-from typing import Any
-from unittest.mock import patch
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
 
 from src.services.codegen import (
-    AGENT_REGISTRY,
     PIPELINE_STAGE_ORDER,
     BaseAgentService,
     CodegenPlannerAgent,
@@ -48,7 +44,6 @@ from src.services.codegen.pipeline_models import (
     StageState,
 )
 
-
 # ======================================================================
 # Pipeline Models Tests
 # ======================================================================
@@ -60,9 +55,16 @@ class TestPipelineStage:
     def test_enum_values(self):
         """Should have all expected stages."""
         expected = [
-            "product_owner", "ner", "ontologist", "graph_engineer",
-            "template_engineer", "validator", "rewrite", "codegen_planner",
-            "git_integrator", "reviewer",
+            "product_owner",
+            "ner",
+            "ontologist",
+            "graph_engineer",
+            "template_engineer",
+            "validator",
+            "rewrite",
+            "codegen_planner",
+            "git_integrator",
+            "reviewer",
         ]
         values = [s.value for s in PipelineStage]
         assert values == expected
@@ -127,10 +129,12 @@ class TestPipelineState:
 
     def test_create_state(self):
         """Should create pipeline state with generated stages."""
-        config = PipelineConfig(stages=[
-            PipelineStage.PRODUCT_OWNER,
-            PipelineStage.NER,
-        ])
+        config = PipelineConfig(
+            stages=[
+                PipelineStage.PRODUCT_OWNER,
+                PipelineStage.NER,
+            ]
+        )
         state = PipelineState(
             pipeline_id="test-1",
             config=config,
@@ -144,10 +148,12 @@ class TestPipelineState:
 
     def test_stage_order_in_state(self):
         """Stages in state should match config order."""
-        config = PipelineConfig(stages=[
-            PipelineStage.REVIEWER,
-            PipelineStage.NER,
-        ])
+        config = PipelineConfig(
+            stages=[
+                PipelineStage.REVIEWER,
+                PipelineStage.NER,
+            ]
+        )
         state = PipelineState(
             pipeline_id="test-2",
             config=config,
@@ -221,8 +227,8 @@ class TestPipelineSummary:
             completed_stages=2,
             failed_stages=0,
             current_stage=PipelineStage.NER,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         assert summary.pipeline_id == "p-1"
         assert summary.status == PipelineStatus.RUNNING
@@ -256,10 +262,12 @@ class TestProductOwnerAgent:
     def test_process_with_context(self):
         """Should use context for ticket generation."""
         agent = ProductOwnerAgent()
-        result = agent.process({
-            "prompt": "Build login",
-            "context": {"priority": "high", "estimated_hours": 16},
-        })
+        result = agent.process(
+            {
+                "prompt": "Build login",
+                "context": {"priority": "high", "estimated_hours": 16},
+            }
+        )
         assert result["success"] is True
         assert result["tickets"][0]["priority"] == "high"
 
@@ -270,12 +278,14 @@ class TestNERAgent:
     def test_process_with_tickets(self):
         """Should extract entities and relations from tickets."""
         agent = NERAgent()
-        result = agent.process({
-            "tickets": [
-                {"id": "t-1", "title": "User Management"},
-                {"id": "t-2", "title": "Blog Posts"},
-            ],
-        })
+        result = agent.process(
+            {
+                "tickets": [
+                    {"id": "t-1", "title": "User Management"},
+                    {"id": "t-2", "title": "Blog Posts"},
+                ],
+            }
+        )
         assert result["success"] is True
         assert len(result["entities"]) >= 2
         assert len(result["relations"]) >= 1
@@ -294,15 +304,17 @@ class TestOntologistAgent:
     def test_process_with_entities(self):
         """Should build ontology from entities and relations."""
         agent = OntologistAgent()
-        result = agent.process({
-            "entities": [
-                {"id": "e1", "name": "User", "type": "concept"},
-                {"id": "e2", "name": "email", "type": "attribute"},
-            ],
-            "relations": [
-                {"source_id": "e1", "target_id": "e2", "relation": "HAS_ATTRIBUTE"},
-            ],
-        })
+        result = agent.process(
+            {
+                "entities": [
+                    {"id": "e1", "name": "User", "type": "concept"},
+                    {"id": "e2", "name": "email", "type": "attribute"},
+                ],
+                "relations": [
+                    {"source_id": "e1", "target_id": "e2", "relation": "HAS_ATTRIBUTE"},
+                ],
+            }
+        )
         assert result["success"] is True
         assert len(result["concepts"]) >= 1
 
@@ -319,17 +331,19 @@ class TestGraphEngineerAgent:
     def test_process_with_concepts(self):
         """Should build IR graph from concepts."""
         agent = GraphEngineerAgent()
-        result = agent.process({
-            "concepts": [
-                {
-                    "id": "c1",
-                    "name": "User",
-                    "attributes": [
-                        {"id": "a1", "name": "email", "data_type": "string"},
-                    ],
-                },
-            ],
-        })
+        result = agent.process(
+            {
+                "concepts": [
+                    {
+                        "id": "c1",
+                        "name": "User",
+                        "attributes": [
+                            {"id": "a1", "name": "email", "data_type": "string"},
+                        ],
+                    },
+                ],
+            }
+        )
         assert result["success"] is True
         assert len(result["nodes"]) >= 2  # concept + attribute
         assert len(result["edges"]) >= 1
@@ -347,13 +361,15 @@ class TestTemplateEngineerAgent:
     def test_process_with_nodes(self):
         """Should generate files from graph nodes."""
         agent = TemplateEngineerAgent()
-        result = agent.process({
-            "nodes": [
-                {"id": "n1", "name": "User", "kind": "concept"},
-                {"id": "n2", "name": "email", "kind": "attribute"},
-            ],
-            "edges": [],
-        })
+        result = agent.process(
+            {
+                "nodes": [
+                    {"id": "n1", "name": "User", "kind": "concept"},
+                    {"id": "n2", "name": "email", "kind": "attribute"},
+                ],
+                "edges": [],
+            }
+        )
         assert result["success"] is True
         assert len(result["files"]) >= 2  # model + api route
 
@@ -370,28 +386,32 @@ class TestValidatorAgent:
     def test_validate_valid_graph(self):
         """Should pass validation for clean graph."""
         agent = ValidatorAgent()
-        result = agent.process({
-            "nodes": [
-                {"id": "n1", "name": "User", "kind": "concept"},
-            ],
-            "edges": [],
-            "files": [
-                {"path": "models/user.py", "content": "class User: pass"},
-            ],
-        })
+        result = agent.process(
+            {
+                "nodes": [
+                    {"id": "n1", "name": "User", "kind": "concept"},
+                ],
+                "edges": [],
+                "files": [
+                    {"path": "models/user.py", "content": "class User: pass"},
+                ],
+            }
+        )
         assert result["success"] is True
         assert result["is_valid"] is True
 
     def test_validate_missing_name(self):
         """Should report error for node without name."""
         agent = ValidatorAgent()
-        result = agent.process({
-            "nodes": [
-                {"id": "n1", "kind": "concept"},  # missing name
-            ],
-            "edges": [],
-            "files": [],
-        })
+        result = agent.process(
+            {
+                "nodes": [
+                    {"id": "n1", "kind": "concept"},  # missing name
+                ],
+                "edges": [],
+                "files": [],
+            }
+        )
         assert result["success"] is True
         assert result["is_valid"] is False
         assert len(result["errors"]) >= 1
@@ -399,13 +419,15 @@ class TestValidatorAgent:
     def test_validate_bad_edge_reference(self):
         """Should report error for edge referencing unknown node."""
         agent = ValidatorAgent()
-        result = agent.process({
-            "nodes": [{"id": "n1", "name": "User", "kind": "concept"}],
-            "edges": [
-                {"source_id": "n1", "target_id": "nonexistent"},
-            ],
-            "files": [],
-        })
+        result = agent.process(
+            {
+                "nodes": [{"id": "n1", "name": "User", "kind": "concept"}],
+                "edges": [
+                    {"source_id": "n1", "target_id": "nonexistent"},
+                ],
+                "files": [],
+            }
+        )
         assert result["success"] is True
         assert result["is_valid"] is False
 
@@ -416,12 +438,14 @@ class TestRewriteAgent:
     def test_rewrite_with_nodes(self):
         """Should apply transformations to nodes."""
         agent = RewriteAgent()
-        result = agent.process({
-            "nodes": [
-                {"id": "n1", "name": "user_management", "kind": "concept", "properties": {}},
-            ],
-            "edges": [],
-        })
+        result = agent.process(
+            {
+                "nodes": [
+                    {"id": "n1", "name": "user_management", "kind": "concept", "properties": {}},
+                ],
+                "edges": [],
+            }
+        )
         assert result["success"] is True
         assert len(result["nodes"]) == 1
         assert len(result["transformations"]) >= 1
@@ -439,11 +463,13 @@ class TestCodegenPlannerAgent:
     def test_process_with_nodes(self):
         """Should create generation plan from graph nodes."""
         agent = CodegenPlannerAgent()
-        result = agent.process({
-            "nodes": [
-                {"id": "n1", "name": "User", "kind": "concept"},
-            ],
-        })
+        result = agent.process(
+            {
+                "nodes": [
+                    {"id": "n1", "name": "User", "kind": "concept"},
+                ],
+            }
+        )
         assert result["success"] is True
         assert result["plan"] is not None
         assert len(result["plan"]["steps"]) >= 3  # model + api + sql
@@ -461,11 +487,13 @@ class TestGitIntegratorAgent:
     def test_process_with_files(self):
         """Should create commit summary from files."""
         agent = GitIntegratorAgent()
-        result = agent.process({
-            "files": [
-                {"path": "models/user.py", "content": "class User: pass"},
-            ],
-        })
+        result = agent.process(
+            {
+                "files": [
+                    {"path": "models/user.py", "content": "class User: pass"},
+                ],
+            }
+        )
         assert result["success"] is True
         assert result["commit_summary"] is not None
         assert result["commit_summary"]["stats"]["files_changed"] == 1
@@ -483,29 +511,33 @@ class TestReviewerAgent:
     def test_review_all_good(self):
         """Should approve when all artifacts are valid."""
         agent = ReviewerAgent()
-        result = agent.process({
-            "tickets": [{"id": "t-1", "title": "Test", "acceptance_criteria": ["ok"]}],
-            "concepts": [{"id": "c1", "name": "Test"}],
-            "nodes": [{"id": "n1", "name": "Test", "kind": "concept"}],
-            "edges": [],
-            "files": [{"path": "test.py", "content": "content"}],
-            "plan": {"steps": [{"name": "s1"}]},
-            "commit_summary": {"branch": "main"},
-            "validation": {"is_valid": True, "errors": []},
-        })
+        result = agent.process(
+            {
+                "tickets": [{"id": "t-1", "title": "Test", "acceptance_criteria": ["ok"]}],
+                "concepts": [{"id": "c1", "name": "Test"}],
+                "nodes": [{"id": "n1", "name": "Test", "kind": "concept"}],
+                "edges": [],
+                "files": [{"path": "test.py", "content": "content"}],
+                "plan": {"steps": [{"name": "s1"}]},
+                "commit_summary": {"branch": "main"},
+                "validation": {"is_valid": True, "errors": []},
+            }
+        )
         assert result["success"] is True
         assert result["is_approved"] is True
 
     def test_review_with_issues(self):
         """Should flag issues when artifacts are missing."""
         agent = ReviewerAgent()
-        result = agent.process({
-            "tickets": [],
-            "concepts": [],
-            "nodes": [],
-            "edges": [],
-            "files": [],
-        })
+        result = agent.process(
+            {
+                "tickets": [],
+                "concepts": [],
+                "nodes": [],
+                "edges": [],
+                "files": [],
+            }
+        )
         assert result["success"] is True
         assert result["is_approved"] is False
         assert len(result["issues"]) >= 1
@@ -730,10 +762,12 @@ class TestPipelineOrchestrator:
         """Stage input should include outputs from previous stages."""
         orch = PipelineOrchestrator()
         state = orch.create_pipeline(
-            config=PipelineConfig(stages=[
-                PipelineStage.PRODUCT_OWNER,
-                PipelineStage.NER,
-            ]),
+            config=PipelineConfig(
+                stages=[
+                    PipelineStage.PRODUCT_OWNER,
+                    PipelineStage.NER,
+                ]
+            ),
             metadata={"prompt": "Build an app"},
         )
         result = orch.run_pipeline(state.pipeline_id)
@@ -763,7 +797,11 @@ class TestPipelineOrchestratorErrorStrategies:
             assert result.status == PipelineStatus.FAILED
             # NER should be pending or skipped
             ner_state = result.stages[PipelineStage.NER]
-            assert ner_state.status in (StageStatus.PENDING, StageStatus.CANCELLED, StageStatus.FAILED)
+            assert ner_state.status in (
+                StageStatus.PENDING,
+                StageStatus.CANCELLED,
+                StageStatus.FAILED,
+            )
 
     def test_skip_on_failure(self):
         """SKIP strategy should continue past failures."""
@@ -779,7 +817,6 @@ class TestPipelineOrchestratorErrorStrategies:
         result = orch.run_pipeline(state.pipeline_id)
         # All stages should complete since prompt is provided
         assert result.status == PipelineStatus.COMPLETED
-
 
     def test_retry_strategy(self):
         """RETRY strategy should retry failed stages."""
@@ -807,9 +844,12 @@ class TestCodegenAPI:
 
     def test_create_pipeline(self, client: TestClient):
         """POST /api/codegen/pipeline should create a pipeline."""
-        resp = client.post("/api/codegen/pipeline", json={
-            "prompt": "Build a blog system",
-        })
+        resp = client.post(
+            "/api/codegen/pipeline",
+            json={
+                "prompt": "Build a blog system",
+            },
+        )
         assert resp.status_code == 201
         data = resp.json()
         assert "pipeline_id" in data
@@ -818,47 +858,62 @@ class TestCodegenAPI:
 
     def test_create_and_run_pipeline(self, client: TestClient):
         """POST /api/codegen/pipeline with auto_run should execute."""
-        resp = client.post("/api/codegen/pipeline", json={
-            "prompt": "Build a blog system",
-            "auto_run": True,
-        })
+        resp = client.post(
+            "/api/codegen/pipeline",
+            json={
+                "prompt": "Build a blog system",
+                "auto_run": True,
+            },
+        )
         assert resp.status_code == 201
         data = resp.json()
         assert data["status"] in ("completed", "running", "failed")
 
     def test_create_pipeline_custom_stages(self, client: TestClient):
         """POST /api/codegen/pipeline with custom stages."""
-        resp = client.post("/api/codegen/pipeline", json={
-            "prompt": "Build API",
-            "stages": ["product_owner", "ner"],
-            "error_strategy": "skip",
-        })
+        resp = client.post(
+            "/api/codegen/pipeline",
+            json={
+                "prompt": "Build API",
+                "stages": ["product_owner", "ner"],
+                "error_strategy": "skip",
+            },
+        )
         assert resp.status_code == 201
         data = resp.json()
         assert data["stage_count"] == 2
 
     def test_create_pipeline_invalid_stage(self, client: TestClient):
         """POST /api/codegen/pipeline with invalid stage should 400."""
-        resp = client.post("/api/codegen/pipeline", json={
-            "prompt": "test",
-            "stages": ["invalid_stage"],
-        })
+        resp = client.post(
+            "/api/codegen/pipeline",
+            json={
+                "prompt": "test",
+                "stages": ["invalid_stage"],
+            },
+        )
         assert resp.status_code == 400
 
     def test_create_pipeline_invalid_error_strategy(self, client: TestClient):
         """POST /api/codegen/pipeline with invalid error_strategy should 400."""
-        resp = client.post("/api/codegen/pipeline", json={
-            "prompt": "test",
-            "error_strategy": "invalid",
-        })
+        resp = client.post(
+            "/api/codegen/pipeline",
+            json={
+                "prompt": "test",
+                "error_strategy": "invalid",
+            },
+        )
         assert resp.status_code == 400
 
     def test_get_pipeline(self, client: TestClient):
         """GET /api/codegen/pipeline/{id} should return pipeline state."""
         # Create first
-        create_resp = client.post("/api/codegen/pipeline", json={
-            "prompt": "Build X",
-        })
+        create_resp = client.post(
+            "/api/codegen/pipeline",
+            json={
+                "prompt": "Build X",
+            },
+        )
         pipeline_id = create_resp.json()["pipeline_id"]
 
         # Get
@@ -918,10 +973,13 @@ class TestCodegenAPI:
     def test_retry_stage(self, client: TestClient):
         """POST /api/codegen/pipeline/{id}/retry/{stage} should retry."""
         # Create a pipeline and run it
-        create_resp = client.post("/api/codegen/pipeline", json={
-            "prompt": "Build X",
-            "auto_run": True,
-        })
+        create_resp = client.post(
+            "/api/codegen/pipeline",
+            json={
+                "prompt": "Build X",
+                "auto_run": True,
+            },
+        )
         pipeline_id = create_resp.json()["pipeline_id"]
 
         # Get state to find a failed stage (if any)
@@ -932,9 +990,7 @@ class TestCodegenAPI:
         failed_stages = [s for s in state["stages"] if s["status"] == "failed"]
         if failed_stages:
             stage_name = failed_stages[0]["stage"]
-            resp = client.post(
-                f"/api/codegen/pipeline/{pipeline_id}/retry/{stage_name}"
-            )
+            resp = client.post(f"/api/codegen/pipeline/{pipeline_id}/retry/{stage_name}")
             # Could be 200 or 422 depending on state
             assert resp.status_code in (200, 422)
 
@@ -944,18 +1000,19 @@ class TestCodegenAPI:
         create_resp = client.post("/api/codegen/pipeline", json={"prompt": "X"})
         pipeline_id = create_resp.json()["pipeline_id"]
 
-        resp = client.post(
-            f"/api/codegen/pipeline/{pipeline_id}/retry/invalid_stage"
-        )
+        resp = client.post(f"/api/codegen/pipeline/{pipeline_id}/retry/invalid_stage")
         assert resp.status_code == 400
 
     def test_retry_stage_not_failed(self, client: TestClient):
         """POST retry on non-failed stage should 422."""
         # Create and run pipeline
-        create_resp = client.post("/api/codegen/pipeline", json={
-            "prompt": "Build X",
-            "auto_run": True,
-        })
+        create_resp = client.post(
+            "/api/codegen/pipeline",
+            json={
+                "prompt": "Build X",
+                "auto_run": True,
+            },
+        )
         pipeline_id = create_resp.json()["pipeline_id"]
 
         # Get a completed stage and try to retry it
