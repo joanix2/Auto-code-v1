@@ -290,7 +290,6 @@ export const GraphViewer: React.FC<GraphViewerProps> = ({
     onNodeDoubleClick,
     onEdgeClick,
     onBackgroundClick,
-    isEdgeModeActive,
     edgeDragState,
     onCreateEdge,
     getAvailableEdgeTypes,
