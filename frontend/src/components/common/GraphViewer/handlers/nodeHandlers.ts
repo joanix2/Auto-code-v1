@@ -1,5 +1,6 @@
+import React from "react";
 import { GraphNode } from "../types";
-import type { GraphMode } from "../hooks/useGraphState";
+import type { GraphMode } from "@/lib/graph-modes";
 import { M3EdgeType } from "@/types/dsl-config";
 
 interface NodeClickHandlerParams {

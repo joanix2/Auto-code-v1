@@ -1,5 +1,5 @@
 import { GraphNode } from "../types";
-import type { GraphMode } from "../hooks/useGraphState";
+import type { GraphMode } from "@/lib/graph-modes";
 
 interface BackgroundHandlerParams {
   mode: GraphMode;

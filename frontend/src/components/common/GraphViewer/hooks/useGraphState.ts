@@ -1,8 +1,7 @@
 import { useState, useRef } from "react";
 import * as d3 from "d3";
 import { GraphNode, GraphEdge } from "../types";
-
-export type GraphMode = "move" | "node" | "edge" | "delete";
+import type { GraphMode } from "@/lib/graph-modes";
 
 export function useGraphState() {
   const [transform, setTransform] = useState(d3.zoomIdentity);
