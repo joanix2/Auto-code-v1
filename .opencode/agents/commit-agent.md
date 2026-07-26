@@ -2,8 +2,8 @@
 description: "Agent de commit automatique : corrige le code (ruff fix + format), vérifie le diagramme, et guide le commit."
 mode: subagent
 permission:
-  bash: true
-  edit: true
+  bash: allow
+  edit: allow
 ---
 
 # Commit Agent

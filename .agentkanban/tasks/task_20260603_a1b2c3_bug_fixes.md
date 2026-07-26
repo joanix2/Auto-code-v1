@@ -20,3 +20,20 @@ Sous-tickets (segmentation) :
 
 Bugs restants :
 - [ ] Tickets en attente de validation passent en open (idem pour en cours)
+
+### user
+
+fait le bug fix P0
+
+### agent
+
+Correctif terminé. Les permissions de `.opencode/agents/arch-diagram.md`
+utilisent désormais `allow` au lieu de `true`. `opencode --help` et
+`opencode agent list` terminent avec un code de sortie 0 ; la configuration et
+la liste complète des agents sont donc chargées sans erreur de schéma.
+
+La convention a été consignée dans `TECHNICAL.md` et l'itération correspondante
+du TODO est entièrement cochée. La modification préexistante de
+`.opencode/agents/commit-agent.md` n'a pas été touchée.
+
+### user

@@ -57,7 +57,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${VITE_API_URL:-http://localhost:8000/api}
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
     container_name: auto-code-frontend
     ports:
       - "3000:80"

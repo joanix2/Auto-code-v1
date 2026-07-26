@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { API_URL, API_ENDPOINTS } from "@/config/env";
 
 export function Login() {
   const { isAuthenticated, loading, refreshUser } = useAuth();
@@ -48,9 +49,7 @@ export function Login() {
   }
 
   const handleGitHubLogin = () => {
-    // Redirect to GitHub OAuth endpoint
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-    window.location.href = `${apiUrl}/api/auth/github/login`;
+    window.location.href = `${API_URL}${API_ENDPOINTS.GITHUB_LOGIN}`;
   };
 
   if (loading || isProcessing) {

@@ -2,8 +2,8 @@
 description: "Maintient la correspondance entre le diagramme Mermaid (architecture_diagram.md) et le code. Vérifie que les classes, relations, et cardinalités du diagramme reflètent l'implémentation réelle."
 mode: subagent
 permission:
-  bash: true
-  edit: true
+  bash: allow
+  edit: allow
 ---
 
 # Agent de cohérence Architecture ↔ Diagramme
